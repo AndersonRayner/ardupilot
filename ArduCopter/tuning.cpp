@@ -208,5 +208,9 @@ void Copter::tuning() {
      case TUNING_RATE_YAW_FILT:
          g.pid_rate_yaw.filt_hz(tuning_value);
          break;
+
+     case TUNING_PITCH_TRIM:
+         // Modifies pitch_in in Copter::get_pilot_desired_lean_angles() in Attitude.cpp
+         break;
     }
 }

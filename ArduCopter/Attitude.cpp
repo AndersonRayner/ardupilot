@@ -35,6 +35,14 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     // do lateral tilt to euler roll conversion
     roll_in = (18000/M_PI_F) * atanf(cosf(pitch_in*(M_PI_F/18000))*tanf(roll_in*(M_PI_F/18000)));
 
+    // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
+    // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [0,1000].
+    if (g.radio_tuning==TUNING_PITCH_TRIM) {
+        float pitch_offset;
+        pitch_offset = (g.radio_tuning_high-g.radio_tuning_low)/1000*g.rc_6.control_in + g.radio_tuning_low;
+        pitch_in = pitch_in - pitch_offset;
+    }
+
     // return
     roll_out = roll_in;
     pitch_out = pitch_in;
