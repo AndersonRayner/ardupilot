@@ -129,7 +129,7 @@ void AC_AttitudeControl::angle_ef_roll_pitch_rate_ef_yaw_smooth(float roll_angle
         _rate_ef_desired.x = 0;
     }
     // constrain earth-frame angle targets
-    _angle_ef_target.x = constrain_float(_angle_ef_target.x, -_aparm.angle_max, _aparm.angle_max);
+    // _angle_ef_target.x = constrain_float(_angle_ef_target.x, -_aparm.angle_max, _aparm.angle_max);
 
     // if accel limiting and feed forward enabled
     if ((_accel_pitch_max > 0.0f) && _rate_bf_ff_enabled) {
@@ -152,7 +152,7 @@ void AC_AttitudeControl::angle_ef_roll_pitch_rate_ef_yaw_smooth(float roll_angle
         _rate_ef_desired.y = 0;
     }
     // constrain earth-frame angle targets
-    _angle_ef_target.y = constrain_float(_angle_ef_target.y, -_aparm.angle_max, _aparm.angle_max);
+    // _angle_ef_target.y = constrain_float(_angle_ef_target.y, -_aparm.angle_max, _aparm.angle_max);
 
     if (_accel_yaw_max > 0.0f) {
         // set earth-frame feed forward rate for yaw
