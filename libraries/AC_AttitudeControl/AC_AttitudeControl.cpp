@@ -141,7 +141,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw_smooth(floa
         _att_target_euler_rad.x = euler_roll_angle_rad;
         _att_target_euler_rate_rads.x = 0;
     }
-    _att_target_euler_rad.x = constrain_float(_att_target_euler_rad.x, -get_tilt_limit_rad(), get_tilt_limit_rad());
+    //_att_target_euler_rad.x = constrain_float(_att_target_euler_rad.x, -get_tilt_limit_rad(), get_tilt_limit_rad());
 
     if ((get_accel_pitch_max_radss() > 0.0f) && _rate_bf_ff_enabled) {
         // When pitch acceleration limiting and feedforward are enabled, the sqrt controller is used to compute an euler pitch-axis
@@ -159,7 +159,7 @@ void AC_AttitudeControl::input_euler_angle_roll_pitch_euler_rate_yaw_smooth(floa
         _att_target_euler_rad.y = euler_pitch_angle_rad;
         _att_target_euler_rate_rads.y = 0;
     }
-    _att_target_euler_rad.y = constrain_float(_att_target_euler_rad.y, -get_tilt_limit_rad(), get_tilt_limit_rad());
+    //_att_target_euler_rad.y = constrain_float(_att_target_euler_rad.y, -get_tilt_limit_rad(), get_tilt_limit_rad());
 
     if (get_accel_yaw_max_radss() > 0.0f) {
         // When yaw acceleration limiting is enabled, the yaw input shaper constrains angular acceleration about the yaw axis, slewing
