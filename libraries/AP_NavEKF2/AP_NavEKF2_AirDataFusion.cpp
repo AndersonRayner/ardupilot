@@ -121,7 +121,7 @@ void NavEKF2_core::FuseAirspeed()
         innovVtas = VtasPred - tasDataDelayed.tas;
 
         // calculate the innovation consistency test ratio
-        tasTestRatio = sq(innovVtas) / (sq(frontend->_tasInnovGate) * varInnovVtas);
+        tasTestRatio = sq(innovVtas) / (sq(max(0.01f * (float)frontend->_tasInnovGate, 1.0f)) * varInnovVtas);
 
         // fail if the ratio is > 1, but don't fail if bad IMU data
         tasHealth = ((tasTestRatio < 1.0f) || badIMUdata);
@@ -215,8 +215,6 @@ void NavEKF2_core::SelectTasFusion()
     tasDataWaiting = (statesInitialised && !inhibitWindStates && newDataTas);
     if (tasDataWaiting)
     {
-        // ensure that the covariance prediction is up to date before fusing data
-        if (!covPredStep) CovariancePrediction();
         FuseAirspeed();
         prevTasStep_ms = imuSampleTime_ms;
         tasDataWaiting = false;
@@ -285,8 +283,6 @@ void NavEKF2_core::SelectBetaFusion()
     bool f_feasible = (assume_zero_sideslip() && !inhibitWindStates);
     // use synthetic sideslip fusion if feasible, required and enough time has lapsed since the last fusion
     if (f_feasible && f_required && f_timeTrigger) {
-        // ensure that the covariance prediction is up to date before fusing data
-        if (!covPredStep) CovariancePrediction();
         FuseSideslip();
         prevBetaStep_ms = imuSampleTime_ms;
     }

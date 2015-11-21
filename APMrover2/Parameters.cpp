@@ -496,6 +496,10 @@ const AP_Param::Info Rover::var_info[] = {
     GOBJECT(camera_mount,           "MNT",  AP_Mount),
 #endif
 
+    // @Group: ARMING_
+    // @Path: ../libraries/AP_Arming/AP_Arming.cpp
+    GOBJECT(arming,                 "ARMING_", AP_Arming),
+
     // @Group: BATT
     // @Path: ../libraries/AP_BattMonitor/AP_BattMonitor.cpp
     GOBJECT(battery,                "BATT", AP_BattMonitor),
@@ -559,7 +563,7 @@ void Rover::load_parameters(void)
 {
     if (!AP_Param::check_var_info()) {
         cliSerial->printf("Bad var table\n");
-        hal.scheduler->panic("Bad var table");
+        AP_HAL::panic("Bad var table");
     }
 
 	if (!g.format_version.load() ||

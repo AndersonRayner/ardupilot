@@ -175,9 +175,9 @@ bool AP_Arming::ins_checks(bool report)
                     threshold *= 3;
                 }
                 if (vec_diff.length() <= threshold) {
-                    last_accel_pass_ms[i] = hal.scheduler->millis();
+                    last_accel_pass_ms[i] = AP_HAL::millis();
                 }
-                if (hal.scheduler->millis() - last_accel_pass_ms[i] > 10000) {
+                if (AP_HAL::millis() - last_accel_pass_ms[i] > 10000) {
                     if (report) {
                         GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "PreArm: inconsistent Accelerometers");
                     }
@@ -196,9 +196,9 @@ bool AP_Arming::ins_checks(bool report)
                 // allow for up to 5 degrees/s difference. Pass if its
                 // been OK in last 10 seconds
                 if (vec_diff.length() <= radians(5)) {
-                    last_gyro_pass_ms[i] = hal.scheduler->millis();
+                    last_gyro_pass_ms[i] = AP_HAL::millis();
                 }
-                if (hal.scheduler->millis() - last_gyro_pass_ms[i] > 10000) {
+                if (AP_HAL::millis() - last_gyro_pass_ms[i] > 10000) {
                     if (report) {
                         GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "PreArm: inconsistent gyros");
                     }
@@ -398,7 +398,7 @@ bool AP_Arming::arm(uint8_t method)
     if (checks_to_perform == ARMING_CHECK_NONE) {
         armed = true;
         arming_method = NONE;
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "Throttle armed!");
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "Throttle armed!");
         return true;
     }
 
@@ -406,7 +406,7 @@ bool AP_Arming::arm(uint8_t method)
         armed = true;
         arming_method = method;
 
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "Throttle armed!");
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "Throttle armed!");
 
         //TODO: Log motor arming to the dataflash
         //Can't do this from this class until there is a unified logging library
@@ -427,7 +427,7 @@ bool AP_Arming::disarm()
     }
     armed = false;
 
-    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "Throttle disarmed!");
+    GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_INFO, "Throttle disarmed!");
 
     //TODO: Log motor disarming to the dataflash
     //Can't do this from this class until there is a unified logging library.

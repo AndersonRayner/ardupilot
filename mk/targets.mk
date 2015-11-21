@@ -38,6 +38,7 @@ pxf: all
 
 bebop: HAL_BOARD = HAL_BOARD_LINUX
 bebop: TOOLCHAIN = BBONE
+bebop: LDFLAGS += "-static"
 bebop: all
 
 minlure: HAL_BOARD = HAL_BOARD_LINUX
@@ -74,6 +75,10 @@ empty: all
 # support debug build
 %-debug: OPTFLAGS = -g -O0
 
+# support address sanitiser
+%-asan: OPTFLAGS = -g -O0 -fsanitize=address -fno-omit-frame-pointer
+%-asan: LDFLAGS += -fsanitize=address
+
 # cope with -nologging
 %-nologging: EXTRAFLAGS += "-DLOGGING_ENABLED=DISABLED "
 
@@ -94,6 +99,7 @@ endef
 define board_template
 $(1)-hil : $(1)
 $(1)-debug : $(1)
+$(1)-asan : $(1)
 $(1)-hilsensors : $(1)
 endef
 
