@@ -13,6 +13,7 @@ float Copter::get_smoothing_gain()
 // returns desired angle in centi-degrees
 void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float &roll_out, float &pitch_out, float angle_max)
 {
+    static int counter;
     // sanity check angle max parameter
     aparm.angle_max = constrain_int16(aparm.angle_max,1000,8000);
 
@@ -33,16 +34,21 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     }
 
     // do lateral tilt to euler roll conversion
+    // not sure if I need to delete this.  Will have to do some testing
     roll_in = (18000/M_PI_F) * atanf(cosf(pitch_in*(M_PI_F/18000))*tanf(roll_in*(M_PI_F/18000)));
 
     // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
     // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [0,1000].
-    if (g.radio_tuning==TUNING_PITCH_TRIM) {
+  //  if (g.radio_tuning==TUNING_PITCH_TRIM) {
         float pitch_offset;
        // pitch_offset = (g.radio_tuning_high-g.radio_tuning_low)/1000*g.rc_6.control_in + g.radio_tuning_low;
         pitch_offset = g.rc_6.control_in * 9.0f;
+
+        counter++;
+        if (counter == 200){hal.console->printf("pitch_offset : %f\n",pitch_offset); counter = 0;}
+
         pitch_in = pitch_in - pitch_offset;
-    }
+    //}
 
     // return
     roll_out = roll_in;
