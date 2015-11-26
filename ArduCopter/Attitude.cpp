@@ -39,7 +39,8 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [0,1000].
     if (g.radio_tuning==TUNING_PITCH_TRIM) {
         float pitch_offset;
-        pitch_offset = (g.radio_tuning_high-g.radio_tuning_low)/1000*g.rc_6.control_in + g.radio_tuning_low;
+       // pitch_offset = (g.radio_tuning_high-g.radio_tuning_low)/1000*g.rc_6.control_in + g.radio_tuning_low;
+        pitch_offset = g.rc_6.control_in * 9.0f;
         pitch_in = pitch_in - pitch_offset;
     }
 
