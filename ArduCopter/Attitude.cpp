@@ -39,16 +39,26 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
 
     // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
     // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [0,1000].
-  //  if (g.radio_tuning==TUNING_PITCH_TRIM) {
+    if (g.radio_tuning==TUNING_PITCH_TRIM) {
         float pitch_offset;
-       // pitch_offset = (g.radio_tuning_high-g.radio_tuning_low)/1000*g.rc_6.control_in + g.radio_tuning_low;
-        pitch_offset = g.rc_6.control_in * 9.0f;
+        pitch_offset = (float)g.rc_6.control_in; // Turns out some funky stuff gets done to modify g.rc_6.control_in to make it scale between low nad high.
+        //pitch_offset = g.rc_6.control_in * 9.0f; // Marc's way.  Won't work unless TUNE == 0.  Default to go back to if things aren't working right
 
+        // Debugging stuff
+        /*
         counter++;
-        if (counter == 200){hal.console->printf("pitch_offset : %f\n",pitch_offset); counter = 0;}
+        if (counter == 200)
+        {
+            hal.console->printf("tune_low     : %.0f     ",(float)g.radio_tuning_low);
+            hal.console->printf("tune_high    : %.0f     ",(float)g.radio_tuning_high);
+            hal.console->printf("rc6    : %.0f     ",(float)g.rc_6.control_in);
+            hal.console->printf("pitch_offset : %f deg\n",pitch_offset/100.0f);
+            counter = 0;
+        }*/
 
+        // Apply pitch change
         pitch_in = pitch_in - pitch_offset;
-    //}
+    }
 
     // return
     roll_out = roll_in;
