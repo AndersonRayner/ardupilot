@@ -3,6 +3,7 @@
 #include "AC_AttitudeControl.h"
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Math/AP_Math.h>
+#include <./../ArduCopter/Copter.h> // so I can access the HAL.  Will get rid of after debugging
 
 // table of user settable parameters
 const AP_Param::GroupInfo AC_AttitudeControl::var_info[] = {
@@ -190,6 +191,131 @@ void AC_AttitudeControl::angle_ef_roll_pitch_rate_ef_yaw_smooth(float roll_angle
 
     // body-frame to motor outputs should be called separately
 }
+
+
+// angle_ef_roll_pitch_rate_ef_yaw_quat - attempts to maintain a roll and pitch angle and yaw rate (all earth frame) using quaternions
+void AC_AttitudeControl::angle_ef_roll_pitch_rate_ef_yaw_quat(float roll_angle_ef, float pitch_angle_ef, float yaw_rate_ef)
+{
+    Vector3f    angle_ef_error;         // earth frame angle errors
+
+    // set earth-frame angle targets for roll and pitch
+  //  _angle_ef_target.x = constrain_float(roll_angle_ef, -_aparm.angle_max, _aparm.angle_max);
+   // _angle_ef_target.y = constrain_float(pitch_angle_ef, -_aparm.angle_max, _aparm.angle_max);
+    _angle_ef_target.x = roll_angle_ef;
+    _angle_ef_target.y = pitch_angle_ef;
+
+    // set earth-frame angle targets for yaw
+    _angle_ef_target.z = _ahrs.yaw_sensor + yaw_rate_ef * _dt;   // Basically current yaw angle + the yaw_rate*dt
+
+    /*if (_accel_yaw_max > 0.0f) {
+        // set earth-frame feed forward rate for yaw
+        float rate_change_limit = _accel_yaw_max * _dt;
+
+        float rate_change = yaw_rate_ef - _rate_ef_desired.z;
+        rate_change = constrain_float(rate_change, -rate_change_limit, rate_change_limit);
+        _rate_ef_desired.z += rate_change;
+        // calculate yaw target angle and angle error
+        update_ef_yaw_angle_and_error(_rate_ef_desired.z, angle_ef_error, AC_ATTITUDE_RATE_STAB_YAW_OVERSHOOT_ANGLE_MAX);
+    } else {
+        // set yaw feed forward to zero
+        _rate_ef_desired.z = yaw_rate_ef;
+        // calculate yaw target angle and angle error
+        update_ef_yaw_angle_and_error(_rate_ef_desired.z, angle_ef_error, AC_ATTITUDE_RATE_STAB_YAW_OVERSHOOT_ANGLE_MAX);
+    }*/
+
+    // Calculate earth-frame angle errors (Euler) - I think yaw is broken
+    angle_ef_error.x = wrap_180_cd_float(_angle_ef_target.x - _ahrs.roll_sensor);
+    angle_ef_error.y = wrap_180_cd_float(_angle_ef_target.y - _ahrs.pitch_sensor);
+    angle_ef_error.z = wrap_180_cd_float(_angle_ef_target.z - _ahrs.yaw_sensor);
+
+    // Calculate earth-frame angle errors (Quaternion)
+    // This doesn't appear to give a stable enough estimate for the roll, pitch and yaw.
+    // Calculate current quaternion
+    float q0, q1, q2, q3;
+    q0 =  cosf(_ahrs.yaw_sensor/DEGX100/2.0f)*cosf(_ahrs.pitch_sensor/DEGX100/2.0f)*cosf(_ahrs.roll_sensor/DEGX100/2.0f)
+        + sinf(_ahrs.yaw_sensor/DEGX100/2.0f)*sinf(_ahrs.pitch_sensor/DEGX100/2.0f)*sinf(_ahrs.roll_sensor/DEGX100/2.0f);
+    q1 =  cosf(_ahrs.yaw_sensor/DEGX100/2.0f)*cosf(_ahrs.pitch_sensor/DEGX100/2.0f)*sinf(_ahrs.roll_sensor/DEGX100/2.0f)
+        - sinf(_ahrs.yaw_sensor/DEGX100/2.0f)*sinf(_ahrs.pitch_sensor/DEGX100/2.0f)*cosf(_ahrs.roll_sensor/DEGX100/2.0f);
+    q2 =  cosf(_ahrs.yaw_sensor/DEGX100/2.0f)*sinf(_ahrs.pitch_sensor/DEGX100/2.0f)*cosf(_ahrs.roll_sensor/DEGX100/2.0f)
+        + sinf(_ahrs.yaw_sensor/DEGX100/2.0f)*cosf(_ahrs.pitch_sensor/DEGX100/2.0f)*sinf(_ahrs.roll_sensor/DEGX100/2.0f);
+    q3 = -cosf(_ahrs.yaw_sensor/DEGX100/2.0f)*sinf(_ahrs.pitch_sensor/DEGX100/2.0f)*sinf(_ahrs.roll_sensor/DEGX100/2.0f)
+        + sinf(_ahrs.yaw_sensor/DEGX100/2.0f)*cosf(_ahrs.pitch_sensor/DEGX100/2.0f)*cosf(_ahrs.roll_sensor/DEGX100/2.0f);
+
+    // Calculate target quaternion
+    float q0_c, q1_c, q2_c, q3_c;
+    q0_c =  cosf(_angle_ef_target.z/DEGX100/2.0f)*cosf(_angle_ef_target.y/DEGX100/2.0f)*cosf(_angle_ef_target.x/DEGX100/2.0f)
+          + sinf(_angle_ef_target.z/DEGX100/2.0f)*sinf(_angle_ef_target.y/DEGX100/2.0f)*sinf(_angle_ef_target.x/DEGX100/2.0f);
+    q1_c =  cosf(_angle_ef_target.z/DEGX100/2.0f)*cosf(_angle_ef_target.y/DEGX100/2.0f)*sinf(_angle_ef_target.x/DEGX100/2.0f)
+          - sinf(_angle_ef_target.z/DEGX100/2.0f)*sinf(_angle_ef_target.y/DEGX100/2.0f)*cosf(_angle_ef_target.x/DEGX100/2.0f);
+    q2_c =  cosf(_angle_ef_target.z/DEGX100/2.0f)*sinf(_angle_ef_target.y/DEGX100/2.0f)*cosf(_angle_ef_target.x/DEGX100/2.0f)
+          + sinf(_angle_ef_target.z/DEGX100/2.0f)*cosf(_angle_ef_target.y/DEGX100/2.0f)*sinf(_angle_ef_target.x/DEGX100/2.0f);
+    q3_c = -cosf(_angle_ef_target.z/DEGX100/2.0f)*sinf(_angle_ef_target.y/DEGX100/2.0f)*sinf(_angle_ef_target.x/DEGX100/2.0f)
+          + sinf(_angle_ef_target.z/DEGX100/2.0f)*cosf(_angle_ef_target.y/DEGX100/2.0f)*cosf(_angle_ef_target.x/DEGX100/2.0f);
+
+    // Calculate current quaternion conjugate
+    float q0_star, q1_star, q2_star, q3_star;
+    q0_star =  q0;
+    q1_star = -q1;
+    q2_star = -q2;
+    q3_star = -q3;
+
+    // Calculate quaternion multiplication ( q_star*q_c )
+    float q0_e, q1_e, q2_e, q3_e;
+    q0_e = q0_star*q0_c - q1_star*q1_c - q2_star*q2_c - q3_star*q3_c;
+    q1_e = q0_star*q1_c + q1_star*q0_c + q2_star*q3_c - q3_star*q2_c;
+    q2_e = q0_star*q2_c - q1_star*q3_c + q2_star*q0_c + q3_star*q1_c;
+    q3_e = q0_star*q3_c + q1_star*q2_c - q2_star*q1_c + q3_star*q0_c;
+
+    // Calculate angle error
+    float theta_e, error_x, error_y, error_z;
+    theta_e = 2.0f*acosf(q0_e);
+    angle_ef_error.x = q1_e*theta_e/sinf(theta_e/2.0f)*DEGX100;
+    angle_ef_error.y = q2_e*theta_e/sinf(theta_e/2.0f)*DEGX100;
+    angle_ef_error.z = q3_e*theta_e/sinf(theta_e/2.0f)*DEGX100;
+
+    // Debugging stuff
+    static int counter;
+    counter++;
+    if (counter == 200)
+    {
+       /* hal.console->printf("Estimated Quaternion  ");
+        hal.console->printf("%f  ",q0);
+        hal.console->printf("%f  ",q1);
+        hal.console->printf("%f  ",q2);
+        hal.console->printf("%f\n",q3); */
+
+       /* hal.console->printf("Euler Angle Error                        ");
+        hal.console->printf("%f  ",angle_ef_error.x/100.0f);
+        hal.console->printf("%f  ",angle_ef_error.y/100.0f);
+        hal.console->printf("%f\n",angle_ef_error.z/100.0f);*/
+
+        hal.console->printf("Quaternion Angle Error  ");
+        hal.console->printf("%f  ",theta_e);
+        hal.console->printf("%f  ",angle_ef_error.x/100.0f);
+        hal.console->printf("%f  ",angle_ef_error.y/100.0f);
+        hal.console->printf("%f\n",angle_ef_error.z/100.0f);
+
+
+        counter = 0;
+    }
+
+    // convert earth-frame angle errors to body-frame angle errors
+    frame_conversion_ef_to_bf(angle_ef_error, _angle_bf_error);
+
+    // convert body-frame angle errors to body-frame rate targets
+    update_rate_bf_targets();
+
+    // set roll and pitch feed forward to zero
+    _rate_ef_desired.x = 0;
+    _rate_ef_desired.y = 0;
+    // convert earth-frame feed forward rates to body-frame feed forward rates
+    frame_conversion_ef_to_bf(_rate_ef_desired, _rate_bf_desired);
+    _rate_bf_target += _rate_bf_desired;
+
+    // body-frame to motor outputs should be called separately
+}
+
+
 
 //
 // methods to be called by upper controllers to request and implement a desired attitude

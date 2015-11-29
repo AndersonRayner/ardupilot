@@ -95,6 +95,10 @@ bool Copter::set_mode(uint8_t mode)
             success = brake_init(ignore_checks);
             break;
 
+        case QUAT_STAB:
+            success = quatstab_init(ignore_checks);
+            break;
+
         default:
             success = false;
             break;
@@ -206,6 +210,10 @@ void Copter::update_flight_mode()
         case BRAKE:
             brake_run();
             break;
+
+        case QUAT_STAB:
+            quatstab_run();
+            break;
     }
 }
 
@@ -273,6 +281,7 @@ bool Copter::mode_has_manual_throttle(uint8_t mode) {
     switch(mode) {
         case ACRO:
         case STABILIZE:
+        case QUAT_STAB:
             return true;
         default:
             return false;
@@ -361,6 +370,9 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case BRAKE:
         port->print("BRAKE");
+        break;
+    case QUAT_STAB:
+        port->print("QUAT_STAB");
         break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);
