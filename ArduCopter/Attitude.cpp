@@ -13,7 +13,6 @@ float Copter::get_smoothing_gain()
 // returns desired angle in centi-degrees
 void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float &roll_out, float &pitch_out, float angle_max)
 {
-    static int counter;
     // sanity check angle max parameter
     aparm.angle_max = constrain_int16(aparm.angle_max,1000,8000);
 
@@ -37,32 +36,39 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     // not sure if I need to delete this.  Will have to do some testing
     roll_in = (18000/M_PI_F) * atanf(cosf(pitch_in*(M_PI_F/18000))*tanf(roll_in*(M_PI_F/18000)));
 
-    // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
-    // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [0,1000].
+    // Apply the pitch offset for transitioning stuff
+    float pitch_offset;
+
     if (g.radio_tuning==TUNING_PITCH_TRIM) {
-        float pitch_offset;
-        pitch_offset = (float)g.rc_6.control_in; // Turns out some funky stuff gets done to modify g.rc_6.control_in to make it scale between low nad high.
-        //pitch_offset = g.rc_6.control_in * 9.0f; // Marc's way.  Won't work unless TUNE == 0.  Default to go back to if things aren't working right
+        // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
+        // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [TUNE_LOW,TUNE_HIGH].
 
-        // Debugging stuff
-        /*
-        counter++;
-        if (counter == 200)
-        {
-            hal.console->printf("tune_low     : %.0f     ",(float)g.radio_tuning_low);
-            hal.console->printf("tune_high    : %.0f     ",(float)g.radio_tuning_high);
-            hal.console->printf("rc6    : %.0f     ",(float)g.rc_6.control_in);
-            hal.console->printf("pitch_offset : %f deg\n",pitch_offset/100.0f);
-            counter = 0;
-        }*/
+        pitch_offset = (float)g.rc_6.control_in * -1.0f; // Turns out some funky stuff gets done to modify g.rc_6.control_in to make it scale between low and high.
+        //pitch_offset = g.rc_6.control_in * -9.0f; // Marc's way.  Won't work unless TUNE == 0.  Default to go back to if things aren't working right
+    }
 
-        // Apply pitch change
-        pitch_in = pitch_in - pitch_offset;
+    // Use the angle_trim value instead.  We don't want the two effects combining.
+    else {
+        // Add pitch offset as set by TRIM_ANGLE parameter
+        pitch_offset = -g.angle_trim;
     }
 
     // return
     roll_out = roll_in;
-    pitch_out = pitch_in;
+    pitch_out = pitch_in + pitch_offset;
+
+    // Debugging stuff
+    /* static int counter;
+    counter++;
+    if (counter == 200)
+    {
+        // hal.console->printf("tune_low     : %.0f     ",(float)g.radio_tuning_low);
+        // hal.console->printf("tune_high    : %.0f     ",(float)g.radio_tuning_high);
+        // hal.console->printf("rc6    : %.0f     ",(float)g.rc_6.control_in);
+        // hal.console->printf("pitch_in  : %6.2f deg  |  ",pitch_in/100.0f);
+        // hal.console->printf("pitch_out : %6.2f deg\n",pitch_out/100.0f);
+        counter = 0;
+    } */
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a

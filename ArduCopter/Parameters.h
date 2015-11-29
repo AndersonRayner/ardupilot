@@ -173,6 +173,7 @@ public:
         k_param_motors = 90,
         k_param_disarm_delay,
         k_param_fs_crash_check,
+        k_param_angle_trim,  // sets the trim angle between 0 (hover) and 90 (forward flight) deg
 
         // 97: RSSI
         k_param_rssi = 97,
@@ -433,6 +434,7 @@ public:
     AP_Int8         ch12_option;
     AP_Int8         arming_check;
     AP_Int8         disarm_delay;
+    AP_Float        angle_trim;
 
     AP_Int8         land_repositioning;
     AP_Int8         fs_ekf_action;
