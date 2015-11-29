@@ -971,6 +971,13 @@ const AP_Param::Info Copter::var_info[] = {
     // @User: Standard
     GSCALAR(terrain_follow, "TERRAIN_FOLLOW", 0),
 
+    // @Param: ANGLE_TRIM
+    // @DisplayName: Trim angle
+    // @Description: Defines the trim angle (in centi-degree) at mid-stick input. 0 is hover, 9000 is forward flight.
+    // @Range: 0 9000
+    // @User: Advanced
+    GSCALAR(angle_trim, "ANGLE_TRIM", 0.0f),
+
     AP_VAREND
 };
 
