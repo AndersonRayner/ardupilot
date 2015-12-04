@@ -302,7 +302,9 @@ void AP_Terrain::update(void)
 
     // update the cached current location height
     Location loc;
-    if (ahrs.get_position(loc) && height_amsl(loc, height)) {
+    bool pos_valid = ahrs.get_position(loc);
+    bool terrain_valid = height_amsl(loc, height);
+    if (pos_valid && terrain_valid) {
         last_current_loc_height = height;
         have_current_loc_height = true;
     }
@@ -313,33 +315,23 @@ void AP_Terrain::update(void)
     // check for pending rally data
     update_rally_data();
 
-    // update capabilities
+    // update capabilities and status
     if (enable) {
         hal.util->set_capabilities(MAV_PROTOCOL_CAPABILITY_TERRAIN);
+        if (!pos_valid) {
+            // we don't know where we are
+            system_status = TerrainStatusUnhealthy;
+        } else if (!terrain_valid) {
+            // we don't have terrain data at current location
+            system_status = TerrainStatusUnhealthy;
+        } else {
+            system_status = TerrainStatusOK;
+        }
     } else {
         hal.util->clear_capabilities(MAV_PROTOCOL_CAPABILITY_TERRAIN);
+        system_status = TerrainStatusDisabled;
     }
-}
 
-/*
-  return status enum for health reporting
-*/
-enum AP_Terrain::TerrainStatus AP_Terrain::status(void)
-{
-    if (!enable) {
-        return TerrainStatusDisabled;
-    }
-    Location loc;
-    if (!ahrs.get_position(loc)) {
-        // we don't know where we are
-        return TerrainStatusUnhealthy;
-    }
-    float height;
-    if (!height_amsl(loc, height)) {
-        // we don't have terrain data at current location
-        return TerrainStatusUnhealthy;        
-    }
-    return TerrainStatusOK; 
 }
 
 /*
@@ -365,7 +357,7 @@ void AP_Terrain::log_terrain_data(DataFlash_Class &dataflash)
 
     struct log_TERRAIN pkt = {
         LOG_PACKET_HEADER_INIT(LOG_TERRAIN_MSG),
-        time_us        : hal.scheduler->micros64(),
+        time_us        : AP_HAL::micros64(),
         status         : (uint8_t)status(),
         lat            : loc.lat,
         lng            : loc.lng,
@@ -393,7 +385,7 @@ bool AP_Terrain::allocate(void)
     cache = (struct grid_cache *)calloc(TERRAIN_GRID_BLOCK_CACHE_SIZE, sizeof(cache[0]));
     if (cache == nullptr) {
         enable.set(0);
-        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "Terrain: allocation failed");
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_CRITICAL, "Terrain: Allocation failed");
         return false;
     }
     cache_size = TERRAIN_GRID_BLOCK_CACHE_SIZE;
