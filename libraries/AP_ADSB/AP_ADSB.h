@@ -41,7 +41,7 @@ public:
     };
 
     struct adsb_vehicle_t {
-        mavlink_adsb_vehicle_t info; // the whole mavlink struct with all the juicy details. sizeof() == 40
+        mavlink_adsb_vehicle_t info; // the whole mavlink struct with all the juicy details. sizeof() == 42
         uint32_t last_update_ms; // last time this was refreshed, allows timeouts
     };
 
@@ -59,7 +59,7 @@ public:
     // periodic task that maintains vehicle_list
     void update(void);
 
-    // add or update vehicle_list from inbounc mavlink msg
+    // add or update vehicle_list from inbound mavlink msg
     void update_vehicle(const mavlink_message_t* msg);
 
     bool get_another_vehicle_within_radius()  { return _enabled && _another_vehicle_within_radius; }

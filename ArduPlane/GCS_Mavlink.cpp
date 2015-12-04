@@ -1873,6 +1873,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         plane.gcs[chan-MAVLINK_COMM_0].send_autopilot_version(FIRMWARE_VERSION);
         break;
 
+    case MAVLINK_MSG_ID_REMOTE_LOG_BLOCK_STATUS:
+        plane.DataFlash.remote_log_block_status_msg(chan, msg);
+        break;
+
     case MAVLINK_MSG_ID_SET_HOME_POSITION:
     {
         mavlink_set_home_position_t packet;
@@ -1933,7 +1937,7 @@ void Plane::mavlink_delay_cb()
     }
     if (tnow - last_5s > 5000) {
         last_5s = tnow;
-        gcs_send_text(MAV_SEVERITY_INFO, "Initialising APM...");
+        gcs_send_text(MAV_SEVERITY_INFO, "Initialising APM");
     }
     check_usb_mux();
 

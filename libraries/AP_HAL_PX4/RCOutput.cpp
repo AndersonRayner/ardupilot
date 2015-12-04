@@ -18,7 +18,7 @@ extern const AP_HAL::HAL& hal;
 
 using namespace PX4;
 
-void PX4RCOutput::init(void* unused) 
+void PX4RCOutput::init()
 {
     _perf_rcout = perf_alloc(PC_ELAPSED, "APM_rcout");
     _pwm_fd = open(PWM_OUTPUT0_DEVICE_PATH, O_RDWR);
@@ -45,11 +45,13 @@ void PX4RCOutput::init(void* unused)
         _outputs[i].pwm_sub = orb_subscribe_multi(ORB_ID(actuator_outputs), i);
     }
 
+#if !defined(CONFIG_ARCH_BOARD_PX4FMU_V4)
     _alt_fd = open("/dev/px4fmu", O_RDWR);
     if (_alt_fd == -1) {
         hal.console->printf("RCOutput: failed to open /dev/px4fmu");
         return;
     }
+#endif
 
     // ensure not to write zeros to disabled channels
     _enabled_channels = 0;
