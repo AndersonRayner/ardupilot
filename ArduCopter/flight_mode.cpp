@@ -11,7 +11,7 @@
 // optional force parameter used to force the flight mode change (used only first time mode is set)
 // returns true if mode was succesfully set
 // ACRO, STABILIZE, ALTHOLD, LAND, DRIFT and SPORT can always be set successfully but the return state of other flight modes should be checked and the caller should deal with failures appropriately
-bool Copter::set_mode(uint8_t mode)
+bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 {
     // boolean to record if flight mode could be set
     bool success = false;
@@ -19,6 +19,10 @@ bool Copter::set_mode(uint8_t mode)
 
     // return immediately if we are already in the desired mode
     if (mode == control_mode) {
+        prev_control_mode = control_mode;
+        prev_control_mode_reason = control_mode_reason;
+
+        control_mode_reason = reason;
         return true;
     }
 
@@ -95,6 +99,10 @@ bool Copter::set_mode(uint8_t mode)
             success = brake_init(ignore_checks);
             break;
 
+        case THROW:
+            success = throw_init(ignore_checks);
+            break;
+
         case QUAT_STAB:
             success = quatstab_init(ignore_checks);
             break;
@@ -108,8 +116,13 @@ bool Copter::set_mode(uint8_t mode)
     if (success) {
         // perform any cleanup required by previous flight mode
         exit_mode(control_mode, mode);
+        
+        prev_control_mode = control_mode;
+        prev_control_mode_reason = control_mode_reason;
+
         control_mode = mode;
-        DataFlash.Log_Write_Mode(control_mode);
+        control_mode_reason = reason;
+        DataFlash.Log_Write_Mode(control_mode, control_mode_reason);
 
 #if AC_FENCE == ENABLED
         // pilot requested flight mode change during a fence breach indicates pilot is attempting to manually recover
@@ -211,14 +224,20 @@ void Copter::update_flight_mode()
             brake_run();
             break;
 
+        case THROW:
+            throw_run();
+            break;
+
         case QUAT_STAB:
             quatstab_run();
+
+        default:
             break;
     }
 }
 
 // exit_mode - high level call to organise cleanup as a flight mode is exited
-void Copter::exit_mode(uint8_t old_control_mode, uint8_t new_control_mode)
+void Copter::exit_mode(control_mode_t old_control_mode, control_mode_t new_control_mode)
 {
 #if AUTOTUNE_ENABLED == ENABLED
     if (old_control_mode == AUTOTUNE) {
@@ -234,6 +253,10 @@ void Copter::exit_mode(uint8_t old_control_mode, uint8_t new_control_mode)
 #if MOUNT == ENABLED
         camera_mount.set_mode_to_default();
 #endif  // MOUNT == ENABLED
+    }
+
+    if (old_control_mode == THROW) {
+        throw_exit();
     }
 
     // smooth throttle transition when switching from manual to automatic flight modes
@@ -262,14 +285,11 @@ void Copter::exit_mode(uint8_t old_control_mode, uint8_t new_control_mode)
             input_manager.set_stab_col_ramp(0.0);
         }
     }
-
-    // reset RC Passthrough to motors
-    motors.reset_radio_passthrough();
 #endif //HELI_FRAME
 }
 
 // returns true or false whether mode requires GPS
-bool Copter::mode_requires_GPS(uint8_t mode) {
+bool Copter::mode_requires_GPS(control_mode_t mode) {
     switch(mode) {
         case AUTO:
         case GUIDED:
@@ -279,6 +299,7 @@ bool Copter::mode_requires_GPS(uint8_t mode) {
         case DRIFT:
         case POSHOLD:
         case BRAKE:
+        case THROW:
             return true;
         default:
             return false;
@@ -288,7 +309,7 @@ bool Copter::mode_requires_GPS(uint8_t mode) {
 }
 
 // mode_has_manual_throttle - returns true if the flight mode has a manual throttle (i.e. pilot directly controls throttle)
-bool Copter::mode_has_manual_throttle(uint8_t mode) {
+bool Copter::mode_has_manual_throttle(control_mode_t mode) {
     switch(mode) {
         case ACRO:
         case STABILIZE:
@@ -303,15 +324,15 @@ bool Copter::mode_has_manual_throttle(uint8_t mode) {
 
 // mode_allows_arming - returns true if vehicle can be armed in the specified mode
 //  arming_from_gcs should be set to true if the arming request comes from the ground station
-bool Copter::mode_allows_arming(uint8_t mode, bool arming_from_gcs) {
-    if (mode_has_manual_throttle(mode) || mode == LOITER || mode == ALT_HOLD || mode == POSHOLD || (arming_from_gcs && mode == GUIDED)) {
+bool Copter::mode_allows_arming(control_mode_t mode, bool arming_from_gcs) {
+    if (mode_has_manual_throttle(mode) || mode == LOITER || mode == ALT_HOLD || mode == POSHOLD || mode == DRIFT || mode == SPORT || mode == THROW || (arming_from_gcs && mode == GUIDED)) {
         return true;
     }
     return false;
 }
 
 // notify_flight_mode - sets notify object based on flight mode.  Only used for OreoLED notify device
-void Copter::notify_flight_mode(uint8_t mode) {
+void Copter::notify_flight_mode(control_mode_t mode) {
     switch(mode) {
         case AUTO:
         case GUIDED:
@@ -361,9 +382,6 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     case LAND:
         port->print("LAND");
         break;
-    case OF_LOITER:
-        port->print("OF_LOITER");
-        break;
     case DRIFT:
         port->print("DRIFT");
         break;
@@ -381,6 +399,9 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case BRAKE:
         port->print("BRAKE");
+        break;
+    case THROW:
+        port->print("THROW");
         break;
     case QUAT_STAB:
         port->print("QUAT_STAB");

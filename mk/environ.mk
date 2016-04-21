@@ -4,8 +4,11 @@
 #
 SYSTYPE			:=	$(shell uname)
 
-GIT_VERSION := $(shell git rev-parse HEAD | cut -c1-8)
+GIT_VERSION ?= $(shell git rev-parse HEAD | cut -c1-8)
 EXTRAFLAGS += -DGIT_VERSION="\"$(GIT_VERSION)\""
+
+# Add missing parts from libc and libstdc++ for all boards
+EXTRAFLAGS += -I$(SKETCHBOOK)/libraries/AP_Common/missing
 
 # force LANG to C so awk works sanely on MacOS
 export LANG=C
@@ -202,8 +205,33 @@ ifneq ($(findstring flymaple, $(MAKECMDGOALS)),)
 HAL_BOARD = HAL_BOARD_FLYMAPLE
 endif
 
+ifneq ($(findstring bhat, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_LINUX
+HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_LINUX_BH
+endif
+
+ifneq ($(findstring qflight, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_LINUX
+HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_LINUX_QFLIGHT
+endif
+
+ifneq ($(findstring qurt, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_QURT
+HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_NONE
+endif
+
+ifneq ($(findstring pxfmini, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_LINUX
+HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_LINUX_PXFMINI
+endif
+
 # default to SITL
 ifeq ($(HAL_BOARD),)
 HAL_BOARD = HAL_BOARD_SITL
 HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_NONE
+endif
+
+ifneq ($(findstring navio2, $(MAKECMDGOALS)),)
+HAL_BOARD = HAL_BOARD_LINUX
+HAL_BOARD_SUBTYPE = HAL_BOARD_SUBTYPE_LINUX_NAVIO2
 endif

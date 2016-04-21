@@ -16,14 +16,12 @@
 /* 
    main Rover class, containing all vehicle specific state
 */
+#pragma once
 
-#ifndef _ROVER_H_
-#define _ROVER_H_
+#define THISFIRMWARE "ArduRover v3.0.0"
+#define FIRMWARE_VERSION 3,0,0,FIRMWARE_VERSION_TYPE_OFFICIAL
 
-#define THISFIRMWARE "ArduRover v2.51-beta"
-#define FIRMWARE_VERSION 2,51,0,FIRMWARE_VERSION_TYPE_BETA
-
-#include <math.h>
+#include <cmath>
 #include <stdarg.h>
 
 // Libraries
@@ -38,6 +36,7 @@
 #include <AP_Compass/AP_Compass.h>     // ArduPilot Mega Magnetometer Library
 #include <AP_Math/AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_InertialSensor/AP_InertialSensor.h> // Inertial Sensor (uncalibated IMU) Library
+#include <AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
 #include <AP_AHRS/AP_AHRS.h>         // ArduPilot Mega DCM Library
 #include <AP_NavEKF/AP_NavEKF.h>
 #include <AP_NavEKF2/AP_NavEKF2.h>
@@ -112,9 +111,6 @@ private:
     // variables
     AP_Param param_loader;
 
-    // the rate we run the main loop at
-    const AP_InertialSensor::Sample_rate ins_sample_rate;
-
     // all settable parameters
     Parameters g;
 
@@ -156,7 +152,7 @@ private:
 #endif
 
     // Arming/Disarming mangement class
-    AP_Arming arming {ahrs, barometer, compass, home_is_set};
+    AP_Arming arming {ahrs, barometer, compass, battery, home_is_set};
 
     AP_L1_Control L1_controller;
 
@@ -169,7 +165,9 @@ private:
     // Mission library
     AP_Mission mission;
 
-    OpticalFlow optflow;
+#if AP_AHRS_NAVEKF_AVAILABLE
+    OpticalFlow optflow{ahrs};
+#endif
     
     // RSSI 
     AP_RSSI rssi;          
@@ -364,7 +362,6 @@ private:
     // Loiter control
     uint16_t loiter_time_max; // How long we should loiter at the nav_waypoint (time in seconds)
     uint32_t loiter_time;     // How long have we been loitering - The start time in millis
-
     float distance_past_wp; // record the distance we have gone past the wp
 
     // time that rudder/steering arming has been running
@@ -381,6 +378,7 @@ private:
     // private member functions
     void ahrs_update();
     void mount_update(void);
+    void update_trigger(void);    
     void update_alt();
     void gcs_failsafe_check(void);
     void compass_accumulate(void);
@@ -407,7 +405,6 @@ private:
     void send_pid_tuning(mavlink_channel_t chan);
     void send_rangefinder(mavlink_channel_t chan);
     void send_current_waypoint(mavlink_channel_t chan);
-    void send_statustext(mavlink_channel_t chan);
     bool telemetry_delayed(mavlink_channel_t chan);
     void gcs_send_message(enum ap_message id);
     void gcs_send_mission_item_reached_message(uint16_t mission_index);
@@ -523,7 +520,7 @@ private:
     bool arm_motors(AP_Arming::ArmingMethod method);
     bool motor_active();
     void update_home();
-
+    void accel_cal_update(void);
 public:
     bool print_log_menu(void);
     int8_t dump_log(uint8_t argc, const Menu::arg *argv);
@@ -565,5 +562,3 @@ extern Rover rover;
 
 using AP_HAL::millis;
 using AP_HAL::micros;
-
-#endif // _ROVER_H_

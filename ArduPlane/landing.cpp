@@ -16,21 +16,13 @@ bool Plane::verify_land()
     // so we don't verify command completion. Instead we use this to
     // adjust final landing parameters
 
-    // If a go around has been commanded, we are done landing.  This will send
-    // the mission to the next mission item, which presumably is a mission
-    // segment with operations to perform when a landing is called off.
-    // If there are no commands after the land waypoint mission item then
-    // the plane will proceed to loiter about its home point.
-    if (auto_state.commanded_go_around) {
-        return true;
-    }
-
     // when aborting a landing, mimic the verify_takeoff with steering hold. Once
     // the altitude has been reached, restart the landing sequence
     if (flight_stage == AP_SpdHgtControl::FLIGHT_LAND_ABORT) {
 
         throttle_suppressed = false;
         auto_state.land_complete = false;
+        auto_state.land_pre_flare = false;
         nav_controller->update_heading_hold(get_bearing_cd(prev_WP_loc, next_WP_loc));
 
         // see if we have reached abort altitude
@@ -66,8 +58,12 @@ bool Plane::verify_land()
 #else
     bool rangefinder_in_range = false;
 #endif
+
+    // Below we check for wp_proportion being greater then 50%.  In otherwords ensure that the vehicle
+    // has covered 50% of the distance to the landing point before it can flare
     if (height <= g.land_flare_alt ||
-        (aparm.land_flare_sec > 0 && height <= auto_state.sink_rate * aparm.land_flare_sec) ||
+        ((aparm.land_flare_sec > 0 && height <= auto_state.sink_rate * aparm.land_flare_sec) &&
+         (auto_state.wp_proportion > 0.5)) ||
         (!rangefinder_in_range && location_passed_point(current_loc, prev_WP_loc, next_WP_loc)) ||
         (fabsf(auto_state.sink_rate) < 0.2f && !is_flying())) {
 
@@ -81,8 +77,10 @@ bool Plane::verify_land()
                                   (double)gps.ground_speed(),
                                   (double)get_distance(current_loc, next_WP_loc));
             }
+            auto_state.land_complete = true;
+            update_flight_stage();
         }
-        auto_state.land_complete = true;
+
 
         if (gps.ground_speed() < 3) {
             // reload any airspeed or groundspeed parameters that may have
@@ -92,6 +90,13 @@ bool Plane::verify_land()
             g.airspeed_cruise_cm.load();
             g.min_gndspeed_cm.load();
             aparm.throttle_cruise.load();
+        }
+    } else if (!auto_state.land_complete && !auto_state.land_pre_flare && aparm.land_pre_flare_airspeed > 0) {
+        bool reached_pre_flare_alt = g.land_pre_flare_alt > 0 && (height <= g.land_pre_flare_alt);
+        bool reached_pre_flare_sec = g.land_pre_flare_sec > 0 && (height <= auto_state.sink_rate * g.land_pre_flare_sec);
+        if (reached_pre_flare_alt || reached_pre_flare_sec) {
+            auto_state.land_pre_flare = true;
+            update_flight_stage();
         }
     }
 
@@ -323,6 +328,7 @@ float Plane::tecs_hgt_afe(void)
     */
     float hgt_afe;
     if (flight_stage == AP_SpdHgtControl::FLIGHT_LAND_FINAL ||
+        flight_stage == AP_SpdHgtControl::FLIGHT_LAND_PREFLARE ||
         flight_stage == AP_SpdHgtControl::FLIGHT_LAND_APPROACH) {
         hgt_afe = height_above_target();
         hgt_afe -= rangefinder_correction();

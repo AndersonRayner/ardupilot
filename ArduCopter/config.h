@@ -1,7 +1,7 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 //
-#ifndef __ARDUCOPTER_CONFIG_H__
-#define __ARDUCOPTER_CONFIG_H__
+#pragma once
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -27,11 +27,7 @@
 /// DO NOT EDIT THIS INCLUDE - if you want to make a local change, make that
 /// change in your local copy of APM_Config.h.
 ///
-#ifdef USE_CMAKE_APM_CONFIG
- #include "APM_Config_cmake.h"  // <== Prefer cmake config if it exists
-#else
- #include "APM_Config.h" // <== THIS INCLUDE, DO NOT EDIT IT. EVER.
-#endif
+#include "APM_Config.h"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -97,24 +93,6 @@
 #if FRAME_CONFIG == HELI_FRAME
   # define RC_FAST_SPEED                        125
   # define WP_YAW_BEHAVIOR_DEFAULT              WP_YAW_BEHAVIOR_LOOK_AHEAD
-  # define RATE_ROLL_P                          0.02
-  # define RATE_ROLL_I                          0.5
-  # define RATE_ROLL_D                          0.001
-  # define RATE_ROLL_IMAX                       4500
-  # define RATE_ROLL_FF                         0.05
-  # define RATE_ROLL_FILT_HZ                    20.0f
-  # define RATE_PITCH_P                         0.02
-  # define RATE_PITCH_I                         0.5
-  # define RATE_PITCH_D                         0.001
-  # define RATE_PITCH_IMAX                      4500
-  # define RATE_PITCH_FF                        0.05
-  # define RATE_PITCH_FILT_HZ                   20.0f
-  # define RATE_YAW_P                           0.15
-  # define RATE_YAW_I                           0.100
-  # define RATE_YAW_D                           0.003
-  # define RATE_YAW_IMAX                        4500
-  # define RATE_YAW_FF                          0.02
-  # define RATE_YAW_FILT_HZ                     20.0f
   # define THR_MIN_DEFAULT                      0
   # define AUTOTUNE_ENABLED                     DISABLED
 #endif
@@ -213,10 +191,9 @@
  # define FS_GCS_TIMEOUT_MS             5000    // gcs failsafe triggers after 5 seconds with no GCS heartbeat
 #endif
 
-// possible values for FS_GCS parameter
-#define FS_GCS_DISABLED                     0
-#define FS_GCS_ENABLED_ALWAYS_RTL           1
-#define FS_GCS_ENABLED_CONTINUE_MISSION     2
+#ifndef GNDEFFECT_COMPENSATION
+ # define GNDEFFECT_COMPENSATION          DISABLED
+#endif
 
 // Radio failsafe while using RC_override
 #ifndef FS_RADIO_RC_OVERRIDE_TIMEOUT_MS
@@ -230,6 +207,10 @@
 
 #ifndef FS_CLOSE_TO_HOME_CM
  # define FS_CLOSE_TO_HOME_CM               500 // if vehicle within 5m of home, vehicle will LAND instead of RTL during some failsafes
+#endif
+
+#ifndef PREARM_DISPLAY_PERIOD
+# define PREARM_DISPLAY_PERIOD 30
 #endif
 
 // pre-arm baro vs inertial nav max alt disparity
@@ -303,7 +284,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Precision Landing with companion computer or IRLock sensor
 #ifndef PRECISION_LANDING
- # define PRECISION_LANDING DISABLED
+ # define PRECISION_LANDING ENABLED
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -393,6 +374,9 @@
 #ifndef LAND_WITH_DELAY_MS
  # define LAND_WITH_DELAY_MS        4000    // default delay (in milliseconds) when a land-with-delay is triggered during a failsafe event
 #endif
+#ifndef LAND_CANCEL_TRIGGER_THR
+ # define LAND_CANCEL_TRIGGER_THR   700     // land is cancelled by input throttle above 700
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Landing Detector
@@ -454,19 +438,6 @@
  #define ACRO_EXPO_DEFAULT          0.3f
 #endif
 
-// Stabilize (angle controller) gains
-#ifndef STABILIZE_ROLL_P
- # define STABILIZE_ROLL_P          4.5f
-#endif
-
-#ifndef STABILIZE_PITCH_P
- # define STABILIZE_PITCH_P         4.5f
-#endif
-
-#ifndef  STABILIZE_YAW_P
- # define STABILIZE_YAW_P           4.5f
-#endif
-
 // RTL Mode
 #ifndef RTL_ALT_FINAL
  # define RTL_ALT_FINAL             0       // the altitude the vehicle will move to as the final stage of Returning to Launch.  Set to zero to land.
@@ -482,6 +453,18 @@
 
 #ifndef RTL_CLIMB_MIN_DEFAULT
  # define RTL_CLIMB_MIN_DEFAULT     0       // vehicle will always climb this many cm as first stage of RTL
+#endif
+
+#ifndef RTL_ABS_MIN_CLIMB
+ # define RTL_ABS_MIN_CLIMB         250     // absolute minimum initial climb
+#endif
+
+#ifndef RTL_CONE_SLOPE
+ # define RTL_CONE_SLOPE            3.0f    // slope of RTL cone (height / distance). 0 = No cone
+#endif
+
+#ifndef RTL_MIN_CONE_SLOPE
+ # define RTL_MIN_CONE_SLOPE        0.5f    // minimum slope of cone
 #endif
 
 #ifndef RTL_LOITER_TIME
@@ -517,59 +500,6 @@
 #endif
 #ifndef ANGLE_RATE_MAX
  # define ANGLE_RATE_MAX            18000           // default maximum rotation rate in roll/pitch axis requested by angle controller used in stabilize, loiter, rtl, auto flight modes
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Rate controller gains
-//
-
-#ifndef RATE_ROLL_P
- # define RATE_ROLL_P        		0.150f
-#endif
-#ifndef RATE_ROLL_I
- # define RATE_ROLL_I        		0.100f
-#endif
-#ifndef RATE_ROLL_D
- # define RATE_ROLL_D        		0.004f
-#endif
-#ifndef RATE_ROLL_IMAX
- # define RATE_ROLL_IMAX         	2000
-#endif
-#ifndef RATE_ROLL_FILT_HZ
- # define RATE_ROLL_FILT_HZ         20.0f
-#endif
-
-#ifndef RATE_PITCH_P
- # define RATE_PITCH_P       		0.150f
-#endif
-#ifndef RATE_PITCH_I
- # define RATE_PITCH_I       		0.100f
-#endif
-#ifndef RATE_PITCH_D
- # define RATE_PITCH_D       		0.004f
-#endif
-#ifndef RATE_PITCH_IMAX
- # define RATE_PITCH_IMAX        	2000
-#endif
-#ifndef RATE_PITCH_FILT_HZ
- # define RATE_PITCH_FILT_HZ        20.0f
-#endif
-
-
-#ifndef RATE_YAW_P
- # define RATE_YAW_P              	0.200f
-#endif
-#ifndef RATE_YAW_I
- # define RATE_YAW_I              	0.020f
-#endif
-#ifndef RATE_YAW_D
- # define RATE_YAW_D              	0.000f
-#endif
-#ifndef RATE_YAW_IMAX
- # define RATE_YAW_IMAX            	1000
-#endif
-#ifndef RATE_YAW_FILT_HZ
- # define RATE_YAW_FILT_HZ          5.0f
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -708,10 +638,10 @@
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// AP_Limits Defaults
+// Fence, Rally and Terrain defaults
 //
 
-// Enable/disable AP_Limits
+// Enable/disable Fence
 #ifndef AC_FENCE
  #define AC_FENCE ENABLED
 #endif
@@ -759,5 +689,3 @@
 #else
 #define FIRMWARE_STRING THISFIRMWARE " (" GIT_VERSION ")"
 #endif
-
-#endif // __ARDUCOPTER_CONFIG_H__

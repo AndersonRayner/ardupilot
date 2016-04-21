@@ -142,20 +142,6 @@ void NavEKF2_core::writeOptFlowMeas(uint8_t &rawFlowQuality, Vector2f &rawFlowRa
 *                      MAGNETOMETER                     *
 ********************************************************/
 
-// return magnetometer offsets
-// return true if offsets are valid
-bool NavEKF2_core::getMagOffsets(Vector3f &magOffsets) const
-{
-    // compass offsets are valid if we have finalised magnetic field initialisation and magnetic field learning is not prohibited and primary compass is valid
-    if (firstMagYawInit && (frontend->_magCal != 2) && _ahrs->get_compass()->healthy(magSelectIndex)) {
-        magOffsets = _ahrs->get_compass()->get_offsets(magSelectIndex) - stateStruct.body_magfield*1000.0f;
-        return true;
-    } else {
-        magOffsets = _ahrs->get_compass()->get_offsets(magSelectIndex);
-        return false;
-    }
-}
-
 // check for new magnetometer data and update store measurements if available
 void NavEKF2_core::readMagData()
 {
@@ -197,6 +183,18 @@ void NavEKF2_core::readMagData()
             }
         }
 
+        // detect changes to magnetometer offset parameters and reset states
+        Vector3f nowMagOffsets = _ahrs->get_compass()->get_offsets(magSelectIndex);
+        bool changeDetected = lastMagOffsetsValid && (nowMagOffsets != lastMagOffsets);
+        if (changeDetected) {
+            // zero the learned magnetometer bias states
+            stateStruct.body_magfield.zero();
+            // clear the measurement buffer
+            storedMag.reset();
+        }
+        lastMagOffsets = nowMagOffsets;
+        lastMagOffsetsValid = true;
+
         // store time of last measurement update
         lastMagUpdate_us = _ahrs->get_compass()->last_update_usec(magSelectIndex);
 
@@ -233,7 +231,7 @@ void NavEKF2_core::readIMUData()
     const AP_InertialSensor &ins = _ahrs->get_ins();
 
     // average IMU sampling rate
-    dtIMUavg = 1.0f/ins.get_sample_rate();
+    dtIMUavg = ins.get_loop_delta_t();
 
     // the imu sample time is used as a common time reference throughout the filter
     imuSampleTime_ms = AP_HAL::millis();
@@ -251,7 +249,7 @@ void NavEKF2_core::readIMUData()
     } else {
         readDeltaAngle(ins.get_primary_gyro(), imuDataNew.delAng);
     }
-    imuDataNew.delAngDT = MAX(ins.get_delta_time(),1.0e-4f);
+    imuDataNew.delAngDT = MAX(ins.get_delta_angle_dt(imu_index),1.0e-4f);
 
     // Get current time stamp
     imuDataNew.time_ms = imuSampleTime_ms;
@@ -262,8 +260,8 @@ void NavEKF2_core::readIMUData()
     imuDataNew.delAng.z = imuDataNew.delAng.z * stateStruct.gyro_scale.z;
 
     // remove sensor bias errors
-    imuDataNew.delAng -= stateStruct.gyro_bias;
-    imuDataNew.delVel.z -= stateStruct.accel_zbias;
+    imuDataNew.delAng -= stateStruct.gyro_bias * (imuDataNew.delAngDT / dtEkfAvg);
+    imuDataNew.delVel.z -= stateStruct.accel_zbias * (imuDataNew.delVelDT / dtEkfAvg);
 
     // Accumulate the measurement time interval for the delta velocity and angle data
     imuDataDownSampledNew.delAngDT += imuDataNew.delAngDT;

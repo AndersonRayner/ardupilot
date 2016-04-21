@@ -15,6 +15,8 @@
 
 #include <SITL/SIM_Multicopter.h>
 #include <SITL/SIM_Helicopter.h>
+#include <SITL/SIM_Plane.h>
+#include <SITL/SIM_QuadPlane.h>
 #include <SITL/SIM_Rover.h>
 #include <SITL/SIM_CRRCSim.h>
 #include <SITL/SIM_Gazebo.h>
@@ -22,6 +24,7 @@
 #include <SITL/SIM_JSBSim.h>
 #include <SITL/SIM_Tracker.h>
 #include <SITL/SIM_Balloon.h>
+#include <SITL/SIM_FlightAxis.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -53,6 +56,7 @@ void SITL_State::_usage(void)
            "\t--uartC device     set device string for UARTC\n"
            "\t--uartD device     set device string for UARTD\n"
            "\t--uartE device     set device string for UARTE\n"
+           "\t--defaults path    set path to defaults file\n"
         );
 }
 
@@ -60,6 +64,7 @@ static const struct {
     const char *name;
     Aircraft *(*constructor)(const char *home_str, const char *frame_str);
 } model_constructors[] = {
+    { "quadplane",          QuadPlane::create },
     { "+",                  MultiCopter::create },
     { "quad",               MultiCopter::create },
     { "copter",             MultiCopter::create },
@@ -72,10 +77,12 @@ static const struct {
     { "rover",              SimRover::create },
     { "crrcsim",            CRRCSim::create },
     { "jsbsim",             JSBSim::create },
+    { "flightaxis",         FlightAxis::create },
     { "gazebo",             Gazebo::create },
     { "last_letter",        last_letter::create },
     { "tracker",            Tracker::create },
-    { "balloon",            Balloon::create }
+    { "balloon",            Balloon::create },
+    { "plane",              Plane::create },
 };
 
 void SITL_State::_parse_command_line(int argc, char * const argv[])
@@ -115,7 +122,9 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
         CMDLINE_UARTC,
         CMDLINE_UARTD,
         CMDLINE_UARTE,
+        CMDLINE_UARTF,
         CMDLINE_ADSB,
+        CMDLINE_DEFAULTS
     };
 
     const struct GetOptLong::option options[] = {
@@ -138,6 +147,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
         {"gimbal",          false,  0, CMDLINE_GIMBAL},
         {"adsb",            false,  0, CMDLINE_ADSB},
         {"autotest-dir",    true,   0, CMDLINE_AUTOTESTDIR},
+        {"defaults",        true,   0, CMDLINE_DEFAULTS},
         {0, false, 0, 0}
     };
 
@@ -154,7 +164,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
             _framerate = (unsigned)atoi(gopt.optarg);
             break;
         case 'C':
-            HALSITL::SITLUARTDriver::_console = true;
+            HALSITL::UARTDriver::_console = true;
             break;
         case 'I': {
             _instance = atoi(gopt.optarg);
@@ -176,7 +186,7 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
             model_str = gopt.optarg;
             break;
         case 's':
-            speedup = atof(gopt.optarg);
+            speedup = strtof(gopt.optarg, NULL);
             break;
         case 'F':
             _fdm_address = gopt.optarg;
@@ -193,12 +203,16 @@ void SITL_State::_parse_command_line(int argc, char * const argv[])
         case CMDLINE_AUTOTESTDIR:
             autotest_dir = strdup(gopt.optarg);
             break;
+        case CMDLINE_DEFAULTS:
+            defaults_path = strdup(gopt.optarg);
+            break;
 
         case CMDLINE_UARTA:
         case CMDLINE_UARTB:
         case CMDLINE_UARTC:
         case CMDLINE_UARTD:
         case CMDLINE_UARTE:
+        case CMDLINE_UARTF:
             _uart_path[opt - CMDLINE_UARTA] = gopt.optarg;
             break;
             

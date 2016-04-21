@@ -18,10 +18,9 @@
   Compass driver backend class. Each supported compass sensor type
   needs to have an object derived from this class.
  */
-#ifndef __AP_COMPASS_BACKEND_H__
-#define __AP_COMPASS_BACKEND_H__
+#pragma once
 
-#include "Compass.h"
+#include "AP_Compass.h"
 
 class Compass;  // forward declaration
 class AP_Compass_Backend
@@ -53,9 +52,7 @@ protected:
      *      calibration libraries
      * 3. correct_field - this corrects the measurement in-place for hard iron,
      *      soft iron, motor interference, and non-orthagonality errors
-     * 4. publish_unfiltered_field - this (optionally) provides a corrected
-     *      point sample for fusion into the EKF
-     * 5. publish_filtered_field - legacy filtered magnetic field
+     * 4. publish_filtered_field - legacy filtered magnetic field
      *
      * All those functions expect the mag field to be in milligauss.
      */
@@ -63,7 +60,6 @@ protected:
     void rotate_field(Vector3f &mag, uint8_t instance);
     void publish_raw_field(const Vector3f &mag, uint32_t time_us, uint8_t instance);
     void correct_field(Vector3f &mag, uint8_t i);
-    void publish_unfiltered_field(const Vector3f &mag, uint32_t time_us, uint8_t instance);
     void publish_filtered_field(const Vector3f &mag, uint8_t instance);
 
     // register a new compass instance with the frontend
@@ -81,5 +77,3 @@ protected:
 private:
     void apply_corrections(Vector3f &mag, uint8_t i);
 };
-
-#endif // __AP_COMPASS_BACKEND_H__

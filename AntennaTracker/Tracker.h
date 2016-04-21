@@ -1,7 +1,7 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define THISFIRMWARE "AntennaTracker V0.7.3"
-#define FIRMWARE_VERSION 0,7,3,FIRMWARE_VERSION_TYPE_DEV
+#define THISFIRMWARE "AntennaTracker V0.7.6"
+#define FIRMWARE_VERSION 0,7,6,FIRMWARE_VERSION_TYPE_DEV
 
 /*
    Lead developers: Matthew Ridley and Andrew Tridgell
@@ -26,7 +26,7 @@
 // Header includes
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -40,6 +40,7 @@
 #include <AP_Math/AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <AP_ADC/AP_ADC.h>         // ArduPilot Mega Analog to Digital Converter Library
 #include <AP_InertialSensor/AP_InertialSensor.h> // Inertial Sensor Library
+#include <AP_AccelCal/AP_AccelCal.h>                // interface and maths for accelerometer calibration
 #include <AP_AHRS/AP_AHRS.h>         // ArduPilot Mega DCM Library
 #include <Filter/Filter.h>                     // Filter library
 #include <AP_Buffer/AP_Buffer.h>      // APM FIFO Buffer
@@ -88,8 +89,6 @@ public:
     void loop() override;
 
 private:
-    const AP_InertialSensor::Sample_rate ins_sample_rate = AP_InertialSensor::RATE_50HZ;
-
     Parameters g;
 
     // main loop scheduler
@@ -101,6 +100,11 @@ private:
     uint32_t start_time_ms = 0;
 
     bool usb_connected = false;
+
+    // has a log download started?
+    bool in_log_download = false;
+    bool logging_started = false;
+    DataFlash_Class DataFlash{FIRMWARE_STRING};
 
     AP_GPS gps;
 
@@ -182,17 +186,22 @@ private:
     int8_t slew_dir = 0;
     uint32_t slew_start_ms = 0;
 
+    // use this to prevent recursion during sensor init
+    bool in_mavlink_delay = false;
+
     static const AP_Scheduler::Task scheduler_tasks[];
     static const AP_Param::Info var_info[];
+    static const struct LogStructure log_structure[];
 
+    void dataflash_periodic(void);
     void one_second_loop();
+    void ten_hz_logging_loop();
     void send_heartbeat(mavlink_channel_t chan);
     void send_attitude(mavlink_channel_t chan);
     void send_location(mavlink_channel_t chan);
     void send_radio_out(mavlink_channel_t chan);
     void send_hwstatus(mavlink_channel_t chan);
     void send_waypoint_request(mavlink_channel_t chan);
-    void send_statustext(mavlink_channel_t chan);
     void send_nav_controller_output(mavlink_channel_t chan);
     void send_simstate(mavlink_channel_t chan);
     void mavlink_check_target(const mavlink_message_t* msg);
@@ -212,6 +221,7 @@ private:
     void update_ahrs();
     void update_compass(void);
     void compass_accumulate(void);
+    void accel_cal_update(void);
     void barometer_accumulate(void);
     void update_GPS(void);
     void init_servos();
@@ -245,6 +255,12 @@ private:
     void gcs_send_text_fmt(MAV_SEVERITY severity, const char *fmt, ...);
     void init_capabilities(void);
     void compass_cal_update();
+    void Log_Write_Attitude();
+    void Log_Write_Baro(void);
+    void Log_Write_Vehicle_Startup_Messages();
+    void start_logging();
+    void log_init(void);
+    bool should_log(uint32_t mask);
 
 public:
     void mavlink_snoop(const mavlink_message_t* msg);

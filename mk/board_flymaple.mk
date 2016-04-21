@@ -27,6 +27,9 @@ USBID := 1EAF:0003
 PRODUCT_ID := 0003
 LD_MEM_DIR := sram_64k_flash_512k
 
+# Hardcoded libraries/AP_Common/missing/cmath defines in "make" to retain the current behavior
+EXTRAFLAGS += -DHAVE_CMATH_ISFINITE -DNEED_CMATH_ISFINITE_STD_NAMESPACE
+
 #
 # Tool options
 #
@@ -34,8 +37,8 @@ DEFINES         =   -DF_CPU=$(F_CPU) -DMCU_$(MCU) -DBOARD_$(BOARD) -DERROR_LED_P
 DEFINES        +=   -DSKETCH=\"$(SKETCH)\" -DAPM_BUILD_DIRECTORY=APM_BUILD_$(SKETCH)
 DEFINES        +=   $(EXTRAFLAGS)
 DEFINES        +=   -DCONFIG_HAL_BOARD=$(HAL_BOARD)
-WARNFLAGS       =   -Wformat -Wall -Wshadow -Wpointer-arith -Wcast-align -Wno-psabi
-WARNFLAGS      +=   -Wwrite-strings -Wformat=2 -Wno-unused-parameter
+WARNFLAGS       =   -Wall -Wextra -Wlogical-op -Wformat -Wshadow -Wpointer-arith -Wcast-align -Wno-psabi
+WARNFLAGS      +=   -Wwrite-strings -Wformat=2 -Wno-unused-parameter -Wno-redundant-decls -Wno-unknown-pragmas
 WARNFLAGSCXX    =   -Wno-reorder
 DEPFLAGS        =   -MD -MT $@
 
@@ -68,7 +71,7 @@ CFLAGS         +=   $(WARNFLAGS) $(DEPFLAGS) $(COPTS)
 ASFLAGS         =   $(CPUFLAGS) $(DEFINES) -x assembler-with-cpp 
 ASFLAGS        +=   $(ASOPTS)
 
-LDFLAGS         =   $(CPUFLAGS) $(OPTFLAGS) $(WARNFLAGS) -mcpu=cortex-m3 -mthumb \
+LDFLAGS         =   $(CPUFLAGS) $(OPTFLAGS) -mcpu=cortex-m3 -mthumb \
            -Xlinker --gc-sections \
            -Xassembler --march=armv7-m -Wall 
 LDFLAGS        +=   -Wl,--gc-sections -Wl,-Map -Wl,$(SKETCHMAP) $(CPULDFLAGS)

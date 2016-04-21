@@ -1,6 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-#ifndef __AP_AHRS_NAVEKF_H__
-#define __AP_AHRS_NAVEKF_H__
+#pragma once
+
 /*
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,6 +37,15 @@
 #define AP_AHRS_NAVEKF_AVAILABLE 1
 #define AP_AHRS_NAVEKF_SETTLE_TIME_MS 20000     // time in milliseconds the ekf needs to settle after being started
 
+/*
+  we are too close to running out of flash on px4 with plane firmware, so disable it
+ */
+#if APM_BUILD_TYPE(APM_BUILD_ArduPlane) && CONFIG_HAL_BOARD == HAL_BOARD_PX4
+#define AP_AHRS_WITH_EKF1 0
+#else
+#define AP_AHRS_WITH_EKF1 1
+#endif
+
 class AP_AHRS_NavEKF : public AP_AHRS_DCM
 {
 public:
@@ -51,7 +60,7 @@ public:
 
     // return the smoothed gyro vector corrected for drift
     const Vector3f &get_gyro(void) const;
-    const Matrix3f &get_dcm_matrix(void) const;
+    const Matrix3f &get_rotation_body_to_ned(void) const;
 
     // return the current drift correction integrator value
     const Vector3f &get_gyro_drift(void) const;
@@ -155,7 +164,7 @@ public:
 
     // get compass offset estimates
     // true if offsets are valid
-    bool getMagOffsets(Vector3f &magOffsets);
+    bool getMagOffsets(uint8_t mag_idx, Vector3f &magOffsets);
 
     // report any reason for why the backend is refusing to initialise
     const char *prearm_failure_reason(void) const override;
@@ -197,9 +206,22 @@ public:
     // boolean false is returned if variances are not available
     bool get_variances(float &velVar, float &posVar, float &hgtVar, Vector3f &magVar, float &tasVar, Vector2f &offset) const;
 
+    // returns the expected NED magnetic field
+    bool get_mag_field_NED(Vector3f& ret) const;
+
+    // returns the estimated magnetic field offsets in body frame
+    bool get_mag_field_correction(Vector3f &ret) const;
+
+    void setTakeoffExpected(bool val);
+    void setTouchdownExpected(bool val);
+
+    bool getGpsGlitchStatus();
+
 private:
     enum EKF_TYPE {EKF_TYPE_NONE=0,
+#if AP_AHRS_WITH_EKF1
                    EKF_TYPE1=1,
+#endif
                    EKF_TYPE2=2
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
                    ,EKF_TYPE_SITL=10
@@ -208,7 +230,7 @@ private:
     EKF_TYPE active_EKF_type(void) const;
 
     bool always_use_EKF() const {
-        return _flags & FLAG_ALWAYS_USE_EKF;
+        return _ekf_flags & FLAG_ALWAYS_USE_EKF;
     }
 
     NavEKF &EKF1;
@@ -223,7 +245,7 @@ private:
     Vector3f _accel_ef_ekf_blended;
     const uint16_t startup_delay_ms = 1000;
     uint32_t start_time_ms = 0;
-    Flags _flags;
+    Flags _ekf_flags;
 
     uint8_t ekf_type(void) const;
     void update_DCM(void);
@@ -236,5 +258,3 @@ private:
 #endif    
 };
 #endif
-
-#endif // __AP_AHRS_NAVEKF_H__

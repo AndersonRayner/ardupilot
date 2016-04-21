@@ -241,7 +241,7 @@ void AC_PosControl::relax_alt_hold_controllers(float throttle_setting)
     _accel_last_z_cms = 0.0f;
     _accel_target.z = -(_ahrs.get_accel_ef_blended().z + GRAVITY_MSS) * 100.0f;
     _flags.reset_accel_to_throttle = true;
-    _pid_accel_z.set_integrator(throttle_setting);
+    _pid_accel_z.set_integrator(throttle_setting*1000.0f);
 }
 
 // get_alt_error - returns altitude error in cm
@@ -480,7 +480,7 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
     // get d term
     d = _pid_accel_z.get_d();
 
-    float thr_out = p+i+d+_throttle_hover;
+    float thr_out = (p+i+d)/1000.0f +_throttle_hover;
 
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ);
@@ -958,9 +958,9 @@ void AC_PosControl::accel_to_lean_angles(float dt, float ekfNavVelGainScaler, bo
     accel_right = -accel_target_filtered.x*_ahrs.sin_yaw() + accel_target_filtered.y*_ahrs.cos_yaw();
 
     // update angle targets that will be passed to stabilize controller
-    _pitch_target = constrain_float(atanf(-accel_forward/(GRAVITY_MSS * 100))*(18000/M_PI_F),-lean_angle_max, lean_angle_max);
-    float cos_pitch_target = cosf(_pitch_target*M_PI_F/18000);
-    _roll_target = constrain_float(atanf(accel_right*cos_pitch_target/(GRAVITY_MSS * 100))*(18000/M_PI_F), -lean_angle_max, lean_angle_max);
+    _pitch_target = constrain_float(atanf(-accel_forward/(GRAVITY_MSS * 100))*(18000/M_PI),-lean_angle_max, lean_angle_max);
+    float cos_pitch_target = cosf(_pitch_target*M_PI/18000);
+    _roll_target = constrain_float(atanf(accel_right*cos_pitch_target/(GRAVITY_MSS * 100))*(18000/M_PI), -lean_angle_max, lean_angle_max);
 }
 
 // get_lean_angles_to_accel - convert roll, pitch lean angles to lat/lon frame accelerations in cm/s/s

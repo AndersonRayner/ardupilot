@@ -51,19 +51,22 @@ HAL_FLYMAPLE::HAL_FLYMAPLE() :
         &uartCDriver,
         NULL,            /* no uartD */
         NULL,            /* no uartE */
+        NULL,            /* no uartF */
+        NULL,
         &i2cDriver,
         NULL,   /* only 1 i2c */
         NULL,   /* only 1 i2c */
-	&spiDeviceManager,
-	&analogIn,
-	&storageDriver,
+        &spiDeviceManager,
+        &analogIn,
+        &storageDriver,
         &uartADriver,
-	&gpioDriver,
-	&rcinDriver,
-	&rcoutDriver,
+        &gpioDriver,
+        &rcinDriver,
+        &rcoutDriver,
         &schedulerInstance,
-	&utilInstance
-	)
+        &utilInstance,
+        NULL /* no optical flow */
+    )
 {}
 
 void HAL_FLYMAPLE::run(int argc, char* const argv[], Callbacks* callbacks) const

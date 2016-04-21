@@ -62,6 +62,12 @@ void Tracker::init_tracker()
 
     mavlink_system.sysid = g.sysid_this_mav;
 
+#if LOGGING_ENABLED == ENABLED
+    log_init();
+#endif
+
+    GCS_MAVLINK::set_dataflash(&DataFlash);
+
     if (g.compass_enabled==true) {
         if (!compass.init() || !compass.read()) {
             hal.console->println("Compass initialisation failed!");
@@ -77,7 +83,7 @@ void Tracker::init_tracker()
     ahrs.init();
     ahrs.set_fly_forward(false);
 
-    ins.init(ins_sample_rate);
+    ins.init(scheduler.get_loop_rate_hz());
     ahrs.reset();
 
     init_barometer();
@@ -209,6 +215,9 @@ void Tracker::set_mode(enum ControlMode mode)
         disarm_servos();
         break;
     }
+
+	// log mode change
+	DataFlash.Log_Write_Mode(control_mode);
 }
 
 /*
@@ -237,4 +246,15 @@ void Tracker::check_usb_mux(void)
 
     // the user has switched to/from the telemetry port
     usb_connected = usb_check;
+}
+
+/*
+  should we log a message type now?
+ */
+bool Tracker::should_log(uint32_t mask)
+{
+    if (!(mask & g.log_bitmask) || in_mavlink_delay) {
+        return false;
+    }
+    return true;
 }

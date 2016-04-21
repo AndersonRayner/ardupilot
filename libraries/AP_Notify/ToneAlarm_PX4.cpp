@@ -65,6 +65,8 @@ const ToneAlarm_PX4::Tone ToneAlarm_PX4::_tones[] {
     { "MBNT255>B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8B#8", true },
     #define AP_NOTIFY_PX4_TONE_QUIET_COMPASS_CALIBRATING_CTS 14
     { "MBNT255<C16P2", true },
+    #define AP_NOTIFY_PX4_TONE_WAITING_FOR_THROW 15
+    { "MBNT90L4O2A#O3DFN0N0N0", true},
 };
 
 bool ToneAlarm_PX4::init()
@@ -129,6 +131,11 @@ void ToneAlarm_PX4::update()
 {
     // exit immediately if we haven't initialised successfully
     if (_tonealarm_fd == -1) {
+        return;
+    }
+
+    // exit if buzzer is not enabled
+    if (pNotify->buzzer_enabled() == false) {
         return;
     }
 
@@ -280,6 +287,15 @@ void ToneAlarm_PX4::update()
         }
     }
 
+    // waiting to be thrown vehicle tone
+    if (flags.waiting_for_throw != AP_Notify::flags.waiting_for_throw) {
+        flags.waiting_for_throw = AP_Notify::flags.waiting_for_throw;
+        if (flags.waiting_for_throw) {
+            play_tone(AP_NOTIFY_PX4_TONE_WAITING_FOR_THROW);
+        } else {
+            stop_cont_tone();
+        }
+    }
 }
 
 #endif // CONFIG_HAL_BOARD == HAL_BOARD_PX4

@@ -135,6 +135,8 @@ void Rover::init_ardupilot()
     log_init();
 #endif
 
+    GCS_MAVLINK::set_dataflash(&DataFlash);
+
     // Register mavlink_delay_cb, which will run anytime you have
     // more than 5ms remaining in your call to hal.scheduler->delay
     hal.scheduler->register_delay_callback(mavlink_delay_cb_static, 5);
@@ -167,7 +169,7 @@ void Rover::init_ardupilot()
 
 #if MOUNT == ENABLED
     // initialise camera mount
-    camera_mount.init(serial_manager);
+    camera_mount.init(&DataFlash, serial_manager);
 #endif
 
     /*
@@ -396,8 +398,7 @@ void Rover::startup_INS_ground(void)
 	ahrs.set_fly_forward(true);
     ahrs.set_vehicle_class(AHRS_VEHICLE_GROUND);
 
-	ins.init(ins_sample_rate);
-
+    ins.init(scheduler.get_loop_rate_hz());
     ahrs.reset();
 }
 

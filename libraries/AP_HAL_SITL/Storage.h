@@ -1,14 +1,11 @@
-
-
-#ifndef __AP_HAL_SITL_STORAGE_H__
-#define __AP_HAL_SITL_STORAGE_H__
+#pragma once
 
 #include <AP_HAL/AP_HAL.h>
 #include "AP_HAL_SITL_Namespace.h"
 
-class HALSITL::SITLEEPROMStorage : public AP_HAL::Storage {
+class HALSITL::EEPROMStorage : public AP_HAL::Storage {
 public:
-    SITLEEPROMStorage() {
+    EEPROMStorage() {
         _eeprom_fd = -1;
     }
     void init() {}
@@ -19,5 +16,3 @@ private:
     int _eeprom_fd;
     void _eeprom_open(void);
 };
-
-#endif // __AP_HAL_SITL_STORAGE_H__

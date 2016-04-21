@@ -1,5 +1,4 @@
-#ifndef _LOGSTRUCTURE_H
-#define _LOGSTRUCTURE_H
+#pragma once
 
 /*
   unfortunately these need to be macros because of a limitation of
@@ -97,6 +96,44 @@ struct PACKED log_Vibe {
     uint64_t time_us;
     float vibe_x, vibe_y, vibe_z;
     uint32_t clipping_0, clipping_1, clipping_2;
+};
+
+struct PACKED log_Gimbal1 {
+    LOG_PACKET_HEADER;
+    uint32_t time_ms;
+    float delta_time;
+    float delta_angles_x;
+    float delta_angles_y;
+    float delta_angles_z;
+    float delta_velocity_x;
+    float delta_velocity_y;
+    float delta_velocity_z;
+    float joint_angles_x;
+    float joint_angles_y;
+    float joint_angles_z;
+};
+
+struct PACKED log_Gimbal2 {
+    LOG_PACKET_HEADER;
+    uint32_t time_ms;
+    uint8_t  est_sta;
+    float est_x;
+    float est_y;
+    float est_z;
+    float rate_x;
+    float rate_y;
+    float rate_z;
+    float target_x;
+    float target_y;
+    float target_z;
+};
+
+struct PACKED log_Gimbal3 {
+    LOG_PACKET_HEADER;
+    uint32_t time_ms;
+    int16_t rl_torque_cmd;
+    int16_t el_torque_cmd;
+    int16_t az_torque_cmd;
 };
 
 struct PACKED log_RCIN {
@@ -347,6 +384,7 @@ struct PACKED log_Camera {
     int32_t  longitude;
     int32_t  altitude;
     int32_t  altitude_rel;
+    int32_t  altitude_gps;
     int16_t  roll;
     int16_t  pitch;
     uint16_t yaw;
@@ -407,6 +445,7 @@ struct PACKED log_Mode {
     uint64_t time_us;
     uint8_t mode;
     uint8_t mode_num;
+    uint8_t mode_reason;
 };
 
 /*
@@ -588,6 +627,23 @@ struct PACKED log_RPM {
     float rpm2;
 };
 
+struct PACKED log_Rate {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float   control_roll;
+    float   roll;
+    float   roll_out;
+    float   control_pitch;
+    float   pitch;
+    float   pitch_out;
+    float   control_yaw;
+    float   yaw;
+    float   yaw_out;
+    float   control_accel;
+    float   accel;
+    float   accel_out;
+};
+
 // #if SBP_HW_LOGGING
 
 struct PACKED log_SbpLLH {
@@ -683,7 +739,9 @@ Format characters in the format string for binary log messages
     { LOG_RADIO_MSG, sizeof(log_Radio), \
       "RAD", "QBBBBBHH", "TimeUS,RSSI,RemRSSI,TxBuf,Noise,RemNoise,RxErrors,Fixed" }, \
     { LOG_CAMERA_MSG, sizeof(log_Camera), \
-      "CAM", "QIHLLeeccC","TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,Roll,Pitch,Yaw" }, \
+      "CAM", "QIHLLeeeccC","TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,GPSAlt,Roll,Pitch,Yaw" }, \
+    { LOG_TRIGGER_MSG, sizeof(log_Camera), \
+      "TRIG", "QIHLLeeeccC","TimeUS,GPSTime,GPSWeek,Lat,Lng,Alt,RelAlt,GPSAlt,Roll,Pitch,Yaw" }, \
     { LOG_ARSP_MSG, sizeof(log_AIRSPEED), \
       "ARSP",  "Qffcff",   "TimeUS,Airspeed,DiffPress,Temp,RawPress,Offset" }, \
     { LOG_CURRENT_MSG, sizeof(log_Current), \
@@ -693,9 +751,9 @@ Format characters in the format string for binary log messages
     { LOG_COMPASS_MSG, sizeof(log_Compass), \
       "MAG", "QhhhhhhhhhB",    "TimeUS,MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ,Health" }, \
     { LOG_MODE_MSG, sizeof(log_Mode), \
-      "MODE", "QMB",         "TimeUS,Mode,ModeNum" }, \
+      "MODE", "QMBB",         "TimeUS,Mode,ModeNum,Rsn" }, \
     { LOG_RFND_MSG, sizeof(log_RFND), \
-            "RFND", "QCC",         "TimeUS,Dist1,Dist2" }, \
+      "RFND", "QCC",         "TimeUS,Dist1,Dist2" }, \
     { LOG_DF_MAV_STATS, sizeof(log_DF_MAV_Stats), \
       "DMS", "IIIIIBBBBBBBBBB",         "TimeMS,N,Dp,RT,RS,Er,Fa,Fmn,Fmx,Pa,Pmn,Pmx,Sa,Smn,Smx" }
 
@@ -814,7 +872,15 @@ Format characters in the format string for binary log messages
     { LOG_ORGN_MSG, sizeof(log_ORGN), \
       "ORGN","QBLLe","TimeUS,Type,Lat,Lng,Alt" }, \
     { LOG_RPM_MSG, sizeof(log_RPM), \
-      "RPM",  "Qff", "TimeUS,rpm1,rpm2" }
+      "RPM",  "Qff", "TimeUS,rpm1,rpm2" }, \
+    { LOG_GIMBAL1_MSG, sizeof(log_Gimbal1), \
+      "GMB1", "Iffffffffff", "TimeMS,dt,dax,day,daz,dvx,dvy,dvz,jx,jy,jz" }, \
+    { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
+      "GMB2", "IBfffffffff", "TimeMS,es,ex,ey,ez,rx,ry,rz,tx,ty,tz" }, \
+    { LOG_GIMBAL3_MSG, sizeof(log_Gimbal3), \
+      "GMB3", "Ihhh", "TimeMS,rl_torque_cmd,el_torque_cmd,az_torque_cmd" }, \
+    { LOG_RATE_MSG, sizeof(log_Rate), \
+      "RATE", "Qffffffffffff",  "TimeUS,RDes,R,ROut,PDes,P,POut,YDes,Y,YOut,ADes,A,AOut" }
 
 // #if SBP_HW_LOGGING
 #define LOG_SBP_STRUCTURES \
@@ -922,14 +988,15 @@ enum LogMessages {
     LOG_MSG_SBPRAW1,
     LOG_MSG_SBPRAW2,
     LOG_MSG_SBPRAWx,
+    LOG_TRIGGER_MSG,
 
-// message types 211 to 220 reversed for autotune use
-
+    LOG_GIMBAL1_MSG,
+    LOG_GIMBAL2_MSG,
+    LOG_GIMBAL3_MSG,
+    LOG_RATE_MSG,
 };
 
 enum LogOriginType {
     ekf_origin = 0,
     ahrs_home = 1
 };
-
-#endif

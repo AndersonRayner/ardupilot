@@ -27,7 +27,7 @@ bool Copter::heli_acro_init(bool ignore_checks)
 void Copter::heli_acro_run()
 {
     float target_roll, target_pitch, target_yaw;
-    int16_t pilot_throttle_scaled;
+    float pilot_throttle_scaled;
     
     // Tradheli should not reset roll, pitch, yaw targets when motors are not runup, because
     // we may be in autorotation flight.  These should be reset only when transitioning from disarmed
@@ -47,9 +47,6 @@ void Copter::heli_acro_run()
         }
     }   
 
-    // send RC inputs direct into motors library for use during manual passthrough for helicopter setup
-    heli_radio_passthrough();
-
     if (!motors.has_flybar()){
         // convert the input to the desired body frame rate
         get_pilot_desired_angle_rates(channel_roll->control_in, channel_pitch->control_in, channel_yaw->control_in, target_roll, target_pitch, target_yaw);
@@ -62,7 +59,7 @@ void Copter::heli_acro_run()
         }
 
         // run attitude controller
-        attitude_control.rate_bf_roll_pitch_yaw(target_roll, target_pitch, target_yaw);
+        attitude_control.input_rate_bf_roll_pitch_yaw(target_roll, target_pitch, target_yaw);
     }else{
         /*
           for fly-bar passthrough use control_in values with no

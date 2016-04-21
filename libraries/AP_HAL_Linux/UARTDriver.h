@@ -1,6 +1,4 @@
-
-#ifndef __AP_HAL_LINUX_UARTDRIVER_H__
-#define __AP_HAL_LINUX_UARTDRIVER_H__
+#pragma once
 
 #include "AP_HAL_Linux.h"
 
@@ -56,11 +54,15 @@ private:
     void _udp_start_connection(void);
     void _tcp_start_connection(void);
     bool _serial_start_connection(void);
+    bool _qflight_start_connection(void);
 
     enum device_type {
         DEVICE_TCP,
         DEVICE_UDP,
         DEVICE_SERIAL,
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_QFLIGHT
+        DEVICE_QFLIGHT,
+#endif
         DEVICE_UNKNOWN
     };
 
@@ -89,5 +91,3 @@ protected:
     virtual int _read_fd(uint8_t *buf, uint16_t n);
 
 };
-
-#endif // __AP_HAL_LINUX_UARTDRIVER_H__

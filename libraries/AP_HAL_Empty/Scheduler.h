@@ -1,12 +1,10 @@
-
-#ifndef __AP_HAL_EMPTY_SCHEDULER_H__
-#define __AP_HAL_EMPTY_SCHEDULER_H__
+#pragma once
 
 #include "AP_HAL_Empty.h"
 
-class Empty::EmptyScheduler : public AP_HAL::Scheduler {
+class Empty::Scheduler : public AP_HAL::Scheduler {
 public:
-    EmptyScheduler();
+    Scheduler();
     void     init();
     void     delay(uint16_t ms);
     void     delay_microseconds(uint16_t us);
@@ -22,14 +20,8 @@ public:
 
     void     register_timer_failsafe(AP_HAL::Proc, uint32_t period_us);
 
-    void     begin_atomic();
-    void     end_atomic();
-
-    bool     system_initializing();
     void     system_initialized();
 
     void     reboot(bool hold_in_bootloader);
 
 };
-
-#endif // __AP_HAL_EMPTY_SCHEDULER_H__

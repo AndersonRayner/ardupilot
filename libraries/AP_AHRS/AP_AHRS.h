@@ -1,7 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
+#pragma once
 
-#ifndef __AP_AHRS_H__
-#define __AP_AHRS_H__
 /*
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,8 +30,7 @@
 #include <AP_Baro/AP_Baro.h>
 #include <AP_Param/AP_Param.h>
 
-#include <AP_OpticalFlow/AP_OpticalFlow.h>
-
+class OpticalFlow;
 #define AP_AHRS_TRIM_LIMIT 10.0f        // maximum trim angle in degrees
 #define AP_AHRS_RP_P_MIN   0.05f        // minimum value for AHRS_RP_P parameter
 #define AP_AHRS_YAW_P_MIN  0.05f        // minimum value for AHRS_YAW_P parameter
@@ -179,7 +177,7 @@ public:
 
     // get yaw rate in earth frame in radians/sec
     float get_yaw_rate_earth(void) const {
-        return get_gyro() * get_dcm_matrix().c;
+        return get_gyro() * get_rotation_body_to_ned().c;
     }
 
     // Methods
@@ -226,7 +224,7 @@ public:
 
     // return a DCM rotation matrix representing our current
     // attitude
-    virtual const Matrix3f &get_dcm_matrix(void) const = 0;
+    virtual const Matrix3f &get_rotation_body_to_ned(void) const = 0;
 
     // get our current position estimate. Return true if a position is available,
     // otherwise false. This call fills in lat, lng and alt
@@ -270,6 +268,16 @@ public:
     // order. This will only be accurate if have_inertial_nav() is
     // true
     virtual bool get_velocity_NED(Vector3f &vec) const {
+        return false;
+    }
+
+    // returns the expected NED magnetic field
+    virtual bool get_expected_mag_field_NED(Vector3f &ret) const {
+        return false;
+    }
+
+    // returns the estimated magnetic field offsets in body frame
+    virtual bool get_mag_field_correction(Vector3f &ret) const {
         return false;
     }
 
@@ -413,6 +421,11 @@ public:
     // time that the AHRS has been up
     virtual uint32_t uptime_ms(void) const = 0;
 
+    // get the selected ekf type, for allocation decisions
+    int8_t get_ekf_type(void) const {
+        return _ekf_type;
+    }
+    
 protected:
     AHRS_VehicleClass _vehicle_class;
 
@@ -499,5 +512,3 @@ protected:
 #else
 #define AP_AHRS_TYPE AP_AHRS
 #endif
-
-#endif // __AP_AHRS_H__

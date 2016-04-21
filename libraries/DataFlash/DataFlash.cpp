@@ -3,12 +3,19 @@
 #include "DataFlash_Backend.h"
 
 const AP_Param::GroupInfo DataFlash_Class::var_info[] = {
-    // @Param: _BACKEND_TYPES
+    // @Param: _BACKEND_TYPE
     // @DisplayName: DataFlash Backend Storage type
     // @Description: 0 for None, 1 for File, 2 for dataflash mavlink, 3 for both file and dataflash
     // @Values: 0:None,1:File,2:MAVLink,3:BothFileAndMAVLink
     // @User: Standard
     AP_GROUPINFO("_BACKEND_TYPE",  0, DataFlash_Class, _params.backend_types,       DATAFLASH_BACKEND_FILE),
+
+    // @Param: _FILE_BUFSIZE
+    // @DisplayName: Maximum DataFlash File Backend buffer size (in kilobytes)
+    // @Description: The DataFlash_File backend uses a buffer to store data before writing to the block device.  Raising this value may reduce "gaps" in your SD card logging.  This buffer size may be reduced depending on available memory.  PixHawk requires at least 4 kilobytes.  Maximum value available here is 64 kilobytes.
+    // @User: Standard
+    AP_GROUPINFO("_FILE_BUFSIZE",  1, DataFlash_Class, _params.file_bufsize,       16),
+
     AP_GROUPEND
 };
 
@@ -104,13 +111,6 @@ uint16_t DataFlash_Class::get_num_logs(void) {
     }
     return backends[0]->get_num_logs();
 }
-void DataFlash_Class::Log_Fill_Format(const struct LogStructure *s, struct log_Format &pkt) {
-    if (_next_backend == 0) {
-        // how were we called?!
-        return;
-    }
-    backends[0]->Log_Fill_Format(s, pkt);
-}
 
 void DataFlash_Class::LogReadProcess(uint16_t log_num,
                                      uint16_t start_page, uint16_t end_page,
@@ -182,19 +182,14 @@ void DataFlash_Class::Log_Write_EntireMission(const AP_Mission &mission)
     FOR_EACH_BACKEND(Log_Write_EntireMission(mission));
 }
 
-void DataFlash_Class::Log_Write_Format(const struct LogStructure *s)
-{
-    FOR_EACH_BACKEND(Log_Write_Format(s));
-}
-
 void DataFlash_Class::Log_Write_Message(const char *message)
 {
     FOR_EACH_BACKEND(Log_Write_Message(message));
 }
 
-void DataFlash_Class::Log_Write_Mode(uint8_t mode)
+void DataFlash_Class::Log_Write_Mode(uint8_t mode, uint8_t reason)
 {
-    FOR_EACH_BACKEND(Log_Write_Mode(mode));
+    FOR_EACH_BACKEND(Log_Write_Mode(mode, reason));
 }
 
 void DataFlash_Class::Log_Write_Parameter(const char *name, float value)

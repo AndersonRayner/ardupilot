@@ -250,7 +250,7 @@ void Copter::exit_mission()
     if(!ap.land_complete) {
         // try to enter loiter but if that fails land
         if(!auto_loiter_start()) {
-            set_mode(LAND);
+            set_mode(LAND, MODE_REASON_MISSION_END);
         }
     }else{
 #if LAND_REQUIRE_MIN_THROTTLE_TO_DISARM == ENABLED
@@ -666,7 +666,7 @@ bool Copter::verify_circle(const AP_Mission::Mission_Command& cmd)
     }
 
     // check if we have completed circling
-    return fabsf(circle_nav.get_angle_total()/M_2PI_F) >= LOWBYTE(cmd.p1);
+    return fabsf(circle_nav.get_angle_total()/M_2PI) >= LOWBYTE(cmd.p1);
 }
 
 // verify_RTL - handles any state changes required to implement RTL
@@ -873,13 +873,14 @@ void Copter::do_digicam_configure(const AP_Mission::Mission_Command& cmd)
 void Copter::do_digicam_control(const AP_Mission::Mission_Command& cmd)
 {
 #if CAMERA == ENABLED
-    camera.control(cmd.content.digicam_control.session,
-                   cmd.content.digicam_control.zoom_pos,
-                   cmd.content.digicam_control.zoom_step,
-                   cmd.content.digicam_control.focus_lock,
-                   cmd.content.digicam_control.shooting_cmd,
-                   cmd.content.digicam_control.cmd_id);
-    log_picture();
+    if (camera.control(cmd.content.digicam_control.session,
+                       cmd.content.digicam_control.zoom_pos,
+                       cmd.content.digicam_control.zoom_step,
+                       cmd.content.digicam_control.focus_lock,
+                       cmd.content.digicam_control.shooting_cmd,
+                       cmd.content.digicam_control.cmd_id)) {
+        log_picture();
+    }
 #endif
 }
 
@@ -895,9 +896,15 @@ void Copter::do_take_picture()
 // log_picture - log picture taken and send feedback to GCS
 void Copter::log_picture()
 {
-    gcs_send_message(MSG_CAMERA_FEEDBACK);
-    if (should_log(MASK_LOG_CAMERA)) {
-        DataFlash.Log_Write_Camera(ahrs, gps, current_loc);
+    if (!camera.using_feedback_pin()) {
+        gcs_send_message(MSG_CAMERA_FEEDBACK);
+        if (should_log(MASK_LOG_CAMERA)) {
+            DataFlash.Log_Write_Camera(ahrs, gps, current_loc);
+        }
+    } else {
+        if (should_log(MASK_LOG_CAMERA)) {
+            DataFlash.Log_Write_Trigger(ahrs, gps, current_loc);
+        }      
     }
 }
 

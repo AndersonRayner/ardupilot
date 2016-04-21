@@ -1,13 +1,14 @@
+#pragma once
 
-#ifndef __AP_HAL_EMPTY_SPIDRIVER_H__
-#define __AP_HAL_EMPTY_SPIDRIVER_H__
+#include <AP_HAL/SPIDevice.h>
+#include <AP_HAL/utility/OwnPtr.h>
 
 #include "AP_HAL_Empty.h"
 #include "Semaphores.h"
 
-class Empty::EmptySPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
+class Empty::SPIDeviceDriver : public AP_HAL::SPIDeviceDriver {
 public:
-    EmptySPIDeviceDriver();
+    SPIDeviceDriver();
     void init();
     AP_HAL::Semaphore* get_semaphore();
     bool transaction(const uint8_t *tx, uint8_t *rx, uint16_t len);
@@ -17,16 +18,17 @@ public:
     uint8_t transfer (uint8_t data);
     void transfer (const uint8_t *data, uint16_t len);
 private:
-    EmptySemaphore _semaphore;
+    Semaphore _semaphore;
 };
 
-class Empty::EmptySPIDeviceManager : public AP_HAL::SPIDeviceManager {
+class Empty::SPIDeviceManager : public AP_HAL::SPIDeviceManager {
 public:
-    EmptySPIDeviceManager();
-    void init();
-    AP_HAL::SPIDeviceDriver* device(enum AP_HAL::SPIDevice, uint8_t index);
-private:
-    EmptySPIDeviceDriver _device;
-};
+    SPIDeviceManager();
 
-#endif // __AP_HAL_EMPTY_SPIDRIVER_H__
+    void init();
+    AP_HAL::SPIDeviceDriver* device(enum AP_HAL::SPIDeviceType, uint8_t index);
+    AP_HAL::OwnPtr<AP_HAL::SPIDevice> get_device(const char *name) override;
+
+private:
+    SPIDeviceDriver _device;
+};

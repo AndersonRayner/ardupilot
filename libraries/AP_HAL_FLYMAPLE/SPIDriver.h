@@ -15,9 +15,7 @@
 /*
   Flymaple port by Mike McCauley
  */
-
-#ifndef __AP_HAL_FLYMAPLE_SPIDRIVER_H__
-#define __AP_HAL_FLYMAPLE_SPIDRIVER_H__
+#pragma once
 
 #include "AP_HAL_FLYMAPLE.h"
 #include "Semaphores.h"
@@ -43,9 +41,7 @@ class AP_HAL_FLYMAPLE_NS::FLYMAPLESPIDeviceManager : public AP_HAL::SPIDeviceMan
 public:
     FLYMAPLESPIDeviceManager();
     void init();
-    AP_HAL::SPIDeviceDriver* device(enum AP_HAL::SPIDevice, uint8_t index);
+    AP_HAL::SPIDeviceDriver* device(enum AP_HAL::SPIDeviceType, uint8_t index);
 private:
     FLYMAPLESPIDeviceDriver _device;
 };
-
-#endif // __AP_HAL_FLYMAPLE_SPIDRIVER_H__

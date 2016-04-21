@@ -13,6 +13,12 @@
 
 const AP_Param::Info Rover::var_info[] = {
 	GSCALAR(format_version,         "FORMAT_VERSION",   1),
+    
+    // @Param: SYSID_SW_TYPE
+    // @DisplayName: Software Type
+    // @Description: This is used by the ground station to recognise the software type (eg ArduPlane vs ArduCopter)
+    // @User: Advanced
+    // @ReadOnly: True
 	GSCALAR(software_type,          "SYSID_SW_TYPE",    Parameters::k_software_type),
 
 	// misc
@@ -193,7 +199,6 @@ const AP_Param::Info Rover::var_info[] = {
     // @Path: ../libraries/RC_Channel/RC_Channel.cpp,../libraries/RC_Channel/RC_Channel_aux.cpp
 	GGROUP(rc_8,                    "RC8_", RC_Channel_aux),
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     // @Group: RC9_
     // @Path: ../libraries/RC_Channel/RC_Channel.cpp,../libraries/RC_Channel/RC_Channel_aux.cpp
     GGROUP(rc_9,                    "RC9_", RC_Channel_aux),
@@ -217,7 +222,6 @@ const AP_Param::Info Rover::var_info[] = {
     // @Group: RC14_
     // @Path: ../libraries/RC_Channel/RC_Channel.cpp,../libraries/RC_Channel/RC_Channel_aux.cpp
     GGROUP(rc_14,                    "RC14_", RC_Channel_aux),
-#endif
 
     // @Param: THR_MIN
     // @DisplayName: Minimum Throttle
@@ -421,7 +425,7 @@ const AP_Param::Info Rover::var_info[] = {
 	// variables not in the g class which contain EEPROM saved variables
 
     // @Group: COMPASS_
-    // @Path: ../libraries/AP_Compass/Compass.cpp
+    // @Path: ../libraries/AP_Compass/AP_Compass.cpp
 	GOBJECT(compass,                "COMPASS_",	Compass),
 
     // @Group: SCHED_
@@ -535,6 +539,10 @@ const AP_Param::Info Rover::var_info[] = {
     // @Path: ../libraries/AP_RSSI/AP_RSSI.cpp
     GOBJECT(rssi, "RSSI_",  AP_RSSI),        
 
+    // @Group: NTF_
+    // @Path: ../libraries/AP_Notify/AP_Notify.cpp
+    GOBJECT(notify, "NTF_",  AP_Notify),
+
 	AP_VAREND
 };
 
@@ -580,13 +588,13 @@ void Rover::load_parameters(void)
 		// save the current format version
 		g.format_version.set_and_save(Parameters::k_format_version);
 		cliSerial->println("done.");
-    } else {
-	    unsigned long before = micros();
-	    // Load all auto-loaded EEPROM variables
-	    AP_Param::load_all();
+    }
 
-	    cliSerial->printf("load_all took %luus\n", micros() - before);
-	}
+    unsigned long before = micros();
+    // Load all auto-loaded EEPROM variables
+    AP_Param::load_all();
+    
+    cliSerial->printf("load_all took %luus\n", micros() - before);
 
     // set a more reasonable default NAVL1_PERIOD for rovers
     L1_controller.set_default_period(8);

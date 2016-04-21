@@ -1,6 +1,4 @@
-
-#ifndef __AP_HAL_PX4_SCHEDULER_H__
-#define __AP_HAL_PX4_SCHEDULER_H__
+#pragma once
 
 #include <AP_HAL/AP_HAL.h>
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
@@ -58,7 +56,6 @@ public:
     void     reboot(bool hold_in_bootloader);
 
     bool     in_timerprocess();
-    bool     system_initializing();
     void     system_initialized();
     void     hal_initialized() { _hal_initialized = true; }
     
@@ -68,7 +65,6 @@ private:
     AP_HAL::Proc _delay_cb;
     uint16_t _min_delay_cb_ms;
     AP_HAL::Proc _failsafe;
-    volatile bool _timer_pending;
 
     volatile bool _timer_suspended;
 
@@ -104,6 +100,3 @@ private:
     perf_counter_t  _perf_delay;
 };
 #endif
-#endif // __AP_HAL_PX4_SCHEDULER_H__
-
-

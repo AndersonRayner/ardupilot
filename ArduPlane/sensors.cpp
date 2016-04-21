@@ -36,6 +36,7 @@ void Plane::read_rangefinder(void)
     {
         // use the best available alt estimate via baro above home
         if (flight_stage == AP_SpdHgtControl::FLIGHT_LAND_APPROACH ||
+            flight_stage == AP_SpdHgtControl::FLIGHT_LAND_PREFLARE ||
             flight_stage == AP_SpdHgtControl::FLIGHT_LAND_FINAL) {
             // ensure the rangefinder is powered-on when land alt is higher than home altitude.
             // This is done using the target alt which we know is below us and we are sinking to it
@@ -62,6 +63,20 @@ void Plane::read_rangefinder(void)
 void Plane::compass_cal_update() {
     if (!hal.util->get_soft_armed()) {
         compass.compass_cal_update();
+    }
+}
+
+/*
+    Accel calibration
+*/
+void Plane::accel_cal_update() {
+    if (hal.util->get_soft_armed()) {
+        return;
+    }
+    ins.acal_update();
+    float trim_roll, trim_pitch;
+    if(ins.get_new_trim(trim_roll, trim_pitch)) {
+        ahrs.set_trim(Vector3f(trim_roll, trim_pitch, 0));
     }
 }
 
@@ -112,6 +127,10 @@ void Plane::read_battery(void)
         hal.util->get_soft_armed() &&
         battery.exhausted(g.fs_batt_voltage, g.fs_batt_mah)) {
         low_battery_event();
+    }
+    
+    if (should_log(MASK_LOG_CURRENT)) {
+        Log_Write_Current();
     }
 }
 

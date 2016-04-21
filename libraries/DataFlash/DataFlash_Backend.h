@@ -1,5 +1,4 @@
-#ifndef DATAFLASH_BACKEND_H
-#define DATAFLASH_BACKEND_H
+#pragma once
 
 #include "DataFlash.h"
 
@@ -55,9 +54,6 @@ public:
     void EnableWrites(bool enable) { _writes_enabled = enable; }
     bool logging_started(void) const { return log_write_started; }
 
-    // initialisation this really shouldn't take structure and
-    // num_types, however the CLI LogReadProcess function requires it.
-    // That function needs to be split.
     virtual void Init() {
         _writes_enabled = true;
     }
@@ -86,16 +82,13 @@ public:
     uint8_t num_types() const;
     const struct LogStructure *structure(uint8_t structure) const;
 
-    virtual void WroteStartupFormat() { }
-    virtual void WroteStartupParam() { }
-
     void Log_Write_EntireMission(const AP_Mission &mission);
     bool Log_Write_Format(const struct LogStructure *structure);
     bool Log_Write_MavCmd(uint16_t cmd_total, const mavlink_mission_item_t& mav_cmd);
     bool Log_Write_Message(const char *message);
     bool Log_Write_Mission_Cmd(const AP_Mission &mission,
                                const AP_Mission::Mission_Command &cmd);
-    bool Log_Write_Mode(uint8_t mode);;
+    bool Log_Write_Mode(uint8_t mode, uint8_t reason = 0);
     bool Log_Write_Parameter(const char *name, float value);
     bool Log_Write_Parameter(const AP_Param *ap,
                              const AP_Param::ParamToken &token,
@@ -140,5 +133,3 @@ private:
     uint32_t _last_periodic_1Hz;
     uint32_t _last_periodic_10Hz;
 };
-
-#endif
