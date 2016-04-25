@@ -33,7 +33,7 @@ public:
 
     AP_Int8  _type[RPM_MAX_INSTANCES];
 
-    static const struct AP_Param::GroupInfo var_info[];
+    //static const struct AP_Param::GroupInfo var_info[];
     
     // detect and initialise any available rpm sensors
     void init(void);
@@ -64,6 +64,6 @@ public:
 
     bool enabled(uint8_t instance) const;
 
-private:
+//private:
   
 };

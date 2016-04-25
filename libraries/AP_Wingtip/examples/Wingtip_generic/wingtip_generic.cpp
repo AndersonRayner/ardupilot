@@ -19,13 +19,11 @@
  *
  */
 
-#include <AP_Wingtip/AP_Wingtip.h>
 #include <AP_HAL/AP_HAL.h>
+#include <AP_Wingtip/AP_Wingtip.h>
 
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
-AP_HAL::DigitalSource *_cs;
-
 static AP_Wingtip Wingtip;
 
 void setup()
@@ -37,7 +35,7 @@ void setup()
 
 void loop(void)
 {
-    Wingtip.update();
+   // Wingtip.update();
 /*
     for (uint8_t ii = 0; ii<RPM.num_sensors(); ii++) {
 
