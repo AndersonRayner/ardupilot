@@ -17,7 +17,7 @@
 #include "AP_Wingtip.h"
 
 extern const AP_HAL::HAL& hal;
-//AP_HAL::DigitalSource *_cs;
+AP_HAL::DigitalSource *_cs;
 
 // table of user settable parameters
 /*const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
@@ -50,7 +50,7 @@ void AP_Wingtip::init(void)
     hal.console->printf("AP_Wingtip::init - testing...\n");
 
     // Want to think about resetting the boards here.
-  /*  _cs = hal.gpio->channel(BBB_P9_15);
+    _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
         AP_HAL::panic("Unable to reset wingtip boards");
     }
@@ -59,7 +59,7 @@ void AP_Wingtip::init(void)
     _cs->write(0);       // low resets the board
     hal.scheduler->delay(5);
     _cs->write(1);       // go high to let it do it's thing
-*/
+
 
 }
 
