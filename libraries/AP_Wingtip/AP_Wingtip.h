@@ -13,55 +13,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef __WINGTIP_H__
-#define __WINGTIP_H__
+#pragma once
 
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
+#include <GCS_MAVLink/GCS_MAVLink.h>
 
 // Maximum number of RPM measurement instances available on this platform
 #define RPM_MAX_INSTANCES 2
 
-class AP_Wingtip_Backend;
- 
-class AP_Wingtip
+class AP_Wingtip 
 {
 public:
-    friend class AP_Wingtip_Backend;
-
     AP_Wingtip(void);
 
- /*   // RPM driver types
-    enum RPM_Type {
-        RPM_TYPE_NONE    = 0,
-        RPM_TYPE_PX4_PWM = 1
-    };
-
-    // The RPM_State structure is filled in by the backend driver
-    struct RPM_State {
-        uint8_t                instance;        // the instance number of this RPM
-        float                  rate_rpm;        // measured rate in revs per minute
-        uint32_t               last_reading_ms; // time of last reading
-        float                  signal_quality;  // synthetic quality metric 
-    };
-
-    // parameters for each instance
     AP_Int8  _type[RPM_MAX_INSTANCES];
-    AP_Float _scaling[RPM_MAX_INSTANCES];
-    AP_Float _maximum[RPM_MAX_INSTANCES];
-    AP_Float _minimum[RPM_MAX_INSTANCES];
-    AP_Float _quality_min[RPM_MAX_INSTANCES];
 
     static const struct AP_Param::GroupInfo var_info[];
     
-    // Return the number of rpm sensor instances
-    uint8_t num_sensors(void) const {
-        return num_instances;
-    }
-*/
     // detect and initialise any available rpm sensors
     void init(void);
 
@@ -92,11 +63,5 @@ public:
     bool enabled(uint8_t instance) const;
 
 private:
-  //  RPM_State state[RPM_MAX_INSTANCES];
- //   AP_RPM_Backend *drivers[RPM_MAX_INSTANCES];
-  //  uint8_t num_instances:2;
-
-  //  void detect_instance(uint8_t instance);
-  //  void update_instance(uint8_t instance);
+  
 };
-#endif // __WINGTIP_H__

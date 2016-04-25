@@ -17,72 +17,35 @@
 #include "AP_Wingtip.h"
 
 extern const AP_HAL::HAL& hal;
-/*
+
 // table of user settable parameters
-const AP_Param::GroupInfo AP_RPM::var_info[] = {
+const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
     // @Param: _TYPE
     // @DisplayName: RPM type
     // @Description: What type of RPM sensor is connected
     // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("_TYPE",    0, AP_RPM, _type[0], 0),
+    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type[0], 0),
 
-    // @Param: _SCALING
-    // @DisplayName: RPM scaling
-    // @Description: Scaling factor between sensor reading and RPM.
-    // @Increment: 0.001
-    AP_GROUPINFO("_SCALING", 1, AP_RPM, _scaling[0], 1.0f),
-
-    // @Param: _MAX
-    // @DisplayName: Maximum RPM
-    // @Description: Maximum RPM to report
-    // @Increment: 1
-    AP_GROUPINFO("_MAX", 2, AP_RPM, _maximum[0], 0),
-
-    // @Param: _MIN
-    // @DisplayName: Minimum RPM
-    // @Description: Minimum RPM to report
-    // @Increment: 1
-    AP_GROUPINFO("_MIN", 3, AP_RPM, _minimum[0], 0),
-
-    // @Param: _MIN_QUAL
-    // @DisplayName: Minimum Quality
-    // @Description: Minimum data quality to be used
-    // @Increment: 0.1
-    AP_GROUPINFO("_MIN_QUAL", 4, AP_RPM, _quality_min[0], 0.5),
-
-#if RPM_MAX_INSTANCES > 1
-    // @Param: 2_TYPE
-    // @DisplayName: Second RPM type
-    // @Description: What type of RPM sensor is connected
-    // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("2_TYPE",    10, AP_RPM, _type[1], 0),
-
-    // @Param: 2_SCALING
-    // @DisplayName: RPM scaling
-    // @Description: Scaling factor between sensor reading and RPM.
-    // @Increment: 0.001
-    AP_GROUPINFO("2_SCALING", 11, AP_RPM, _scaling[1], 1.0f),
-#endif
+    AP_GROUPINFO("_TYPE1",    0, AP_Wingtip, _type[1], 0),
 
     AP_GROUPEND
 };
-*/
-AP_RPM::AP_RPM(void) :
-    num_instances(0)
+
+AP_Wingtip::AP_Wingtip(void) 
 {
     AP_Param::setup_object_defaults(this, var_info);
-
+    hal.console->printf("AP_Wingtip::constructing...\n");
     // init state and drivers
   //  memset(state,0,sizeof(state));
   //  memset(drivers,0,sizeof(drivers));
 }
 
 /*
-  initialise the AP_RPM class. 
+  initialise the AP_Wingtip class. 
  */
-void AP_RPM::init(void)
+void AP_Wingtip::init(void)
 {
-    hal.console->printf("AP_RPM::init - testing...\n")
+    hal.console->printf("AP_Wingtip::init - testing...\n");
             /*
     if (num_instances != 0) {
         // init called a 2nd time?
@@ -114,47 +77,25 @@ void AP_RPM::init(void)
 /*
   update RPM state for all instances. This should be called by main loop
  */
-void AP_RPM::update(void)
+void AP_Wingtip::update(void)
 {
-    /*for (uint8_t i=0; i<num_instances; i++) {
-        if (drivers[i] != NULL) {
-            if (_type[i] == RPM_TYPE_NONE) {
-                // allow user to disable a RPM sensor at runtime
-                continue;
-            }
-            drivers[i]->update();
-        }
-    }*/
+    hal.console->printf("AP_Wingtip::update - testing...\n");
 }
     
 /*
   check if an instance is healthy
  */
-bool AP_RPM::healthy(uint8_t instance) const
+bool AP_Wingtip::healthy(uint8_t instance) const
 {
-  /*  if (instance >= num_instances) {
-        return false;
-    }
-
-    // check that data quality is above minimum required
-    if (state[instance].signal_quality < _quality_min[0]) {
-        return false;
-    }
-
-    return true;*/
+    hal.console->printf("AP_Wingtip::healthy - testing...\n");
+    return true;
 }
 
 /*
   check if an instance is activated
  */
-bool AP_RPM::enabled(uint8_t instance) const
+bool AP_Wingtip::enabled(uint8_t instance) const
 {
-   /* if (instance >= num_instances) {
-        return false;
-    }
-    // if no sensor type is selected, the sensor is not activated.
-    if (_type[instance] == RPM_TYPE_NONE) {
-        return false;
-    }
-    return true;*/
+    hal.console->printf("AP_Wingtip::enabled - testing...\n");
+    return true;
 }
