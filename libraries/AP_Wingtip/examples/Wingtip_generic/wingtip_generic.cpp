@@ -35,7 +35,7 @@ void setup()
 
 void loop(void)
 {
-   // Wingtip.update();
+    Wingtip.update();
 /*
     for (uint8_t ii = 0; ii<RPM.num_sensors(); ii++) {
 

@@ -70,13 +70,13 @@ void AP_Wingtip::update(void)
 {
     hal.console->printf("AP_Wingtip:update - testing...\n");
 
-   /* uint8_t rxBuffer[6];
+    uint8_t rxBuffer[6];
     uint16_t data[3];
 
     hal.i2c1->read(0x34, 6, rxBuffer);
     memcpy(data,rxBuffer,6);
 
-    hal.console->printf("%6u %6u %6u\n", data[0], data[1], data[2]);*/
+    hal.console->printf("%6u %6u %6u\n", data[0], data[1], data[2]);
 }
 
 /*
