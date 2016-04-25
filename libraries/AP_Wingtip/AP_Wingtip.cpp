@@ -46,32 +46,19 @@ AP_Wingtip::AP_Wingtip(void)
 void AP_Wingtip::init(void)
 {
     hal.console->printf("AP_Wingtip::init - testing...\n");
-            /*
-    if (num_instances != 0) {
-        // init called a 2nd time?
-        return;
-    }
-    for (uint8_t i=0; i<RPM_MAX_INSTANCES; i++) {
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4  || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
-        uint8_t type = _type[num_instances];
-        uint8_t instance = num_instances;
 
-        if (type == RPM_TYPE_PX4_PWM) {
-            state[instance].instance = instance;
-            drivers[instance] = new AP_RPM_PX4_PWM(*this, instance, state[instance]);
-        }
-#endif
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-        uint8_t instance = num_instances;
-        state[instance].instance = instance;
-        drivers[instance] = new AP_RPM_SITL(*this, instance, state[instance]);
-#endif
-        if (drivers[i] != NULL) {
-            // we loaded a driver for this instance, so it must be
-            // present (although it may not be healthy)
-            num_instances = i+1;
-        }
-    }*/
+    // Want to think about resetting the boards here.
+    _cs = hal.gpio->channel(BBB_P9_15);
+    if (_cs == NULL) {
+        AP_HAL::panic("Unable to reset wingtip boards");
+    }
+
+    _cs->mode(HAL_GPIO_OUTPUT);
+    _cs->write(0);       // low resets the board
+    hal.scheduler->delay(5);
+    _cs->write(1);       // go high to let it do it's thing
+
+
 }
 
 /*
@@ -80,8 +67,16 @@ void AP_Wingtip::init(void)
 void AP_Wingtip::update(void)
 {
     hal.console->printf("AP_Wingtip::update - testing...\n");
+
+    uint8_t rxBuffer[6];
+    uint16_t data[3];
+
+    hal.i2c1->read(0x34, 6, rxBuffer);
+    memcpy(data,rxBuffer,6);
+
+    hal.console->printf("%6u %6u %6u\n", data[0], data[1], data[2]);
 }
-    
+
 /*
   check if an instance is healthy
  */

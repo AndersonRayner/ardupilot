@@ -20,9 +20,11 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
+#include <AP_HAL/GPIO.h>
+#include <AP_HAL_Linux/GPIO_BBB.h>
 
 // Maximum number of RPM measurement instances available on this platform
-#define RPM_MAX_INSTANCES 2
+#define RPM_MAX_INSTANCES 4
 
 class AP_Wingtip 
 {

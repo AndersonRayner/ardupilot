@@ -22,24 +22,23 @@
 #include <AP_Wingtip/AP_Wingtip.h>
 #include <AP_HAL/AP_HAL.h>
 
+
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+AP_HAL::DigitalSource *_cs;
 
 static AP_Wingtip Wingtip;
 
-char sensor_state;
-
 void setup()
 {
-    hal.console->println("APM RPM library test\n\n");
+    hal.console->println("APM Wingtip Sensor library test\n\n");
     Wingtip.init();
 
-    //hal.console->printf("Detected %u RPM sensors\n\n", RPM.num_sensors());
 }
 
 void loop(void)
 {
-   /* RPM.update();
-
+    Wingtip.update();
+/*
     for (uint8_t ii = 0; ii<RPM.num_sensors(); ii++) {
 
         // Determine sensor state
@@ -62,11 +61,11 @@ void loop(void)
             hal.console->printf("|  ");
         }
 
-    }
+    }*/
 
     hal.scheduler->delay(100);
 
-    hal.console->printf("\n");*/
+    hal.console->printf("\n");
 }
 
 AP_HAL_MAIN();
