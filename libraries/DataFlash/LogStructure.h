@@ -664,6 +664,17 @@ struct PACKED log_SbpRAW2 {
     uint8_t data2[192];
 };
 
+struct PACKED log_WingTip {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint16_t rpm1;
+    uint16_t rpm2;
+    uint16_t rpm3;
+    uint16_t rpm4;
+    uint16_t de1;
+    uint16_t de2;
+};
+
 // #endif // SBP_HW_LOGGING
 
 /*
@@ -861,7 +872,9 @@ Format characters in the format string for binary log messages
     { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
       "GMB2", "IBfffffffff", "TimeMS,es,ex,ey,ez,rx,ry,rz,tx,ty,tz" }, \
     { LOG_GIMBAL3_MSG, sizeof(log_Gimbal3), \
-      "GMB3", "Ihhh", "TimeMS,rl_torque_cmd,el_torque_cmd,az_torque_cmd" }
+      "GMB3", "Ihhh", "TimeMS,rl_torque_cmd,el_torque_cmd,az_torque_cmd" } \
+    { LOG_WINGTIP_MSG, sizeof(log_WingTip), \
+      "WING", "QHHHHff", "TimeUS,RPM1,RPM2,RPM3,RPM4,de1,de2" }
 
 // #if SBP_HW_LOGGING
 #define LOG_SBP_STRUCTURES \
@@ -974,6 +987,8 @@ enum LogMessages {
     LOG_GIMBAL1_MSG,
     LOG_GIMBAL2_MSG,
     LOG_GIMBAL3_MSG,
+
+    LOG_WINGTIP_MSG,
 
 // message types 211 to 220 reversed for autotune use
 

@@ -22,6 +22,7 @@
 #include <AP_RangeFinder/AP_RangeFinder.h>
 #include <DataFlash/LogStructure.h>
 #include <stdint.h>
+#include <AP_Wingtip/AP_Wingtip.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
 #include <uORB/topics/esc_status.h>
@@ -124,6 +125,7 @@ public:
                                const AP_Mission::Mission_Command &cmd);
     void Log_Write_Origin(uint8_t origin_type, const Location &loc);
     void Log_Write_RPM(const AP_RPM &rpm_sensor);
+    void Log_Write_Wingtip(const AP_Wingtip &wingtip);
 
     // This structure provides information on the internal member data of a PID for logging purposes
     struct PID_Info {
