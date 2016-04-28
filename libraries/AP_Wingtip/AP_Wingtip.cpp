@@ -47,8 +47,6 @@ AP_Wingtip::AP_Wingtip(void)
  */
 void AP_Wingtip::init(void)
 {
-    hal.console->printf("AP_Wingtip::init - testing...\n");
-
     // Want to think about resetting the boards here.
     _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
@@ -60,7 +58,6 @@ void AP_Wingtip::init(void)
     hal.scheduler->delay(5);
     _cs->write(1);       // go high to let it do it's thing
 
-
 }
 
 /*
@@ -68,15 +65,13 @@ void AP_Wingtip::init(void)
  */
 void AP_Wingtip::update(void)
 {
-    hal.console->printf("AP_Wingtip:update - testing...\n");
-
     uint8_t rxBuffer[6];
     uint16_t data[3];
 
     hal.i2c1->read(0x34, 6, rxBuffer);
     memcpy(data,rxBuffer,6);
 
-    hal.console->printf("%6u %6u %6u\n", data[0], data[1], data[2]);
+    hal.console->printf("RPM1 : %6u    RPM2 : %6u    de : %6u\n", data[0], data[1], data[2]);
 }
 
 /*

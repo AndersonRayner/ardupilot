@@ -1798,7 +1798,7 @@ void DataFlash_Class::Log_Write_RPM(const AP_RPM &rpm_sensor)
 
 void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip)
 {
-    struct log_WingTip pkt = {
+    struct log_Wingtip pkt = {
         LOG_PACKET_HEADER_INIT(LOG_WINGTIP_MSG),
         time_us     : AP_HAL::micros64(),
         rpm1        : wingtip.get_rpm(0),

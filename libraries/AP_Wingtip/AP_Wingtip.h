@@ -23,15 +23,12 @@
 #include <AP_HAL/GPIO.h>
 #include <AP_HAL_Linux/GPIO_BBB.h>
 
-// Maximum number of RPM measurement instances available on this platform
-#define RPM_MAX_INSTANCES 4
-
 class AP_Wingtip 
 {
 public:
     AP_Wingtip(void);
 
-    AP_Int8  _type[RPM_MAX_INSTANCES];
+    AP_Int8  _type[2];
 
     //static const struct AP_Param::GroupInfo var_info[];
     
