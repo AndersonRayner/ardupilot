@@ -44,12 +44,16 @@ public:
     /*
       return RPM for a sensor. Return -1 if not healthy
      */
-    float get_rpm(uint8_t instance) const {
+    uint16_t get_rpm(uint8_t instance) const {
        /* if (!healthy(instance)) {
             return -1;
         }
         return state[instance].rate_rpm;*/
-        return 2.0f;
+        return (uint16_t)instance*200;
+    }
+
+    float get_de(uint8_t instance) const {
+        return (float)instance*3.5f;
     }
 
     /*
