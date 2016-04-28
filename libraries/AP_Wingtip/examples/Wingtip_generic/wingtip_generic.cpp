@@ -36,30 +36,16 @@ void setup()
 void loop(void)
 {
     Wingtip.update();
-/*
-    for (uint8_t ii = 0; ii<RPM.num_sensors(); ii++) {
 
-        // Determine sensor state
-        if (RPM.healthy(ii)) {
-            // Healthy sensor
-            sensor_state = 'h';
-        } else if (RPM.enabled(ii)) {
-            // Enabled but not healthy
-            sensor_state = 'e';
-        } else {
-            // Not enabled, not healthy
-            sensor_state = '-';
-        }
+    hal.console->printf("RPM : ");
+    for (uint8_t ii = 0; ii<4; ii++) {
+        hal.console->printf("%6u ",Wingtip.get_rpm(ii));
+    }
 
-        hal.console->printf("%u - (%c) RPM: %8.2f  Quality: %.2f  ",
-                ii, sensor_state, RPM.get_rpm(ii), RPM.get_signal_quality(ii));
-
-        if (ii+1<RPM.num_sensors()) {
-            // Print a seperating bar if more sensors to process
-            hal.console->printf("|  ");
-        }
-
-    }*/
+    hal.console->printf("   de : ");
+    for (uint8_t ii = 0; ii<2; ii++) {
+        hal.console->printf("%6.2f ",Wingtip.get_de(ii));
+    }
 
     hal.scheduler->delay(100);
 

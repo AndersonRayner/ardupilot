@@ -23,15 +23,14 @@
 #include <AP_HAL/GPIO.h>
 #include <AP_HAL_Linux/GPIO_BBB.h>
 
-// Maximum number of RPM measurement instances available on this platform
-#define RPM_MAX_INSTANCES 4
-
 class AP_Wingtip 
 {
 public:
     AP_Wingtip(void);
 
-    AP_Int8  _type[RPM_MAX_INSTANCES];
+    uint16_t _RPM[4];
+    float    _de[2];
+	bool     _healthy[6];
 
     //static const struct AP_Param::GroupInfo var_info[];
     
@@ -47,13 +46,15 @@ public:
     uint16_t get_rpm(uint8_t instance) const {
        /* if (!healthy(instance)) {
             return -1;
-        }
-        return state[instance].rate_rpm;*/
-        return (uint16_t)instance*200;
+        } */
+        return  _RPM[instance];
     }
 
     float get_de(uint8_t instance) const {
-        return (float)instance*3.5f;
+        /* if (!healthy(instance*2)) {
+             return -1;
+        } */
+        return _de[instance];
     }
 
     /*
@@ -68,6 +69,10 @@ public:
 
     bool enabled(uint8_t instance) const;
 
-//private:
+private:
+    union wingtip_data {
+    uint8_t rxBuffer[7];
+    uint16_t data[3];
+    };
   
 };

@@ -47,8 +47,6 @@ AP_Wingtip::AP_Wingtip(void)
  */
 void AP_Wingtip::init(void)
 {
-    hal.console->printf("AP_Wingtip::init - testing...\n");
-
     // Want to think about resetting the boards here.
     _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
@@ -60,7 +58,6 @@ void AP_Wingtip::init(void)
     hal.scheduler->delay(5);
     _cs->write(1);       // go high to let it do it's thing
 
-
 }
 
 /*
@@ -68,15 +65,59 @@ void AP_Wingtip::init(void)
  */
 void AP_Wingtip::update(void)
 {
-    hal.console->printf("AP_Wingtip:update - testing...\n");
+    union wingtip_data data1;
+    union wingtip_data data2;
 
-    uint8_t rxBuffer[6];
-    uint16_t data[3];
+    uint64_t time_us1 = AP_HAL::micros64();
+    uint64_t time_us2 = AP_HAL::micros64();
 
-    hal.i2c1->read(0x34, 6, rxBuffer);
-    memcpy(data,rxBuffer,6);
+    byte CRC;
 
-    hal.console->printf("%6u %6u %6u\n", data[0], data[1], data[2]);
+    // Read the first wingtip board
+    hal.i2c1->read(0x32, 7, data1.rxBuffer);
+
+    // Calculate checksum
+    CRC = 0;
+    for (byte ii = 0; ii<6; ii++) {
+        CRC = CRC ^ data1.rxBuffer[ii];
+    }
+
+	if (data1.rxBuffer[6] == CRC) {
+        _RPM[0] = data1.data[0];
+        _RPM[1] = data1.data[1];
+        _de[0]  = (float)data1.data[2];
+	} else {
+		// sensor not healthy, what to do?
+		_RPM[0] = 0;
+		_RPM[1] = 0;
+		_de[0]  = 0.0f;
+	}
+
+    time_us2 = AP_HAL::micros64();
+    hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
+
+    // Read the second wingtip board
+    hal.i2c1->read(0x35, 7, data2.rxBuffer);
+
+    // Calculate checksum
+    CRC = 0;
+    for (byte ii = 0; ii<6; ii++) {
+        CRC = CRC ^ data2.rxBuffer[ii];
+    }
+
+	if (data2.rxBuffer[6] == CRC) {
+        _RPM[2] = data2.data[0];
+        _RPM[3] = data2.data[1];
+        _de[1]  = (float)data2.data[2];
+	} else {
+		// sensor not healthy, what to do?
+		_RPM[2] = 0;
+		_RPM[3] = 0;
+		_de[1]  = 0.0f;
+	}
+
+    time_us1 = AP_HAL::micros64();
+    hal.console->printf("t2 = %6llu csum: 0x%02x  ", (time_us1-time_us2), data2.rxBuffer[6]);
 }
 
 /*
