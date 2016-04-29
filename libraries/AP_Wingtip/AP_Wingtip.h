@@ -28,7 +28,8 @@ class AP_Wingtip
 public:
     AP_Wingtip(void);
 
-    AP_Int8  _type[2];
+    AP_Int8  _RPM[4];
+    AP_Float _de[2];
 
     //static const struct AP_Param::GroupInfo var_info[];
     
@@ -44,13 +45,15 @@ public:
     uint16_t get_rpm(uint8_t instance) const {
        /* if (!healthy(instance)) {
             return -1;
-        }
-        return state[instance].rate_rpm;*/
-        return (uint16_t)instance*200;
+        }*/
+        return  _RPM[instance];
     }
 
     float get_de(uint8_t instance) const {
-        return (float)instance*3.5f;
+        /* if (!healthy(instance)) {
+             return -1;
+         }*/
+        return _de[instance];
     }
 
     /*

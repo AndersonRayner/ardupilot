@@ -36,7 +36,18 @@ void setup()
 void loop(void)
 {
     Wingtip.update();
-/*
+
+    hal.console->printf("RPM : ");
+    for (uint8_t ii = 0; ii<4; ii++) {
+        hal.console->printf("%6u ",Wingtip.get_rpm(ii));
+    }
+
+    hal.console->printf("   de : ");
+    for (uint8_t ii = 0; ii<2; ii++) {
+        hal.console->printf("%6.2f ",Wingtip.get_de(ii));
+    }
+
+    /*
     for (uint8_t ii = 0; ii<RPM.num_sensors(); ii++) {
 
         // Determine sensor state

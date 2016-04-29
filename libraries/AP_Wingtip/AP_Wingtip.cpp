@@ -71,7 +71,14 @@ void AP_Wingtip::update(void)
     hal.i2c1->read(0x34, 6, rxBuffer);
     memcpy(data,rxBuffer,6);
 
-    hal.console->printf("RPM1 : %6u    RPM2 : %6u    de : %6u\n", data[0], data[1], data[2]);
+    _RPM[0] = data[0];
+    _RPM[1] = data[1];
+    _de[0]  = (float)data[2];
+
+    _RPM[2] = data[0];
+    _RPM[3] = data[1];
+    _de[0]  = (float)data[2];
+    //hal.console->printf("RPM : %6u %6u %6u %6u   de : %6.2f %6.2f\n", _RPM[0], _RPM[1], _RPM[2], _RPM[3], de[0], de[1]);
 }
 
 /*
