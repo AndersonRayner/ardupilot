@@ -70,7 +70,7 @@ void AP_Wingtip::update(void)
 
 
     hal.i2c1->read(0x34, 6, data1.rxBuffer);
-    hal.i2c1->read(0x34, 6, data2.rxBuffer); // change to 0x35
+    hal.i2c1->read(0x35, 6, data2.rxBuffer);
 
     _RPM[0] = data1.data[0];
     _RPM[1] = data1.data[1];

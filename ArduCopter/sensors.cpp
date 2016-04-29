@@ -86,7 +86,7 @@ void Copter::rpm_update(void)
 void Copter::update_wingtip(void)
 {
     wingtip.update();
-    DataFlash.Log_Write_Wingtip(wingtip);
+   // DataFlash.Log_Write_Wingtip(wingtip);
 }
 
 // initialise compass

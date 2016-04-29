@@ -28,8 +28,8 @@ class AP_Wingtip
 public:
     AP_Wingtip(void);
 
-    AP_Int8  _RPM[4];
-    AP_Float _de[2];
+    uint16_t _RPM[4];
+    float    _de[2];
 
     //static const struct AP_Param::GroupInfo var_info[];
     
