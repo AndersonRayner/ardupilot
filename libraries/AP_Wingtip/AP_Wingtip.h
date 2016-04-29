@@ -68,6 +68,10 @@ public:
 
     bool enabled(uint8_t instance) const;
 
-//private:
+private:
+    union wingtip_data {
+    uint8_t rxBuffer[6];
+    uint16_t data[3];
+    };
   
 };

@@ -65,20 +65,20 @@ void AP_Wingtip::init(void)
  */
 void AP_Wingtip::update(void)
 {
-    uint8_t rxBuffer[6];
-    uint16_t data[3];
+    union wingtip_data data1;
+    union wingtip_data data2;
 
-    hal.i2c1->read(0x34, 6, rxBuffer);
-    memcpy(data,rxBuffer,6);
 
-    _RPM[0] = data[0];
-    _RPM[1] = data[1];
-    _de[0]  = (float)data[2];
+    hal.i2c1->read(0x34, 6, data1.rxBuffer);
+    hal.i2c1->read(0x34, 6, data2.rxBuffer); // change to 0x35
 
-    _RPM[2] = data[0];
-    _RPM[3] = data[1];
-    _de[0]  = (float)data[2];
-    //hal.console->printf("RPM : %6u %6u %6u %6u   de : %6.2f %6.2f\n", _RPM[0], _RPM[1], _RPM[2], _RPM[3], de[0], de[1]);
+    _RPM[0] = data1.data[0];
+    _RPM[1] = data1.data[1];
+    _de[0]  = (float)data1.data[2];
+
+    _RPM[2] = data2.data[0];
+    _RPM[3] = data2.data[1];
+    _de[1]  = (float)data2.data[2];
 }
 
 /*
