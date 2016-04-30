@@ -68,17 +68,38 @@ void AP_Wingtip::update(void)
     union wingtip_data data1;
     union wingtip_data data2;
 
+    uint64_t time_us1 = AP_HAL::micros64();
+    uint64_t time_us2 = AP_HAL::micros64();
 
-    hal.i2c1->read(0x34, 6, data1.rxBuffer);
-    hal.i2c1->read(0x35, 6, data2.rxBuffer);
+    hal.i2c1->read(0x32, 7, data1.rxBuffer);
+	if (data1.rxBuffer[6] == 0x50) {
+        _RPM[0] = data1.data[0];
+        _RPM[1] = data1.data[1];
+        _de[0]  = (float)data1.data[2];
+	} else {
+		// sensor not healthy, what to do?
+		_RPM[0] = 0;
+		_RPM[1] = 0;
+		_de[0]  = 0.0f;
+	}
 
-    _RPM[0] = data1.data[0];
-    _RPM[1] = data1.data[1];
-    _de[0]  = (float)data1.data[2];
+    time_us2 = AP_HAL::micros64();
+    hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
 
-    _RPM[2] = data2.data[0];
-    _RPM[3] = data2.data[1];
-    _de[1]  = (float)data2.data[2];
+    hal.i2c1->read(0x35, 7, data2.rxBuffer);
+	if (data2.rxBuffer[6] == 0x50) {
+        _RPM[2] = data2.data[0];
+        _RPM[3] = data2.data[1];
+        _de[1]  = (float)data2.data[2];
+	} else {
+		// sensor not healthy, what to do?
+		_RPM[2] = 0;
+		_RPM[3] = 0;
+		_de[1]  = 0.0f;
+	}
+
+    time_us1 = AP_HAL::micros64();
+    hal.console->printf("t2 = %6llu csum: 0x%02x  ", (time_us1-time_us2), data2.rxBuffer[6]);
 }
 
 /*

@@ -30,6 +30,7 @@ public:
 
     uint16_t _RPM[4];
     float    _de[2];
+	bool     _healthy[6];
 
     //static const struct AP_Param::GroupInfo var_info[];
     
@@ -45,14 +46,14 @@ public:
     uint16_t get_rpm(uint8_t instance) const {
        /* if (!healthy(instance)) {
             return -1;
-        }*/
+        } */
         return  _RPM[instance];
     }
 
     float get_de(uint8_t instance) const {
-        /* if (!healthy(instance)) {
+        /* if (!healthy(instance*2)) {
              return -1;
-         }*/
+        } */
         return _de[instance];
     }
 
@@ -70,7 +71,7 @@ public:
 
 private:
     union wingtip_data {
-    uint8_t rxBuffer[6];
+    uint8_t rxBuffer[7];
     uint16_t data[3];
     };
   
