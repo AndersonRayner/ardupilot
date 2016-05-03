@@ -71,8 +71,18 @@ void AP_Wingtip::update(void)
     uint64_t time_us1 = AP_HAL::micros64();
     uint64_t time_us2 = AP_HAL::micros64();
 
+    byte CRC;
+
+    // Read the first wingtip board
     hal.i2c1->read(0x32, 7, data1.rxBuffer);
-	if (data1.rxBuffer[6] == 0x50) {
+
+    // Calculate checksum
+    CRC = 0;
+    for (byte ii = 0; ii<6; ii++) {
+        CRC = CRC ^ data1.rxBuffer[ii];
+    }
+
+	if (data1.rxBuffer[6] == CRC) {
         _RPM[0] = data1.data[0];
         _RPM[1] = data1.data[1];
         _de[0]  = (float)data1.data[2];
@@ -86,8 +96,16 @@ void AP_Wingtip::update(void)
     time_us2 = AP_HAL::micros64();
     hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
 
+    // Read the second wingtip board
     hal.i2c1->read(0x35, 7, data2.rxBuffer);
-	if (data2.rxBuffer[6] == 0x50) {
+
+    // Calculate checksum
+    CRC = 0;
+    for (byte ii = 0; ii<6; ii++) {
+        CRC = CRC ^ data2.rxBuffer[ii];
+    }
+
+	if (data2.rxBuffer[6] == CRC) {
         _RPM[2] = data2.data[0];
         _RPM[3] = data2.data[1];
         _de[1]  = (float)data2.data[2];
