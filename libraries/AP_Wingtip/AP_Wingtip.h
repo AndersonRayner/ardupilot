@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#ifndef __WINGTIP_H__
+#define __WINGTIP_H__
+
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
@@ -26,13 +29,17 @@
 class AP_Wingtip 
 {
 public:
-    AP_Wingtip(void);
-
-    uint16_t _RPM[4];
-    float    _de[2];
-	bool     _healthy[6];
-
-    //static const struct AP_Param::GroupInfo var_info[];
+    // constructor
+    AP_Wingtip(void)
+    {
+		AP_Param::setup_object_defaults(this, var_info);
+		
+		// init _RPM and _de values
+		memset(_RPM,0,sizeof(_RPM));
+    memset(_de,0,sizeof(_de));
+    };
+	
+    static const struct AP_Param::GroupInfo var_info[];
     
     // detect and initialise any available rpm sensors
     void init(void);
@@ -74,5 +81,11 @@ private:
     uint8_t rxBuffer[7];
     uint16_t data[3];
     };
+
+    AP_Int8  _type;
+    uint16_t _RPM[4];
+    float    _de[2];
+    bool     _healthy[6];
   
 };
+#endif // __WINGTIP_H__

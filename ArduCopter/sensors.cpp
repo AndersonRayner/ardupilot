@@ -85,7 +85,7 @@ void Copter::rpm_update(void)
 // Update Wingtip boards
 void Copter::update_wingtip(void)
 {
-    wingtip.update();
+   // wingtip.update();
    // DataFlash.Log_Write_Wingtip(wingtip);
 }
 

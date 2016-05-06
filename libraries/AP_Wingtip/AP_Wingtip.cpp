@@ -20,34 +20,22 @@ extern const AP_HAL::HAL& hal;
 AP_HAL::DigitalSource *_cs;
 
 // table of user settable parameters
-/*const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
+const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
     // @Param: _TYPE
-    // @DisplayName: RPM type
+    // @DisplayName: Wingtip Board type
     // @Description: What type of RPM sensor is connected
-    // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("_TYP0",    0, AP_Wingtip, _type[0], 0),
-
-    AP_GROUPINFO("_TYP1",    1, AP_Wingtip, _type[1], 0),
+    // @Values: 0:Faked,1:I2C_Wingtip
+    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, 1),
 
     AP_GROUPEND
-};*/
-
-AP_Wingtip::AP_Wingtip(void) 
-{
-   // hal.console->printf("AP_Wingtip:constructing...\n");  // Was causing crashes
-   // AP_Param::setup_object_defaults(this, var_info);
-   
-    // init state and drivers
-  //  memset(state,0,sizeof(state));
-  //  memset(drivers,0,sizeof(drivers));
-}
+};
 
 /*
   initialise the AP_Wingtip class. 
  */
 void AP_Wingtip::init(void)
 {
-    // Want to think about resetting the boards here.
+    // Reset the external boards
     _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
         AP_HAL::panic("Unable to reset wingtip boards");
@@ -71,14 +59,28 @@ void AP_Wingtip::update(void)
     uint64_t time_us1 = AP_HAL::micros64();
     uint64_t time_us2 = AP_HAL::micros64();
 
-    byte CRC;
+    uint8_t CRC;
+
+    switch (_type) {
+    case 0 :   // Fake the data
+       _RPM[0]++;
+       _RPM[1]++;
+       _RPM[2]++;
+       _RPM[3]++;
+
+       _de[0]++;
+       _de[1]++;
+
+       break;
+
+    case 1 :   // Get the data from the wingtip boards
 
     // Read the first wingtip board
     hal.i2c1->read(0x32, 7, data1.rxBuffer);
 
     // Calculate checksum
     CRC = 0;
-    for (byte ii = 0; ii<6; ii++) {
+    for (uint8_t ii = 0; ii<6; ii++) {
         CRC = CRC ^ data1.rxBuffer[ii];
     }
 
@@ -97,11 +99,11 @@ void AP_Wingtip::update(void)
     hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
 
     // Read the second wingtip board
-    hal.i2c1->read(0x35, 7, data2.rxBuffer);
+    hal.i2c1->read(0x33, 7, data2.rxBuffer);
 
     // Calculate checksum
     CRC = 0;
-    for (byte ii = 0; ii<6; ii++) {
+    for (uint8_t ii = 0; ii<6; ii++) {
         CRC = CRC ^ data2.rxBuffer[ii];
     }
 
@@ -118,6 +120,12 @@ void AP_Wingtip::update(void)
 
     time_us1 = AP_HAL::micros64();
     hal.console->printf("t2 = %6llu csum: 0x%02x  ", (time_us1-time_us2), data2.rxBuffer[6]);
+    break;
+
+    default :
+        hal.console->printf("No typpe recognised!!! AP_Wingtip._type");
+        break;
+    }
 }
 
 /*
