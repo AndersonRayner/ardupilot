@@ -28,11 +28,7 @@ class AP_Wingtip
 public:
     AP_Wingtip(void);
 
-    uint16_t _RPM[4];
-    float    _de[2];
-	bool     _healthy[6];
-
-    //static const struct AP_Param::GroupInfo var_info[];
+    static const struct AP_Param::GroupInfo var_info[];
     
     // detect and initialise any available rpm sensors
     void init(void);
@@ -74,5 +70,10 @@ private:
     uint8_t rxBuffer[7];
     uint16_t data[3];
     };
+
+    uint8_t  _type;
+    uint16_t _RPM[4];
+    float    _de[2];
+    bool     _healthy[6];
   
 };
