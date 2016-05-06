@@ -70,7 +70,7 @@ void AP_Wingtip::update(void)
     uint64_t time_us1 = AP_HAL::micros64();
     uint64_t time_us2 = AP_HAL::micros64();
 
-    byte CRC;
+    uint8_t CRC;
 
     switch (_type) {
     case 0 :   // Fake the data
@@ -91,7 +91,7 @@ void AP_Wingtip::update(void)
 
     // Calculate checksum
     CRC = 0;
-    for (byte ii = 0; ii<6; ii++) {
+    for (uint8_t ii = 0; ii<6; ii++) {
         CRC = CRC ^ data1.rxBuffer[ii];
     }
 
@@ -114,7 +114,7 @@ void AP_Wingtip::update(void)
 
     // Calculate checksum
     CRC = 0;
-    for (byte ii = 0; ii<6; ii++) {
+    for (uint8_t ii = 0; ii<6; ii++) {
         CRC = CRC ^ data2.rxBuffer[ii];
     }
 

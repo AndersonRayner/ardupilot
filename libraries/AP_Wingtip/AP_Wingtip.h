@@ -15,6 +15,9 @@
  */
 #pragma once
 
+#ifndef __WINGTIP_H__
+#define __WINGTIP_H__
+
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
@@ -71,9 +74,10 @@ private:
     uint16_t data[3];
     };
 
-    uint8_t  _type;
+    AP_Int8  _type;
     uint16_t _RPM[4];
     float    _de[2];
     bool     _healthy[6];
   
 };
+#endif // __WINGTIP_H__

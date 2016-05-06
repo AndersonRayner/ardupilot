@@ -1112,6 +1112,9 @@ const AP_Param::Info Copter::var_info[] = {
     // @Values: 0:Stopped,1:Running
     // @User: Standard
     GSCALAR(throw_motor_start, "THROW_MOT_START", 0),
+	
+	// @Path: ../libraries/AP_Wingtip/AP_Wingtip.cpp
+    GOBJECT(wingtip, "WING", AP_Wingtip),
 
     AP_VAREND
 };
