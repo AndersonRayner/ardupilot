@@ -1077,7 +1077,7 @@ const AP_Param::Info Copter::var_info[] = {
     GOBJECT(rpm_sensor, "RPM", AP_RPM),
 
 	// @Path: ../libraries/AP_Wingtip/AP_Wingtip.cpp
-    //GOBJECT(wingtip, "WING", AP_Wingtip),
+    GOBJECT(wingtip, "WING", AP_Wingtip),
 
     // @Group: ADSB_
     // @Path: ../libraries/AP_ADSB/AP_ADSB.cpp

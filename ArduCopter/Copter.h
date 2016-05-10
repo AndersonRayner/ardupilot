@@ -92,7 +92,7 @@
 #include <AP_Terrain/AP_Terrain.h>
 #include <AP_ADSB/AP_ADSB.h>
 #include <AP_RPM/AP_RPM.h>
-//#include <AP_Wingtip/AP_Wingtip.h>                  // Wingtip board library
+#include <AP_Wingtip/AP_Wingtip.h>                  // Wingtip board library
 #include <AC_InputManager/AC_InputManager.h>        // Pilot input handling library
 #include <AC_InputManager/AC_InputManager_Heli.h>   // Heli specific pilot input handling library
 
@@ -181,7 +181,7 @@ private:
 #endif
 
     AP_RPM rpm_sensor;
-   // AP_Wingtip wingtip;
+    AP_Wingtip wingtip;
 
     // Inertial Navigation EKF
     NavEKF EKF{&ahrs, barometer, sonar};

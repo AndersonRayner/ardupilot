@@ -25,21 +25,10 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
     // @DisplayName: Wingtip Board type
     // @Description: What type of RPM sensor is connected
     // @Values: 0:Faked,1:I2C_Wingtip
-    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, 0),
+    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, 1),
 
     AP_GROUPEND
 };
-
-AP_Wingtip::AP_Wingtip(void) 
-{
-   // hal.console->printf("AP_Wingtip:constructing...\n");  // Was causing crashes
-   AP_Param::setup_object_defaults(this, var_info);
-   
-    // init _RPM and _de values
-    memset(_RPM,0,sizeof(_RPM));
-    memset(_de,0,sizeof(_de));
-
-}
 
 /*
   initialise the AP_Wingtip class. 
@@ -110,7 +99,7 @@ void AP_Wingtip::update(void)
     hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
 
     // Read the second wingtip board
-    hal.i2c1->read(0x35, 7, data2.rxBuffer);
+    hal.i2c1->read(0x33, 7, data2.rxBuffer);
 
     // Calculate checksum
     CRC = 0;

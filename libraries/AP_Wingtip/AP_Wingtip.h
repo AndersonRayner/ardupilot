@@ -29,8 +29,16 @@
 class AP_Wingtip 
 {
 public:
-    AP_Wingtip(void);
-
+    // constructor
+    AP_Wingtip(void)
+    {
+		AP_Param::setup_object_defaults(this, var_info);
+		
+		// init _RPM and _de values
+		memset(_RPM,0,sizeof(_RPM));
+    memset(_de,0,sizeof(_de));
+    };
+	
     static const struct AP_Param::GroupInfo var_info[];
     
     // detect and initialise any available rpm sensors
