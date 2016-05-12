@@ -17,7 +17,7 @@
 #include "AP_Wingtip.h"
 
 extern const AP_HAL::HAL& hal;
-AP_HAL::DigitalSource *_cs;
+//AP_HAL::DigitalSource *_cs;
 
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
@@ -35,7 +35,7 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
  */
 void AP_Wingtip::init(void)
 {
-    // Reset the external boards
+   /* // Reset the external boards
     _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
         AP_HAL::panic("Unable to reset wingtip boards");
@@ -44,7 +44,7 @@ void AP_Wingtip::init(void)
     _cs->mode(HAL_GPIO_OUTPUT);
     _cs->write(0);       // low resets the board
     hal.scheduler->delay(5);
-    _cs->write(1);       // go high to let it do it's thing
+    _cs->write(1);       // go high to let it do it's thing*/
 
 }
 
@@ -53,7 +53,7 @@ void AP_Wingtip::init(void)
  */
 void AP_Wingtip::update(void)
 {
-    union wingtip_data data1;
+ /*   union wingtip_data data1;
     union wingtip_data data2;
 
     uint64_t time_us1 = AP_HAL::micros64();
@@ -125,7 +125,7 @@ void AP_Wingtip::update(void)
     default :
         hal.console->printf("No typpe recognised!!! AP_Wingtip._type");
         break;
-    }
+    }*/
 }
 
 /*
@@ -133,7 +133,7 @@ void AP_Wingtip::update(void)
  */
 bool AP_Wingtip::healthy(uint8_t instance) const
 {
-    hal.console->printf("AP_Wingtip:healthy - testing...\n");
+  //  hal.console->printf("AP_Wingtip:healthy - testing...\n");
     return true;
 }
 
@@ -142,6 +142,6 @@ bool AP_Wingtip::healthy(uint8_t instance) const
  */
 bool AP_Wingtip::enabled(uint8_t instance) const
 {
-    hal.console->printf("AP_Wingtip:enabled - testing...\n");
+   // hal.console->printf("AP_Wingtip:enabled - testing...\n");
     return true;
 }

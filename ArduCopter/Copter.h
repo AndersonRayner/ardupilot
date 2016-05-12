@@ -181,7 +181,7 @@ private:
 #endif
 
     AP_RPM rpm_sensor;
-    AP_Wingtip wingtip;
+    AP_Wingtip wingtip_sensor;
 
     // Inertial Navigation EKF
     NavEKF EKF{&ahrs, barometer, sonar};

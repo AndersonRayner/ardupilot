@@ -23,8 +23,8 @@
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>
-#include <AP_HAL/GPIO.h>
-#include <AP_HAL_Linux/GPIO_BBB.h>
+//#include <AP_HAL/GPIO.h>
+//#include <AP_HAL_Linux/GPIO_BBB.h>
 
 class AP_Wingtip 
 {

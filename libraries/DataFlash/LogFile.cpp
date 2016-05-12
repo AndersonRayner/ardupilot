@@ -1796,17 +1796,17 @@ void DataFlash_Class::Log_Write_RPM(const AP_RPM &rpm_sensor)
     WriteBlock(&pkt, sizeof(pkt));
 }
 
-void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip)
+void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor)
 {
     struct log_Wingtip pkt = {
         LOG_PACKET_HEADER_INIT(LOG_WINGTIP_MSG),
         time_us     : AP_HAL::micros64(),
-        rpm1        : wingtip.get_rpm(0),
-        rpm2        : wingtip.get_rpm(1),
-        rpm3        : wingtip.get_rpm(2),
-        rpm4        : wingtip.get_rpm(3),
-        de1         : wingtip.get_de(0),
-        de2         : wingtip.get_de(1)
+        rpm1        : wingtip_sensor.get_rpm(0),
+        rpm2        : wingtip_sensor.get_rpm(1),
+        rpm3        : wingtip_sensor.get_rpm(2),
+        rpm4        : wingtip_sensor.get_rpm(3),
+        de1         : wingtip_sensor.get_de(0),
+        de2         : wingtip_sensor.get_de(1)
     };
     WriteBlock(&pkt, sizeof(pkt));
 }
