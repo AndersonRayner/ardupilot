@@ -85,7 +85,7 @@ void Copter::rpm_update(void)
 void Copter::wingtip_update(void)
 {
     // do nothing
-    rpm_sensor.update();
+    wingtip_sensor.update();
 }
 
 // initialise compass
