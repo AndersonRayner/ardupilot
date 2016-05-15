@@ -87,6 +87,7 @@ struct PACKED Location_Option_Flags {
     uint8_t unused1      : 1;           // unused flag (defined so that loiter_ccw uses the correct bit)
     uint8_t loiter_ccw   : 1;           // 0 if clockwise, 1 if counter clockwise
     uint8_t terrain_alt  : 1;           // this altitude is above terrain
+    uint8_t origin_alt   : 1;           // this altitude is above ekf origin
 };
 
 struct PACKED Location {
@@ -99,7 +100,7 @@ struct PACKED Location {
     // storage cost per mission item at 15 bytes, and allows mission
     // altitudes of up to +/- 83km
     int32_t alt:24;                                     ///< param 2 - Altitude in centimeters (meters * 100)
-    int32_t lat;                                        ///< param 3 - Lattitude * 10**7
+    int32_t lat;                                        ///< param 3 - Latitude * 10**7
     int32_t lng;                                        ///< param 4 - Longitude * 10**7
 };
 

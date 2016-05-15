@@ -2,14 +2,12 @@
 
 /// @file	PID.h
 /// @brief	Generic PID algorithm, with EEPROM-backed storage of constants.
-
-#ifndef __PID_H__
-#define __PID_H__
+#pragma once
 
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
 #include <stdlib.h>
-#include <math.h>               // for fabs()
+#include <cmath>
 
 /// @class	PID
 /// @brief	Object managing one PID control
@@ -115,10 +113,8 @@ private:
 
     /// Low pass filter cut frequency for derivative calculation.
     ///
-    /// 20 Hz becasue anything over that is probably noise, see
+    /// 20 Hz because anything over that is probably noise, see
     /// http://en.wikipedia.org/wiki/Low-pass_filter.
     ///
     static const uint8_t        _fCut = 20;
 };
-
-#endif

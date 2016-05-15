@@ -15,9 +15,7 @@
 /*
   Flymaple port by Mike McCauley
  */
-
-#ifndef __AP_HAL_FLYMAPLE_ANALOGIN_H__
-#define __AP_HAL_FLYMAPLE_ANALOGIN_H__
+#pragma once
 
 #include "AP_HAL_FLYMAPLE.h"
 
@@ -44,7 +42,7 @@ public:
 
     /* implementation specific interface: */
 
-    /* new_sample(): called with value of ADC measurments, from interrput */
+    /* new_sample(): called with value of ADC measurments, from interrupt */
     void new_sample(uint16_t);
 
     /* setup_read(): called to setup ADC registers for next measurment,
@@ -101,4 +99,3 @@ private:
     // divider (25k/5k) 
     FLYMAPLEAnalogSource _vcc;
 };
-#endif // __AP_HAL_FLYMAPLE_ANALOGIN_H__

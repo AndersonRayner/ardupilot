@@ -1,7 +1,5 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
-
-#ifndef _DEFINES_H
-#define _DEFINES_H
+#pragma once
 
 // Command/Waypoint/Location Options Bitmask
 //--------------------
@@ -35,5 +33,5 @@ enum ServoType {
 #define MASK_LOG_COMPASS                (1<<5)
 #define MASK_LOG_ANY                    0xFFFF
 
-#endif // _DEFINES_H
-
+//  Logging messages
+#define LOG_V_BAR_MSG                   0x04

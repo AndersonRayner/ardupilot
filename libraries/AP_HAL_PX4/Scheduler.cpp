@@ -123,7 +123,7 @@ static void set_normal_priority(void *sem)
 }
 
 /*
-  a varient of delay_microseconds that boosts priority to
+  a variant of delay_microseconds that boosts priority to
   APM_MAIN_PRIORITY_BOOST for APM_MAIN_PRIORITY_BOOST_USEC
   microseconds when the time completes. This significantly improves
   the regularity of timing of the main loop as it takes 
@@ -322,6 +322,7 @@ void *PX4Scheduler::_uart_thread(void *arg)
         ((PX4UARTDriver *)hal.uartC)->_timer_tick();
         ((PX4UARTDriver *)hal.uartD)->_timer_tick();
         ((PX4UARTDriver *)hal.uartE)->_timer_tick();
+        ((PX4UARTDriver *)hal.uartF)->_timer_tick();
     }
     return NULL;
 }

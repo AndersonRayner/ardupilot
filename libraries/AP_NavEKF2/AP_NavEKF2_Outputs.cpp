@@ -280,7 +280,7 @@ bool NavEKF2_core::getLLH(struct Location &loc) const
             location_offset(loc, outputDataNew.position.x, outputDataNew.position.y);
             return true;
         } else {
-            // we could be in constant position mode  becasue the vehicle has taken off without GPS, or has lost GPS
+            // we could be in constant position mode  because the vehicle has taken off without GPS, or has lost GPS
             // in this mode we cannot use the EKF states to estimate position so will return the best available data
             if ((_ahrs->get_gps().status() >= AP_GPS::GPS_OK_FIX_2D)) {
                 // we have a GPS position fix to return
@@ -343,6 +343,20 @@ void NavEKF2_core::getMagNED(Vector3f &magNED) const
 void NavEKF2_core::getMagXYZ(Vector3f &magXYZ) const
 {
     magXYZ = stateStruct.body_magfield*1000.0f;
+}
+
+// return magnetometer offsets
+// return true if offsets are valid
+bool NavEKF2_core::getMagOffsets(uint8_t mag_idx, Vector3f &magOffsets) const
+{
+    // compass offsets are valid if we have finalised magnetic field initialisation and magnetic field learning is not prohibited and primary compass is valid
+    if (mag_idx == magSelectIndex && firstMagYawInit && (frontend->_magCal != 2) && _ahrs->get_compass()->healthy(magSelectIndex)) {
+        magOffsets = _ahrs->get_compass()->get_offsets(magSelectIndex) - stateStruct.body_magfield*1000.0f;
+        return true;
+    } else {
+        magOffsets = _ahrs->get_compass()->get_offsets(magSelectIndex);
+        return false;
+    }
 }
 
 // return the index for the active magnetometer
@@ -447,7 +461,7 @@ void  NavEKF2_core::getFilterStatus(nav_filter_status &status) const
     bool optFlowNavPossible = flowDataValid && (frontend->_fusionModeGPS == 3);
     bool gpsNavPossible = !gpsNotAvailable && (PV_AidingMode == AID_ABSOLUTE) && gpsGoodToAlign;
     bool filterHealthy = healthy() && tiltAlignComplete && yawAlignComplete;
-    // If GPS height useage is specified, height is considered to be inaccurate until the GPS passes all checks
+    // If GPS height usage is specified, height is considered to be inaccurate until the GPS passes all checks
     bool hgtNotAccurate = (frontend->_altSource == 2) && !validOrigin;
 
     // set individual flags

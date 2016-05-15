@@ -50,7 +50,8 @@ void loop(void)
         timer = AP_HAL::millis();
         airspeed.read();
         airspeed.get_temperature(temperature);
-        hal.console->printf("airspeed %.2f temperature %.2f healthy = %u\n", airspeed.get_airspeed(), temperature, airspeed.healthy());
+
+        hal.console->printf("airspeed %5.2f temperature %6.2f healthy = %u\n", airspeed.get_airspeed(), temperature, airspeed.healthy());
     }
     hal.scheduler->delay(1);
 }

@@ -43,6 +43,7 @@ static UARTDriver uartCDriver(false);
 #endif
 static UARTDriver uartDDriver(false);
 static UARTDriver uartEDriver(false);
+static UARTDriver uartFDriver(false);
 
 static I2CDeviceManager i2c_mgr_instance;
 
@@ -54,13 +55,11 @@ static I2CDriver i2cDriver2(2);
 static I2CDriver i2cDriver0(2);
 static I2CDriver i2cDriver1(1);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
-static const std::vector<const char *> i2c_devpaths({
+static I2CDriver  i2cDriver0({
     /* UEFI with lpss set to ACPI */
-    "/devices/platform/80860F41:05",
+    "platform/80860F41:05",
     /* UEFI with lpss set to PCI */
-    "/devices/pci0000:00/0000:00:18.6",
-});
-static I2CDriver  i2cDriver0(i2c_devpaths);
+    "pci0000:00/0000:00:18.6" });
 /* One additional emulated bus */
 static I2CDriver  i2cDriver1(10);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_QFLIGHT
@@ -202,6 +201,7 @@ HAL_Linux::HAL_Linux() :
         &uartCDriver,
         &uartDDriver,
         &uartEDriver,
+        &uartFDriver,
         &i2c_mgr_instance,
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP
         &i2cDriver0,
@@ -231,7 +231,7 @@ HAL_Linux::HAL_Linux() :
 
 void _usage(void)
 {
-    printf("Usage: -A uartAPath -B uartBPath -C uartCPath -D uartDPath -E uartEPath\n");
+    printf("Usage: -A uartAPath -B uartBPath -C uartCPath -D uartDPath -E uartEPath -F uartFPath\n");
     printf("Options:\n");
     printf("\t-serial:          -A /dev/ttyO4\n");
     printf("\t                  -B /dev/ttyS1\n");    
@@ -257,6 +257,7 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
         {"uartC",         true,  0, 'C'},
         {"uartD",         true,  0, 'D'},
         {"uartE",         true,  0, 'E'},
+        {"uartF",         true,  0, 'F'},
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_QFLIGHT
         {"dsm",           true,  0, 'S'},
         {"ESC",           true,  0, 'e'},
@@ -267,7 +268,7 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
         {0, false, 0, 0}
     };
 
-    GetOptLong gopt(argc, argv, "A:B:C:D:E:l:t:he:S",
+    GetOptLong gopt(argc, argv, "A:B:C:D:E:F:l:t:he:S",
                     options);
 
     /*
@@ -289,6 +290,9 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
             break;
         case 'E':
             uartEDriver.set_device_path(gopt.optarg);
+            break;
+        case 'F':
+            uartFDriver.set_device_path(gopt.optarg);
             break;
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_QFLIGHT
         case 'e':
@@ -331,6 +335,7 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
     rcin->init();
     uartA->begin(115200);    
     uartE->begin(115200);    
+    uartF->begin(115200);    
     analogin->init();
     utilInstance.init(argc+gopt.optind-1, &argv[gopt.optind-1]);
 

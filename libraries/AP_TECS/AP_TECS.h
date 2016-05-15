@@ -18,9 +18,7 @@
  *  - Relative ease of tuning through use of intuitive time constant, trim rate and damping parameters and the use
  *    of easy to measure aircraft performance data
  */
-
-#ifndef AP_TECS_H
-#define AP_TECS_H
+#pragma once
 
 #include <AP_Math/AP_Math.h>
 #include <AP_AHRS/AP_AHRS.h>
@@ -41,7 +39,7 @@ public:
     // Update of the estimated height and height rate internal state
     // Update of the inertial speed rate internal state
     // Should be called at 50Hz or greater
-    void update_50hz(float hgt_afe);
+    void update_50hz(void);
 
     // Update the control loop calculations
     void update_pitch_throttle(int32_t hgt_dem_cm,
@@ -71,9 +69,6 @@ public:
         return _vel_dot;
     }
 
-    // log data on internal state of the controller. Called at 10Hz
-    void log_data(DataFlash_Class &dataflash, uint8_t msgid);
-
     // return current target airspeed
     float get_target_airspeed(void) const {
         return _TAS_dem / _ahrs.get_EAS2TAS();
@@ -87,6 +82,11 @@ public:
     // return landing sink rate
     float get_land_sinkrate(void) const {
         return _land_sink;
+    }
+
+    // return landing airspeed
+    float get_land_airspeed(void) const {
+        return _landAirspeed;
     }
 
     // return height rate demand, in m/s
@@ -107,32 +107,15 @@ public:
     // this supports the TECS_* user settable parameters
     static const struct AP_Param::GroupInfo var_info[];
 
-    struct PACKED log_TECS_Tuning {
-        LOG_PACKET_HEADER;
-        uint64_t time_us;
-        float hgt;
-        float dhgt;
-        float hgt_dem;
-        float dhgt_dem;
-        float spd_dem;
-        float spd;
-        float dspd;
-        float ithr;
-        float iptch;
-        float thr;
-        float ptch;
-        float dspd_dem;
-    } log_tuning;
-
 private:
     // Last time update_50Hz was called
-    uint32_t _update_50hz_last_usec;
+    uint64_t _update_50hz_last_usec;
 
     // Last time update_speed was called
-    uint32_t _update_speed_last_usec;
+    uint64_t _update_speed_last_usec;
 
     // Last time update_pitch_throttle was called
-    uint32_t _update_pitch_throttle_last_usec;
+    uint64_t _update_pitch_throttle_last_usec;
 
     // reference to the AHRS object
     AP_AHRS &_ahrs;
@@ -195,16 +178,16 @@ private:
     } _height_filter;
 
     // Integrator state 4 - airspeed filter first derivative
-    float _integ4_state;
+    float _integDTAS_state;
 
     // Integrator state 5 - true airspeed
-    float _integ5_state;
+    float _TAS_state;
 
     // Integrator state 6 - throttle integrator
-    float _integ6_state;
+    float _integTHR_state;
 
     // Integrator state 6 - pitch integrator
-    float _integ7_state;
+    float _integSEB_state;
 
     // throttle demand rate limiter state
     float _last_throttle_dem;
@@ -249,17 +232,26 @@ private:
     // Total energy rate filter state
     float _STEdotErrLast;
 
-    // Underspeed condition
-    bool _underspeed;
+    struct flags {
+        // Underspeed condition
+        bool underspeed:1;
 
-    // Bad descent condition caused by unachievable airspeed demand
-    bool _badDescent;
+        // Bad descent condition caused by unachievable airspeed demand
+        bool badDescent:1;
+
+        // true when plane is in auto mode and executing a land mission item
+        bool is_doing_auto_land:1;
+    };
+    union {
+        struct flags _flags;
+        uint8_t _flags_byte;
+    };
+
+    // time when underspeed started
+    uint32_t _underspeed_start_ms;
 
     // auto mode flightstage
     enum FlightStage _flight_stage;
-
-    // true when plane is in auto mode and executing a land mission item
-    bool _is_doing_auto_land;
 
     // pitch demand before limiting
     float _pitch_dem_unc;
@@ -300,6 +292,14 @@ private:
 
     float _distance_beyond_land_wp;
 
+    // internal variables to be logged
+    struct {
+        float SKE_weighting;
+        float SPE_error;
+        float SKE_error;
+        float SEB_delta;
+    } logging;
+    
     // Update the airspeed internal state using a second order complementary filter
     void _update_speed(float load_factor);
 
@@ -341,12 +341,5 @@ private:
 
     // current time constant
     float timeConstant(void) const;
-
-    // return true if on landing approach
-    bool is_on_land_approach(bool include_segment_between_NORMAL_and_APPROACH);
 };
 
-#define TECS_LOG_FORMAT(msg) { msg, sizeof(AP_TECS::log_TECS_Tuning),	\
-							   "TECS", "Qffffffffffff", "TimeUS,h,dh,h_dem,dh_dem,sp_dem,sp,dsp,ith,iph,th,ph,dsp_dem" }
-
-#endif //AP_TECS_H

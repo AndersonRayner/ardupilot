@@ -1,5 +1,4 @@
-#ifndef __AP_ACCELCAL_H__
-#define __AP_ACCELCAL_H__
+#pragma once
 
 #include <GCS_MAVLink/GCS_MAVLink.h>
 #include "AccelCalibrator.h"
@@ -53,7 +52,7 @@ private:
     // update the state of the Accel calibrator server
     void update_status();
 
-    // checks if no new sample has been recieved for considerable amount of time
+    // checks if no new sample has been received for considerable amount of time
     bool check_for_timeout();
 
     // check if client's calibrator is active
@@ -83,5 +82,3 @@ private:
     virtual void _acal_event_cancellation() {};
     virtual void _acal_event_failure() {};
 };
-
-#endif
