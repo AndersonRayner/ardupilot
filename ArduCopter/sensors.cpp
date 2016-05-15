@@ -83,10 +83,10 @@ void Copter::rpm_update(void)
 }
 
 // Update Wingtip boards
-void Copter::update_wingtip(void)
+void Copter::wingtip_update(void)
 {
-   // wingtip.update();
-   // DataFlash.Log_Write_Wingtip(wingtip);
+    wingtip_sensor.update();
+   // DataFlash.Log_Write_Wingtip(wingtip);  // Log a data packet every update
 }
 
 // initialise compass

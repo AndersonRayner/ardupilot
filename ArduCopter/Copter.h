@@ -640,7 +640,7 @@ private:
     void send_rangefinder(mavlink_channel_t chan);
     void send_rpm(mavlink_channel_t chan);
     void rpm_update();
-    void update_wingtip();
+    void wingtip_update();
     void send_pid_tuning(mavlink_channel_t chan);
     bool telemetry_delayed(mavlink_channel_t chan);
     void gcs_send_message(enum ap_message id);
