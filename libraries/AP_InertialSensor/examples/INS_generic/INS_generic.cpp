@@ -89,19 +89,19 @@ static void display_offsets_and_scaling()
     // display results
     hal.console->printf(
             "\nAccel Offsets X:%10.8f \t Y:%10.8f \t Z:%10.8f\n",
-            accel_offsets.x,
-            accel_offsets.y,
-            accel_offsets.z);
+                    accel_offsets.x,
+                    accel_offsets.y,
+                    accel_offsets.z);
     hal.console->printf(
             "Accel Scale X:%10.8f \t Y:%10.8f \t Z:%10.8f\n",
-            accel_scale.x,
-            accel_scale.y,
-            accel_scale.z);
+                    accel_scale.x,
+                    accel_scale.y,
+                    accel_scale.z);
     hal.console->printf(
             "Gyro Offsets X:%10.8f \t Y:%10.8f \t Z:%10.8f\n",
-            gyro_offsets.x,
-            gyro_offsets.y,
-            gyro_offsets.z);
+                    gyro_offsets.x,
+                    gyro_offsets.y,
+                    gyro_offsets.z);
 }
 
 static void run_test()
