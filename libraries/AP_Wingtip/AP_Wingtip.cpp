@@ -154,8 +154,8 @@ void AP_Wingtip::update(void)
         break;
 
     default :
-     //   hal.console->printf("No type recognised!!! AP_Wingtip._type");
-        break;
+        // do nothing at the moment
+       // hal.console->printf("No type recognised!!! AP_Wingtip._type");
     }
 }
 
