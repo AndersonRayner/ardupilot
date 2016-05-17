@@ -116,6 +116,11 @@ void AP_Wingtip::update(void)
             _RPM[0] = data1.data[0];
             _RPM[1] = data1.data[1];
             _de[0]  = (float)data1.data[2];
+
+            _healthy[0] = 1; // rpm1
+            _healthy[1] = 1; // rpm2
+            _healthy[4] = 1; //  de1
+
         } else {
             // mark sensor unhealthy
             _healthy[0] = 0; // rpm1
@@ -136,6 +141,11 @@ void AP_Wingtip::update(void)
             _RPM[2] = data2.data[0];
             _RPM[3] = data2.data[1];
             _de[1]  = (float)data2.data[2];
+
+            _healthy[2] = 1; // rpm3
+            _healthy[3] = 1; // rpm4
+            _healthy[5] = 1; //  de2
+
         } else {
             // mark sensor unhealthy
             _healthy[2] = 0; // rpm3
