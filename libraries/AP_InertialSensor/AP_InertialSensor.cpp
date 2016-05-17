@@ -585,7 +585,7 @@ AP_InertialSensor::detect_backends(void)
                  hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)));
 #elif HAL_INS_DEFAULT == HAL_INS_MATTPILOT
     // MPU9250
-    _add_backend(AP_InertialSensor_MPU9250::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME)));
+    AP_InertialSensor_Backend *backend = AP_InertialSensor_MPU9250::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME));
     if (backend) {
         _add_backend(backend);
         hal.console->printf("MPU9250: Onboard IMU detected\n");
@@ -594,19 +594,12 @@ AP_InertialSensor::detect_backends(void)
     }
 
     // LSM9DS0
-    _add_backend(AP_InertialSensor_LSM9DS0::probe(*this,hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)));
+    backend = AP_InertialSensor_LSM9DS0::probe(*this,hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME));
     if (backend) {
         _add_backend(backend);
         hal.console->printf("LSM9DS0: Onboard IMU detected\n");
     } else {
         hal.console->printf("LSM9DS0: Onboard IMU not detected\n");
-    }
-
-    if (backend) {
-        _add_backend(backend);
-        hal.console->printf("MPU9250: Onboard IMU detected\n");
-    } else {
-        hal.console->printf("MPU9250: Onboard IMU not detected\n");
     }
 #elif HAL_INS_DEFAULT == HAL_INS_L3G4200D
     _add_backend(AP_InertialSensor_L3G4200D::probe(*this, hal.i2c_mgr->get_device(HAL_INS_L3G4200D_I2C_BUS, HAL_INS_L3G4200D_I2C_ADDR)));
