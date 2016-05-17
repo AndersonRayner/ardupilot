@@ -96,6 +96,7 @@ void AP_Wingtip::update(void)
     case 1 :  // From the wingtip boards
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
+        union wingtip_data data1;
         union wingtip_data data2;
 
         uint64_t time_us1 = AP_HAL::micros64();
@@ -123,8 +124,8 @@ void AP_Wingtip::update(void)
             _healthy[4] = 0; //  de1
         }
 
-        time_us2 = AP_HAL::micros64();
-        hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
+     //   time_us2 = AP_HAL::micros64();
+    //    hal.console->printf("t1 = %6llu csum: 0x%02x  ", (time_us2-time_us1), data1.rxBuffer[6]);
 
         // Read the second wingtip board
         hal.i2c1->read(0x33, 7, data2.rxBuffer);
@@ -146,14 +147,14 @@ void AP_Wingtip::update(void)
             _healthy[5] = 0; //  de2
         }
 
-        time_us1 = AP_HAL::micros64();
-        hal.console->printf("t2 = %6llu csum: 0x%02x  ", (time_us1-time_us2), data2.rxBuffer[6]);
+     //   time_us1 = AP_HAL::micros64();
+     //   hal.console->printf("t2 = %6llu csum: 0x%02x  ", (time_us1-time_us2), data2.rxBuffer[6]);
 #endif
 
         break;
 
     default :
-        hal.console->printf("No type recognised!!! AP_Wingtip._type");
+     //   hal.console->printf("No type recognised!!! AP_Wingtip._type");
         break;
     }
 }
