@@ -19,6 +19,10 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+#include <AP_HAL/GPIO.h>
+#include <AP_HAL_Linux/GPIO_BBB.h>
+#endif
 
 class AP_Wingtip
 {
