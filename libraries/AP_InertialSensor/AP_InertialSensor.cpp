@@ -602,7 +602,7 @@ AP_InertialSensor::detect_backends(void)
         hal.console->printf("LSM9DS0: Onboard IMU not detected\n");
     }
 
-if (backend) {
+    if (backend) {
         _add_backend(backend);
         hal.console->printf("MPU9250: Onboard IMU detected\n");
     } else {

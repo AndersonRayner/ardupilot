@@ -84,7 +84,6 @@ void Copter::rpm_update(void)
 
 void Copter::wingtip_update(void)
 {
-    // do nothing
     wingtip_sensor.update();
 
     DataFlash.Log_Write_Wingtip(wingtip_sensor);
