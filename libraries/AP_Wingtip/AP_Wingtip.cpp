@@ -101,8 +101,8 @@ void AP_Wingtip::update(void)
         union wingtip_data data1;
         union wingtip_data data2;
 
-        uint64_t time_us1 = AP_HAL::micros64();
-        uint64_t time_us2 = AP_HAL::micros64();
+        //uint64_t time_us1 = AP_HAL::micros64();
+        //uint64_t time_us2 = AP_HAL::micros64();
 
         uint8_t CRC;
 
