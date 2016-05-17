@@ -45,17 +45,17 @@ void AP_Wingtip::init(void)
     memset(_enabled,1,sizeof(_enabled));
 
     if (_type == 0) {
-        RPM[0] =   0;
-        RPM[1] = 100;
-        RPM[2] = 200;
-        RPM[3] = 300;
+        _RPM[0] =   0;
+        _RPM[1] = 100;
+        _RPM[2] = 200;
+        _RPM[3] = 300;
 
-        de[0] =   0.0f;
-        de[1] = 100.0f;
+        _de[0] =   0.0f;
+        _de[1] = 100.0f;
 
     } else {
-        memset(RPM,0,sizeof(RPM));
-        memset(de,0,sizeof(de));
+        memset(_RPM,0,sizeof(_RPM));
+        memset(_de,0,sizeof(_de));
 
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
         // Reset the external boards
@@ -79,13 +79,13 @@ void AP_Wingtip::update(void)
 
     switch (_type) {
     case 0 : // Fake the data
-        RPM[0]++;
-        RPM[1]++;
-        RPM[2]++;
-        RPM[3]++;
+        _RPM[0]++;
+        _RPM[1]++;
+        _RPM[2]++;
+        _RPM[3]++;
 
-        de[0]++;
-        de[1]++;
+        _de[0]++;
+        _de[1]++;
 
         for (uint8_t ii=0; ii<6; ii++) {
             _healthy[ii] = 1;
@@ -186,7 +186,7 @@ uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
     if (instance >= 6) {
         return false;
     } else if (healthy(instance)) {
-        return RPM[instance];
+        return _RPM[instance];
     } else {
         return -1;
     }
@@ -195,7 +195,7 @@ uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
 // return de for a sensor.  Return -1 if not healthy
 float AP_Wingtip::get_de(uint8_t instance) const {
     if (healthy(instance+4)) {
-        return de[instance];
+        return _de[instance];
     } else {
         return -1.0f;
     }

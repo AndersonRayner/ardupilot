@@ -56,8 +56,8 @@ public:
     bool enabled(uint8_t instance) const;
 
 private:
-    uint16_t RPM[4];
-    float    de[2];
+    uint16_t _RPM[4];
+    float    _de[2];
 
     union wingtip_data {
        uint8_t rxBuffer[7];
