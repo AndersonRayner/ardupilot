@@ -41,11 +41,7 @@ public:
     };
 
     // parameters for each instance
-    AP_Int8  _type[4];
-    AP_Float _scaling[4];
-    AP_Float _maximum[4];
-    AP_Float _minimum[4];
-    AP_Float _quality_min[4];
+    AP_Int8  _type;
 
     static const struct AP_Param::GroupInfo var_info[];
     
@@ -63,8 +59,12 @@ public:
     /*
       return RPM for a sensor. Return -1 if not healthy
      */
-    float get_rpm(uint8_t instance) const {
-        return 1.0f;
+    uint16_t get_rpm(uint8_t instance) const {
+        return RPM[instance];
+    }
+
+    float get_de(uint8_t instance) const {
+        return de[instance];
     }
 
     /*
@@ -79,5 +79,7 @@ public:
     bool enabled(uint8_t instance) const;
 
 private:
+    uint16_t RPM[4];
+    float    de[2];
 
 };

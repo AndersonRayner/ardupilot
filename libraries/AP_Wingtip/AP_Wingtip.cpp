@@ -20,34 +20,11 @@ extern const AP_HAL::HAL& hal;
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
     // @Param: _TYPE
-    // @DisplayName: RPM type
-    // @Description: What type of RPM sensor is connected
-    // @Values: 0:None,1:PX4-PWM
-    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type[0], 0),
+    // @DisplayName: Wingtip sensor type
+    // @Description: What type of wingtip sensor is connected
+    // @Values: 0:Faked,1:Ardu-Board
+    AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, 0),
 
-    // @Param: _SCALING
-    // @DisplayName: RPM scaling
-    // @Description: Scaling factor between sensor reading and RPM.
-    // @Increment: 0.001
-    AP_GROUPINFO("_SCALING", 1, AP_Wingtip, _scaling[0], 1.0f),
-
-    // @Param: _MAX
-    // @DisplayName: Maximum RPM
-    // @Description: Maximum RPM to report
-    // @Increment: 1
-    AP_GROUPINFO("_MAX", 2, AP_Wingtip, _maximum[0], 0),
-
-    // @Param: _MIN
-    // @DisplayName: Minimum RPM
-    // @Description: Minimum RPM to report
-    // @Increment: 1
-    AP_GROUPINFO("_MIN", 3, AP_Wingtip, _minimum[0], 0),
-
-    // @Param: _MIN_QUAL
-    // @DisplayName: Minimum Quality
-    // @Description: Minimum data quality to be used
-    // @Increment: 0.1
-    AP_GROUPINFO("_MIN_QUAL", 4, AP_Wingtip, _quality_min[0], 0.5),
 
     AP_GROUPEND
 };
@@ -61,15 +38,27 @@ AP_Wingtip::AP_Wingtip(void)
  */
 void AP_Wingtip::init(void)
 {
-   
+    RPM[0] =   0;
+    RPM[1] = 100;
+    RPM[2] = 200;
+    RPM[3] = 300;
+
+    de[0] =   0.0f;
+    de[1] = 100.0f;
 }
 
 /*
-  update RPM state for all instances. This should be called by main loop
+  update wingtip for all instances. This should be called by main loop
  */
 void AP_Wingtip::update(void)
 {
+    RPM[0]++;
+    RPM[1]++;
+    RPM[2]++;
+    RPM[3]++;
 
+    de[0]++;
+    de[1]++;
 }
     
 /*

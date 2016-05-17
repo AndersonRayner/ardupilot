@@ -18,6 +18,7 @@
 #include <AP_Airspeed/AP_Airspeed.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_RPM/AP_RPM.h>
+#include <AP_Wingtip/AP_Wingtip.h>
 #include <AP_RangeFinder/AP_RangeFinder.h>
 #include <DataFlash/LogStructure.h>
 #include <AP_Motors/AP_Motors.h>
@@ -139,6 +140,7 @@ public:
                                const AP_Mission::Mission_Command &cmd);
     void Log_Write_Origin(uint8_t origin_type, const Location &loc);
     void Log_Write_RPM(const AP_RPM &rpm_sensor);
+    void Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor);
     void Log_Write_Rate(const AP_AHRS &ahrs,
                         const AP_Motors &motors,
                         const AC_AttitudeControl &attitude_control,
