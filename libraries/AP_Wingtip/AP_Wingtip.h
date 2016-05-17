@@ -19,36 +19,19 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
- 
+
 class AP_Wingtip
 {
 public:
 
     AP_Wingtip(void);
 
-    // RPM driver types
-    enum RPM_Type {
-        RPM_TYPE_NONE    = 0,
-        RPM_TYPE_PX4_PWM = 1
-    };
-
-    // The RPM_State structure is filled in by the backend driver
-    struct RPM_State {
-        uint8_t                instance;        // the instance number of this RPM
-        float                  rate_rpm;        // measured rate in revs per minute
-        uint32_t               last_reading_ms; // time of last reading
-        float                  signal_quality;  // synthetic quality metric 
-    };
-
     // parameters for each instance
     AP_Int8  _type;
+    bool _healthy[6];  // RPM1 RPM2 RPM3 RPM4 de1 de2
+    bool _enabled[6];  // RPM1 RPM2 RPM3 RPM4 de1 de2
 
     static const struct AP_Param::GroupInfo var_info[];
-    
-    // Return the number of rpm sensor instances
-    uint8_t num_sensors(void) const {
-        return 1;
-    }
 
     // detect and initialise any available rpm sensors
     void init(void);
@@ -56,30 +39,25 @@ public:
     // update state of all rpm sensors. Should be called from main loop
     void update(void);
 
-    /*
-      return RPM for a sensor. Return -1 if not healthy
-     */
-    uint16_t get_rpm(uint8_t instance) const {
-        return RPM[instance];
-    }
+    //  return RPM for a sensor.
+    uint16_t get_rpm(uint8_t instance) const;
 
-    float get_de(uint8_t instance) const {
-        return de[instance];
-    }
+    // return de for a sensor.
+    float get_de(uint8_t instance) const;
 
-    /*
-      return signal quality for a sensor.
-     */
-    float get_signal_quality(uint8_t instance) const {
-        return 1.0f;
-    }
-
+    // return if an instance is healthy
     bool healthy(uint8_t instance) const;
 
+    // return if an instance is enabled
     bool enabled(uint8_t instance) const;
 
 private:
     uint16_t RPM[4];
     float    de[2];
+
+    union wingtip_data {
+       uint8_t rxBuffer[7];
+       uint16_t data[3];
+    };
 
 };
