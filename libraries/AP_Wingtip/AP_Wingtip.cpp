@@ -18,6 +18,9 @@
 extern const AP_HAL::HAL& hal;
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 AP_HAL::DigitalSource *_cs;
+#define _TYPE_default 1
+#else
+#define _TYPE_default 0
 #endif
 
 // table of user settable parameters
@@ -26,8 +29,7 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
         // @DisplayName: Wingtip sensor type
         // @Description: What type of wingtip sensor is connected
         // @Values: 0:Faked,1:I2C_Wingtip
-        AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, 0),
-
+        AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, _TYPE_default),
 
         AP_GROUPEND
 };
