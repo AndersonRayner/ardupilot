@@ -187,22 +187,22 @@ bool AP_Wingtip::enabled(uint8_t instance) const
     }
 }
 
-// Return the RPM for an instance.  Return -1 if not healthy
+// Return the RPM for an instance.  Return 0 if not healthy
 uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
     if (instance >= 6) {
         return false;
     } else if (healthy(instance)) {
         return _RPM[instance];
     } else {
-        return -1;
+        return 0;
     }
 }
 
-// return de for a sensor.  Return -1 if not healthy
+// return de for a sensor.  Return 0 if not healthy
 float AP_Wingtip::get_de(uint8_t instance) const {
     if (healthy(instance+4)) {
         return _de[instance];
     } else {
-        return -1.0f;
+        return 0.0f;
     }
 }
