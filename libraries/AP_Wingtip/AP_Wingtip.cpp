@@ -18,7 +18,7 @@
 extern const AP_HAL::HAL& hal;
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 AP_HAL::DigitalSource *_cs;
-#define _TYPE_default 1
+#define _TYPE_default 2
 #else
 #define _TYPE_default 0
 #endif
@@ -28,7 +28,7 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
         // @Param: _TYPE
         // @DisplayName: Wingtip sensor type
         // @Description: What type of wingtip sensor is connected
-        // @Values: 0:Faked,1:I2C_Wingtip
+        // @Values: 0:Faked,1:I2C_Wingtip,2:I2C_Wingtip x4
         AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, _TYPE_default),
 
         AP_GROUPEND
@@ -155,6 +155,44 @@ void AP_Wingtip::update(void)
             _healthy[5] = 0; //  de2
         }
 #endif
+
+        break;
+    }
+    case 2 :    // Wingtip board that supplied all four RPMs
+    {
+        union wingtip_data data1;
+        uint8_t CRC;
+
+        hal.i2c1->read(0x32, 9, data1.rxBuffer);
+
+        // Calculate checksum
+        CRC = 0;
+        for (uint8_t ii = 0; ii<8; ii++) {
+            CRC = CRC ^ data1.rxBuffer[ii];
+        }
+
+        if (data1.rxBuffer[8] == CRC) {
+            _RPM[0] = data1.data[0];
+            _RPM[1] = data1.data[1];
+            _RPM[2] = data1.data[2];
+            _RPM[3] = data1.data[3];
+
+            _healthy[0] = 1; // rpm1
+            _healthy[1] = 1; // rpm2
+            _healthy[2] = 1; // rpm3
+            _healthy[3] = 1; // rpm4
+            _healthy[4] = 0; //  de1
+            _healthy[5] = 0; //  de2
+
+        } else {
+            // mark sensor unhealthy
+            _healthy[0] = 0; // rpm1
+            _healthy[1] = 0; // rpm2
+            _healthy[2] = 0; // rpm3
+            _healthy[3] = 0; // rpm4
+            _healthy[4] = 0; //  de1
+            _healthy[5] = 0; //  de2
+        }
 
         break;
     }

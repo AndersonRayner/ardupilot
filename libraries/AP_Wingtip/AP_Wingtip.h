@@ -60,8 +60,8 @@ private:
     float    _de[2];
 
     union wingtip_data {
-       uint8_t rxBuffer[7];
-       uint16_t data[3];
+       uint8_t rxBuffer[9];
+       uint16_t data[4];
     };
 
 };
