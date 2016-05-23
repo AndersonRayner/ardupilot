@@ -66,10 +66,10 @@ void AP_Wingtip::init(void)
             AP_HAL::panic("Unable to reset wingtip boards");
         }
 
-        _cs->mode(HAL_GPIO_OUTPUT); // This high low thing might have to change as I think the logic went inverted on the new boards
-        _cs->write(0);       // low resets the board
+        _cs->mode(HAL_GPIO_OUTPUT);
+        _cs->write(1);       // high resets the board
         hal.scheduler->delay(5);
-        _cs->write(1);       // go high to let it do it's thing
+        _cs->write(0);       // go low to let it do it's thing
 #endif
 
     }
