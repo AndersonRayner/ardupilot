@@ -39,13 +39,6 @@ class AP_Airspeed
 public:
     // constructor
     AP_Airspeed();
-  /*      : _EAS2TAS(1.0f)
-        , _calibration()
-        , analog(_pin, _psi_range)
-        , digital(_psi_range)
-    {
-		AP_Param::setup_object_defaults(this, var_info);
-    };*/
 
     void init(void);
 
@@ -132,12 +125,12 @@ public:
 
     // get the min set airspeed
     float get_airspeed_min(void) const {
-        return _airspeed_min;
+        return (float)(_airspeed_min);
     }
 
     // get the max set airspeed
     float get_airspeed_max(void) const {
-        return _airspeed_max;
+        return (float)(_airspeed_max);
     }
 
     // update airspeed ratio calibration
@@ -172,8 +165,8 @@ private:
     AP_Int8         _autocal;
     AP_Int8         _tube_order;
     AP_Int8         _skip_cal;
-    AP_Float        _airspeed_min;
-    AP_Float        _airspeed_max;
+    AP_Int16        _airspeed_min;
+    AP_Int16        _airspeed_max;
     float           _raw_airspeed;
     float           _airspeed;
     float			_last_pressure;
