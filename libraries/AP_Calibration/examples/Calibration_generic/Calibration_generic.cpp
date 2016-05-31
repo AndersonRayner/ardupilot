@@ -24,14 +24,47 @@
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 
+AP_Calibration calib;
+
 void setup()
 {
     hal.console->println("APM Calibration library\n\n");
+
 }
 
 void loop(void)
 {
 
+    int16_t user_input;
+
+    hal.console->println();
+    hal.console->println(
+    "Menu:\n"
+    "    i) calibrate IMU\n"
+    "    l) calibrate compass\n"
+    "    t) calibrate control surface\n");
+
+    // wait for user input
+    while (!hal.console->available()) {
+        hal.scheduler->delay(20);
+    }
+
+    // read in user input
+    while (hal.console->available()) {
+        user_input = hal.console->read();
+
+        if (user_input == 'i' || user_input == 'I') {
+            calib.calibrate_IMU();
+        }
+
+        if (user_input == 'c' || user_input == 'C') {
+            calib.calibrate_compass();
+        }
+
+        if (user_input == 't' || user_input == 'T') {
+            calib.calibrate_controls();
+        }
+    }
 }
 
 AP_HAL_MAIN();

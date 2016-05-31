@@ -14,3 +14,35 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+
+#define CALIBRATION_DIR "/root/APM/Calibration/"
+
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <sys/stat.h>
+
+#include <AP_HAL/AP_HAL.h>
+
+#include <AP_Common/AP_Common.h>
+#include <AP_HAL/I2CDevice.h>
+#include <AP_HAL/SPIDevice.h>
+#include <AP_Math/AP_Math.h>
+
+#include <AP_InertialSensor/AP_InertialSensor.h>
+#include <AP_Compass/AP_Compass.h>
+#include <AP_Wingtip/AP_Wingtip.h>
+
+class AP_Calibration
+{
+public:
+    AP_Calibration(void);
+
+    void calibrate_IMU(void);
+    void calibrate_compass(void);
+    void calibrate_controls(void);
+
+private:
+
+};
