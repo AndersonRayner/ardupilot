@@ -53,6 +53,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_Tuning',
     'AP_RPM',
     'AP_Wingtip',
+	'AP_Calibration',
     'AP_RSSI',
     'AP_Mount',
 ]

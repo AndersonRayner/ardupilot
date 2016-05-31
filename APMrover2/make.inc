@@ -46,5 +46,6 @@ LIBRARIES += AP_RSSI
 LIBRARIES += AP_Declination
 LIBRARIES += AP_RPM
 LIBRARIES += AP_Wingtip
+LIBRARIES += AP_Calibration
 LIBRARIES += AP_Arming
 
