@@ -42,6 +42,7 @@ void AP_Calibration::calibrate_IMU(void) {
     for (int ii = 0; ii<ins.get_accel_count(); ii++)
     {
         // Accelerometers
+    	// AP_Param::set_object_value(&ins, ins.var_info, "_PIN", 65);
         //ins._accel_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
         //ins._accel_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
         //ins._accel_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
