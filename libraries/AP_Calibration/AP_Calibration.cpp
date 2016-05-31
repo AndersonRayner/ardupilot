@@ -166,7 +166,11 @@ void AP_Calibration::calibrate_compass(void) {
     hal.console->printf("Number of detected magnetometers : %u\n", compass.get_count());
 
     // Reset all of the compass parameters
-
+    for (int ii = 0; ii<compass.get_count(); ii++)
+    {
+        // Accelerometers
+    	// AP_Param::set_object_value(&ins, ins.var_info, "_PIN", 65);
+    }
 
     // Create a calibration file
     hal.console->printf("Making calibration file\n");
@@ -186,12 +190,6 @@ void AP_Calibration::calibrate_compass(void) {
         sprintf(str, "%s%d-%s",CALIBRATION_DIR,kk,"compass.txt");
 
         f[kk] = fopen(str,"w");
-
-        if (f[kk] == NULL)
-        {
-           // hal.console>printf("Error opening file for compass!\n");
-           // exit(1);
-        }
 
         fprintf(f[kk],"Magnetometer Calibration File\n");
         fprintf(f[kk],"=============================\n");

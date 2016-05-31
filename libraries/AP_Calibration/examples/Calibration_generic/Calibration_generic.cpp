@@ -40,7 +40,7 @@ void loop(void)
     hal.console->println(
     "Menu:\n"
     "    i) calibrate IMU\n"
-    "    l) calibrate compass\n"
+    "    c) calibrate compass\n"
     "    t) calibrate control surface\n");
 
     // wait for user input
