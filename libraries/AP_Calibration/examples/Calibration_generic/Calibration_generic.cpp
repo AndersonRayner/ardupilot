@@ -23,8 +23,7 @@
 #include <AP_Calibration/AP_Calibration.h>
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
-
-AP_Calibration calib;
+static AP_Calibration calib;
 
 void setup()
 {

@@ -16,11 +16,18 @@
 
 #include "AP_Calibration.h"
 
+extern const AP_HAL::HAL& hal;
+
 static AP_InertialSensor ins;
 static Compass compass;
 static AP_Wingtip wingtip;
 
-void calibrate_IMU(void) {
+AP_Calibration::AP_Calibration(void)
+{
+  // do nothing
+}
+
+void AP_Calibration::calibrate_IMU(void) {
     Vector3f accel;
     Vector3f gyro;
 
@@ -35,14 +42,14 @@ void calibrate_IMU(void) {
     for (int ii = 0; ii<ins.get_accel_count(); ii++)
     {
         // Accelerometers
-        ins._accel_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
-        ins._accel_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
-        ins._accel_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
-        ins._accel_offset[ii].set_and_save(Vector3f(0,0,0));
+        //ins._accel_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
+        //ins._accel_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
+        //ins._accel_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
+        //ins._accel_offset[ii].set_and_save(Vector3f(0,0,0));
         // Gyros
-        ins._gyro_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
-        ins._gyro_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
-        ins._gyro_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
+        //ins._gyro_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
+        //ins._gyro_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
+        //ins._gyro_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
     }
 
 
@@ -149,7 +156,7 @@ void calibrate_IMU(void) {
     return;
 }
 
-void calibrate_compass(void) {
+void AP_Calibration::calibrate_compass(void) {
     hal.console->println("Calibrating compasses...");
     compass.init();
 
@@ -177,12 +184,12 @@ void calibrate_compass(void) {
 
         sprintf(str, "%s%d-%s",CALIBRATION_DIR,kk,"compass.txt");
 
-        FILE *f[kk] = fopen(str,"w");
+        f[kk] = fopen(str,"w");
 
         if (f[kk] == NULL)
         {
-            hal.console>printf("Error opening file for compass %d!\n",kk);
-            exit(1);
+           // hal.console>printf("Error opening file for compass!\n");
+           // exit(1);
         }
 
         fprintf(f[kk],"Magnetometer Calibration File\n");
@@ -223,7 +230,7 @@ void calibrate_compass(void) {
 
 }
 
-void calibrate_controls(void) {
+void AP_Calibration::calibrate_controls(void) {
     hal.console->println("Calibrating ailerons...");
 
     uint8_t ch_aileron1 = 5;
@@ -241,7 +248,7 @@ void calibrate_controls(void) {
     // Cycle servos and record results
     for (uint16_t pwm=1100; pwm<1700; pwm++)  // Improve this with detected min and max pwm for each servo
     {
-        hal.rcout->write(i, pwm);
+        hal.rcout->write(ch_aileron1, pwm);
         //record PWM, accelerometer, and wingtip board data
     }
 
