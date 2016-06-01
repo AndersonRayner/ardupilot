@@ -29,6 +29,7 @@ static AP_Wingtip Wingtip;
 void setup()
 {
     hal.console->println("APM Wingtip Sensor library test\n\n");
+	AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", 2);
     Wingtip.init();
 
 }
@@ -51,7 +52,7 @@ void loop(void)
 
     hal.console->printf("   de : ");
     for (uint8_t ii = 0; ii<2; ii++) {
-        hal.console->printf("%6.2f ",Wingtip.get_de(ii));
+        hal.console->printf("%6u ",Wingtip.get_de_raw(ii));
     }
 
     hal.scheduler->delay(100);

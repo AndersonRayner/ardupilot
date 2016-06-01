@@ -18,7 +18,7 @@
 extern const AP_HAL::HAL& hal;
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 AP_HAL::DigitalSource *_cs;
-#define _TYPE_default 2
+#define _TYPE_default 1
 #else
 #define _TYPE_default 0
 #endif

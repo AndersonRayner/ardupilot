@@ -42,6 +42,7 @@ public:
     void calibrate_IMU(void);
     void calibrate_compass(void);
     void calibrate_controls(void);
+    void calibrate_RPM(void);
 
 private:
 

@@ -290,6 +290,9 @@ void AP_Calibration::calibrate_controls(void) {
 
 	hal.console->print("\n");
 
+	// Force wingtip board type 1
+	AP_Param::set_object_value(&wingtip, wingtip.var_info, "_TYPE", 1);
+
 	// Will I need to calibrate the accelerometer beforehand?  Probably yes...
 
 	// Loop through each control surface
@@ -351,6 +354,9 @@ void AP_Calibration::calibrate_controls(void) {
 			}
 			accel = ins.get_accel(0);
 
+			// Update wingtip board
+			wingtip.update();
+
 			//record PWM, accelerometer, and wingtip board data
 			fprintf(f,"%u,%f,%f,%f,%u\n",pwm,accel.x,accel.y,accel.z,wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
 		}
@@ -364,8 +370,98 @@ void AP_Calibration::calibrate_controls(void) {
 	}
 
 	// Return
-
 	return;
 
+
+}
+
+void AP_Calibration::calibrate_RPM(void) {
+	hal.console->print("Calibrating PWM to RPM...\n");
+
+	// Force wingtip board type 2 (for now)
+	AP_Param::set_object_value(&wingtip, wingtip.var_info, "_TYPE", 2);
+
+	// Initialise wingtip sensor
+	wingtip.init();
+
+	hal.console->print("\n");
+
+	// Wait for wingtip sensor to become healthy
+
+
+	// Set servo update rate
+	hal.rcout->set_freq(0xFF, 50);
+
+	// Enable motors
+	hal.rcout->enable_ch(1);
+	hal.rcout->enable_ch(2);
+	hal.rcout->enable_ch(3);
+	hal.rcout->enable_ch(4);
+
+	// Write idle PWM
+	hal.rcout->write(1, 900);
+	hal.rcout->write(2, 900);
+	hal.rcout->write(3, 900);
+	hal.rcout->write(4, 900);
+
+	// Open file
+	char str[40];
+    sprintf(str, "%s%s",CALIBRATION_DIR,"motors.mot");
+    FILE *f = fopen(str,"w");
+
+    fprintf(f,"Motor Calibration File\n");
+    fprintf(f,"=============================\n");
+
+    // Clear any user input buffer
+    while( hal.console->available() ) {
+    	hal.console->read();
+    }
+
+    // Wait for user to confirm to start reading
+    hal.console->printf("Press < return > to start\n");
+    while( !hal.console->available() ) {
+    	hal.scheduler->delay(20);
+    }
+    hal.console->printf("Starting recording\n");
+
+    // Cycle motors and record results
+    for (uint16_t pwm=1075; pwm<1226; pwm=pwm+25)  // Improve this with detected min and max pwm for each servo
+    {
+    	// Inform of PWM being tested
+    	hal.console->printf("Testing PWM %4u\n",pwm);
+
+    	// Write new servo value
+    	hal.rcout->write(1, pwm);
+    	hal.rcout->write(2, pwm);
+    	hal.rcout->write(3, pwm);
+    	hal.rcout->write(4, pwm);
+
+    	for (uint16_t counter=0; counter<100; counter++)
+    	{
+    		// delay a bit
+    	    uint64_t time_us_prev = AP_HAL::micros64();
+    	    while((AP_HAL::micros64()-time_us_prev)<20000)
+    	    {
+    	    	// wait
+    	    }
+
+    		// Update wingtip boards
+    		wingtip.update();
+
+    		//record PWM, accelerometer, and wingtip board data
+    		fprintf(f,"%llu,%u,%u,%u,%u,%u\n",
+    				AP_HAL::micros64(),pwm,wingtip.get_rpm(0),wingtip.get_rpm(1),wingtip.get_rpm(2),wingtip.get_rpm(3));
+    	}
+    }
+
+    // Close file
+    hal.console->printf("Data collected!\n\n");
+    fclose(f);
+
+    // Disable motors
+    hal.rcout->disable_ch(1);
+    hal.rcout->disable_ch(2);
+    hal.rcout->disable_ch(3);
+    hal.rcout->disable_ch(4);
 
 }

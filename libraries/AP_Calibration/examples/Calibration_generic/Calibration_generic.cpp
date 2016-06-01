@@ -41,7 +41,8 @@ void loop(void)
     "Menu:\n"
     "    i) calibrate IMU\n"
     "    c) calibrate compass\n"
-    "    t) calibrate control surface\n");
+    "    t) calibrate control surface\n"
+    "    r) calibrate RPM\n");
 
     // wait for user input
     while (!hal.console->available()) {
@@ -65,6 +66,11 @@ void loop(void)
         if (user_input == 't' || user_input == 'T') {
         	hal.console->print("Starting AILERON calibration\n");
             calib.calibrate_controls();
+        }
+
+        if (user_input == 'r' || user_input == 'R') {
+        	hal.console->print("Starting RPM calibration\n");
+            calib.calibrate_RPM();
         }
     }
 }
