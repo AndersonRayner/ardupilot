@@ -47,7 +47,8 @@ public:
     uint16_t get_rpm(uint8_t instance) const;
 
     // return de for a sensor.
-    float get_de(uint8_t instance) const;
+    uint16_t get_de_raw(uint8_t instance) const;
+    float    get_de(uint8_t instance) const;
 
     // return if an instance is healthy
     bool healthy(uint8_t instance) const;
@@ -57,6 +58,7 @@ public:
 
 private:
     uint16_t _RPM[4];
+    uint16_t _de_raw[2];
     float    _de[2];
 
     union wingtip_data {

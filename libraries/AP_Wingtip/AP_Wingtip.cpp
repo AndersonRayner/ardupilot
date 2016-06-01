@@ -55,6 +55,9 @@ void AP_Wingtip::init(void)
         _de[0] =   0.0f;
         _de[1] = 100.0f;
 
+        _de_raw[0] =   0;
+        _de_raw[1] = 100;
+
     } else {
         memset(_RPM,0,sizeof(_RPM));
         memset(_de,0,sizeof(_de));
@@ -87,8 +90,8 @@ void AP_Wingtip::update(void)
         _RPM[2]++;
         _RPM[3]++;
 
-        _de[0]++;
-        _de[1]++;
+        _de_raw[0]++;
+        _de_raw[1]++;
 
         for (uint8_t ii = 0; ii<6; ii++) {
             _healthy[ii] = 1;
@@ -115,9 +118,9 @@ void AP_Wingtip::update(void)
         }
 
         if (data1.rxBuffer[6] == CRC) {
-            _RPM[0] = data1.data[0];
-            _RPM[1] = data1.data[1];
-            _de[0]  = (float)data1.data[2];
+            _RPM[0]    = data1.data[0];
+            _RPM[1]    = data1.data[1];
+            _de_raw[0] = data1.data[2];
 
             _healthy[0] = 1; // rpm1
             _healthy[1] = 1; // rpm2
@@ -140,9 +143,10 @@ void AP_Wingtip::update(void)
         }
 
         if (data2.rxBuffer[6] == CRC) {
-            _RPM[2] = data2.data[0];
-            _RPM[3] = data2.data[1];
-            _de[1]  = (float)data2.data[2];
+            _RPM[2]    = data2.data[0];
+            _RPM[3]    = data2.data[1];
+            _de_raw[1] = data1.data[2];
+
 
             _healthy[2] = 1; // rpm3
             _healthy[3] = 1; // rpm4
@@ -203,6 +207,10 @@ void AP_Wingtip::update(void)
         break;
     }
     }
+
+    // Convert de_raw values to a calibrated de
+    _de[0]  = (float)_de_raw[0];
+    _de[1]  = (float)_de_raw[1];
 }
 
 
@@ -237,6 +245,16 @@ uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
         return 0;
     }
 }
+
+// return raw de for a sensor.  Return 0 if not healthy
+uint16_t AP_Wingtip::get_de_raw(uint8_t instance) const {
+    if (healthy(instance+4)) {
+        return _de_raw[instance];
+    } else {
+        return 0.0f;
+    }
+}
+
 
 // return de for a sensor.  Return 0 if not healthy
 float AP_Wingtip::get_de(uint8_t instance) const {

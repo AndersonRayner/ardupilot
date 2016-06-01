@@ -39,9 +39,6 @@ void AP_Calibration::calibrate_IMU(void) {
 	hal.console->printf("    Number of detected gyros  : %u\n\n", ins.get_gyro_count());
 
 	// Reset all of the IMU parameters
-	//for (int ii = 0; ii<ins.get_accel_count(); ii++)
-	//{
-	// Accelerometers
 	// IMU 1
 	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_X", 1);
 	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_Y", 0);
@@ -60,12 +57,38 @@ void AP_Calibration::calibrate_IMU(void) {
 	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_Z", 0);
 
 	// IMU 2
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_X", 1);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_Z", 0);
+
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_Y", 1);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_Z", 0);
+
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_Z", 1);
+
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_Z", 0);
 
 	// IMU 3
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_X", 1);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_Z", 0);
 
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_Y", 1);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_Z", 0);
 
-	//}
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_Z", 1);
 
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_X", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_Y", 0);
+	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_Z", 0);
 
 	// Create a calibration file
 	hal.console->printf("Making calibration file\n");
@@ -255,25 +278,94 @@ void AP_Calibration::calibrate_compass(void) {
 }
 
 void AP_Calibration::calibrate_controls(void) {
-	hal.console->println("Calibrating ailerons...");
+	uint8_t ch[2];
+	Vector3f accel;
 
-	uint8_t ch_aileron1 = 5;
-	uint8_t ch_aileron2 = 6;
+	ch[0] = 5;  // right aileron channel
+	ch[1] = 6;  // left  aileron channel
+
+	hal.console->print("Calibrating ailerons...\n");
+	ins.init(100);
+	wingtip.init();
+
+	hal.console->print("\n");
 
 	// Will I need to calibrate the accelerometer beforehand?  Probably yes...
 
-	// Set servo update rate
-	hal.rcout->set_freq(0xFF, 50);
-
-	// Enable servos
-	hal.rcout->enable_ch(ch_aileron1);
-	hal.rcout->enable_ch(ch_aileron2);
-
-	// Cycle servos and record results
-	for (uint16_t pwm=1100; pwm<1700; pwm++)  // Improve this with detected min and max pwm for each servo
+	// Loop through each control surface
+	uint8_t ii;
+	for (ii=0; ii<2; ii++)
 	{
-		hal.rcout->write(ch_aileron1, pwm);
-		//record PWM, accelerometer, and wingtip board data
+		if (ii == 0)
+		{
+			hal.console->printf("\n=== RIGHT AILERON ===\n");
+		} else {
+			hal.console->printf("\n=== LEFT AILERON ===\n");
+		}
+
+		// Clear any user input buffer
+		while( hal.console->available() ) {
+			hal.console->read();
+		}
+
+		// Wait for user to confirm to start reading
+		hal.console->printf("Press < return > to start\n");
+		while( !hal.console->available() ) {
+			hal.scheduler->delay(20);
+		}
+		hal.console->printf("Starting recording\n");
+
+		// Set servo update rate
+		hal.rcout->set_freq(0xFF, 50);
+
+		// Enable servo
+		hal.rcout->enable_ch(ch[ii]);
+
+		// Open file
+		char str[40];
+		if (ii == 0)
+		{
+			sprintf(str, "%s%s",CALIBRATION_DIR,"right.ail");
+		} else {
+			sprintf(str, "%s%s",CALIBRATION_DIR,"left.ail");
+		}
+
+		FILE *f = fopen(str,"w");
+
+		fprintf(f,"Aileron Calibration File\n");
+		fprintf(f,"=============================\n");
+
+		// Cycle servos and record results
+		for (uint16_t pwm=1100; pwm<1700; pwm++)  // Improve this with detected min and max pwm for each servo
+		{
+			// Write new servo value
+			hal.rcout->write(ch[ii], pwm);
+
+			// read samples from ins
+			ins.wait_for_sample();
+			ins.update();
+			while (!ins.is_still())  // This might only be on the primary INS, will have to check
+			{
+				ins.wait_for_sample();
+				ins.update();
+			}
+			accel = ins.get_accel(0);
+
+			//record PWM, accelerometer, and wingtip board data
+			fprintf(f,"%u,%f,%f,%f,%u\n",pwm,accel.x,accel.y,accel.z,wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
+		}
+
+		// Close file
+		hal.console->printf("Data collected!\n\n");
+		fclose(f);
+
+		// Disable servo
+		hal.rcout->disable_ch(ch[ii]);
 	}
+
+	// Return
+
+	return;
+
 
 }
