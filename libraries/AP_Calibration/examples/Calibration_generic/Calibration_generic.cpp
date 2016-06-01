@@ -53,14 +53,17 @@ void loop(void)
         user_input = hal.console->read();
 
         if (user_input == 'i' || user_input == 'I') {
+        	hal.console->print("Starting IMU calibration\n");
             calib.calibrate_IMU();
         }
 
         if (user_input == 'c' || user_input == 'C') {
+        	hal.console->print("Starting COMPASS calibration\n");
             calib.calibrate_compass();
         }
 
         if (user_input == 't' || user_input == 'T') {
+        	hal.console->print("Starting AILERON calibration\n");
             calib.calibrate_controls();
         }
     }

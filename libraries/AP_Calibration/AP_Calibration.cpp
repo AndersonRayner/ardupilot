@@ -39,19 +39,33 @@ void AP_Calibration::calibrate_IMU(void) {
     hal.console->printf("    Number of detected gyros  : %u\n\n", ins.get_gyro_count());
 
     // Reset all of the IMU parameters
-    for (int ii = 0; ii<ins.get_accel_count(); ii++)
-    {
+    //for (int ii = 0; ii<ins.get_accel_count(); ii++)
+    //{
         // Accelerometers
-    	// AP_Param::set_object_value(&ins, ins.var_info, "_PIN", 65);
-        //ins._accel_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
-        //ins._accel_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
-        //ins._accel_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
-        //ins._accel_offset[ii].set_and_save(Vector3f(0,0,0));
+    	// IMU 1
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_X", 1);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_Y", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_Z", 0);
+
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_X", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_Y", 1);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_Z", 0);
+
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_X", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_Y", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_Z", 1);
+
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_X", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_Y", 0);
+    	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_Z", 0);
+
+        // IMU 2
+
+    	// IMU 3
+
         // Gyros
-        //ins._gyro_cal_x[ii].set_and_save(Vector3f(1.0f,0,0));
-        //ins._gyro_cal_y[ii].set_and_save(Vector3f(0,1.0f,0));
-        //ins._gyro_cal_z[ii].set_and_save(Vector3f(0,0,1.0f));
-    }
+    	// I don't think I actually need to do anything to the gyros...
+    //}
 
 
     // Create a calibration file
@@ -118,9 +132,10 @@ void AP_Calibration::calibrate_IMU(void) {
         {
 
             // Start the data collection
-            char str[20];
-            sprintf(str, "%s%d-%s",CALIBRATION_DIR,kk,str_base);
-            FILE *f = fopen(str,"w");
+            //char str[30];
+            //sprintf(str, "%s%d-%s",CALIBRATION_DIR,kk,str_base);
+
+            FILE *f = fopen("test.txt","w");
 
             if (f == NULL)
             {
@@ -128,7 +143,7 @@ void AP_Calibration::calibrate_IMU(void) {
                 exit(1);
             }
 
-            fprintf(f,"Accelerometer Calibration File\n");
+           /* fprintf(f,"Accelerometer Calibration File\n");
             fprintf(f,"=======================\n");
 
             // Write data points
@@ -144,12 +159,14 @@ void AP_Calibration::calibrate_IMU(void) {
 
                 fprintf(f,"%f,%f,%f\n",accel.x, accel.y, accel.z);
             }
+            */
 
+            // Close the file
             fclose(f);
+            hal.console->printf("Done file %d-%d!\n",jj,kk);
         }
 
-        // Close the file
-        hal.console->printf("Done file %d!\n\n",jj);
+        hal.console->printf("\n");
     }
 
     // Return
