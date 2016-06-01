@@ -239,30 +239,54 @@ void AP_Calibration::calibrate_compass(void) {
 		hal.scheduler->delay(20);
 	}
 
+	// Clear input buffer so can stop collecting on key press
+    while (hal.console->available()) {
+        hal.console->read();
+    }
 
-	uint32_t last_update=0;
+    hal.console->printf("Press < return > to stop calibration\n");
+
+	uint32_t last_update = 0;
+	bool continue_collecting = 1;
 
 	// Collect the data
-	for (int ii = 0; ii<500; ii++)
+	while (continue_collecting)
 	{
 		compass.accumulate();
 		compass.read();
 
-		// Wait for new data
+		// Wait for new data (this bit is a bit screwed...)
 		while (last_update>=compass.last_update_usec(0))
 		{
-			hal.scheduler->delay(5);
-			compass.read();
+		    hal.scheduler->delay(5);
+		    compass.read();
 		}
 		last_update = compass.last_update_usec(0);
 
-		// Record data
-		for (uint8_t kk=0; kk<compass.get_count(); kk++)
+		// Only record the data while the vehicle is moving
+		ins.wait_for_sample();
+		ins.update();
+		if (!ins.is_still())  // This might only be on the primary INS, will have to check
 		{
-			const Vector3f &mag = compass.get_field(kk);
-			fprintf(f[kk],"%f,%f,%f\n",mag.x, mag.y, mag.z);
+		    // Record data
+		    for (uint8_t kk=0; kk<compass.get_count(); kk++)
+		    {
+		        const Vector3f &mag = compass.get_field(kk);
+		        fprintf(f[kk],"%f,%f,%f\n",mag.x, mag.y, mag.z);
+		    }
 		}
+
+		if (hal.console->available())
+		{
+		    continue_collecting = 0;
+		}
+
 	}
+
+	// Clear input buffer
+    while (hal.console->available()) {
+        hal.console->read();
+    }
 
 
 	// Close the file
@@ -290,7 +314,7 @@ void AP_Calibration::calibrate_controls(void) {
 
 	hal.console->print("\n");
 
-	// Force wingtip board type 1
+	// Force wingtip board type 1, won't work for a type 2 wingtip board
 	AP_Param::set_object_value(&wingtip, wingtip.var_info, "_TYPE", 1);
 
 	// Will I need to calibrate the accelerometer beforehand?  Probably yes...
