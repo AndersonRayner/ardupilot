@@ -336,7 +336,7 @@ void AP_Calibration::calibrate_controls(void) {
 		}
 
 		// Wait for user to confirm to start reading
-		hal.console->printf("Attach accelerometer to control surface\n\n")
+		hal.console->printf("Attach accelerometer to control surface\n\n");
 		hal.console->printf("Press < return > to start\n");
 		while( !hal.console->available() ) {
 			hal.scheduler->delay(20);
