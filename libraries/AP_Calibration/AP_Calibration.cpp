@@ -246,7 +246,7 @@ void AP_Calibration::calibrate_compass(void) {
 
     hal.console->printf("Press < return > to stop calibration\n");
 
-	uint32_t last_update = 0;
+	//uint32_t last_update = 0;
 	bool continue_collecting = 1;
 
 	// Collect the data
@@ -377,7 +377,7 @@ void AP_Calibration::calibrate_controls(void) {
 
 			//record PWM, accelerometer, and wingtip board data
 			// accelerometer data is provided from the wingtip board on RPM1 and RPM2
-			fprintf(f,"%u,%u,%u,%u\n",pwm,wingtip,wingtip.get_rpm(0),wingtip.get_rpm(1),wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
+			fprintf(f,"%u,%u,%u,%u\n",pwm,wingtip.get_rpm(0),wingtip.get_rpm(1),wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
 		}
 
 		// Close file
