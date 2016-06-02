@@ -417,16 +417,16 @@ void AP_Calibration::calibrate_RPM(void) {
 	hal.rcout->set_freq(0xFF, 50);
 
 	// Enable motors
+	hal.rcout->enable_ch(0);
 	hal.rcout->enable_ch(1);
 	hal.rcout->enable_ch(2);
 	hal.rcout->enable_ch(3);
-	hal.rcout->enable_ch(4);
 
 	// Write idle PWM
+	hal.rcout->write(0, 900);
 	hal.rcout->write(1, 900);
 	hal.rcout->write(2, 900);
 	hal.rcout->write(3, 900);
-	hal.rcout->write(4, 900);
 
 	// Open file
 	char str[40];
@@ -455,10 +455,10 @@ void AP_Calibration::calibrate_RPM(void) {
     	hal.console->printf("Testing PWM %4u\n",pwm);
 
     	// Write new servo value
+    	hal.rcout->write(0, pwm);
     	hal.rcout->write(1, pwm);
     	hal.rcout->write(2, pwm);
     	hal.rcout->write(3, pwm);
-    	hal.rcout->write(4, pwm);
 
     	for (uint16_t counter=0; counter<100; counter++)
     	{
@@ -483,9 +483,9 @@ void AP_Calibration::calibrate_RPM(void) {
     fclose(f);
 
     // Disable motors
+    hal.rcout->disable_ch(0);
     hal.rcout->disable_ch(1);
     hal.rcout->disable_ch(2);
     hal.rcout->disable_ch(3);
-    hal.rcout->disable_ch(4);
 
 }
