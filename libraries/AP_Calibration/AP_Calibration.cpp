@@ -202,11 +202,11 @@ void AP_Calibration::calibrate_compass(void) {
 	hal.console->printf("Number of detected magnetometers : %u\n", compass.get_count());
 
 	// Reset all of the compass parameters
-	for (int ii = 0; ii<compass.get_count(); ii++)
-	{
-		// Accelerometers
-		// AP_Param::set_object_value(&ins, ins.var_info, "_PIN", 65);
-	}
+	// Magnetometer 1
+    // AP_Param::set_object_value(&compass, compass.var_info, "_PIN", 65);
+	// Magnetometer 2
+	// Magnetometer 3
+
 
 	// Create a calibration file
 	hal.console->printf("Making calibration file\n");
@@ -302,22 +302,20 @@ void AP_Calibration::calibrate_compass(void) {
 }
 
 void AP_Calibration::calibrate_controls(void) {
+    // Make sure to be using WingTip/wingtip_calibration script on the ardu
 	uint8_t ch[2];
 	Vector3f accel;
 
-	ch[0] = 5;  // right aileron channel
-	ch[1] = 6;  // left  aileron channel
+	ch[0] = 4;  // right aileron channel
+	ch[1] = 5;  // left  aileron channel
 
 	hal.console->print("Calibrating ailerons...\n");
-	ins.init(100);
 	wingtip.init();
 
 	hal.console->print("\n");
 
 	// Force wingtip board type 1, won't work for a type 2 wingtip board
 	AP_Param::set_object_value(&wingtip, wingtip.var_info, "_TYPE", 1);
-
-	// Will I need to calibrate the accelerometer beforehand?  Probably yes...
 
 	// Loop through each control surface
 	uint8_t ii;
@@ -336,6 +334,7 @@ void AP_Calibration::calibrate_controls(void) {
 		}
 
 		// Wait for user to confirm to start reading
+		hal.console->printf("Attach accelerometer to control surface\n\n")
 		hal.console->printf("Press < return > to start\n");
 		while( !hal.console->available() ) {
 			hal.scheduler->delay(20);
@@ -363,26 +362,20 @@ void AP_Calibration::calibrate_controls(void) {
 		fprintf(f,"=============================\n");
 
 		// Cycle servos and record results
-		for (uint16_t pwm=1100; pwm<1700; pwm++)  // Improve this with detected min and max pwm for each servo
+		for (uint16_t pwm=1100; pwm<1700; pwm=pwm+25)  // Improve this with detected min and max pwm for each servo
 		{
 			// Write new servo value
 			hal.rcout->write(ch[ii], pwm);
 
-			// read samples from ins
-			ins.wait_for_sample();
-			ins.update();
-			while (!ins.is_still())  // This might only be on the primary INS, will have to check
-			{
-				ins.wait_for_sample();
-				ins.update();
-			}
-			accel = ins.get_accel(0);
+			// Delay so that the control surface can get to where it needs to be
+			hal.scheduler->delay(50);  // This will need some tweaking
 
 			// Update wingtip board
 			wingtip.update();
 
 			//record PWM, accelerometer, and wingtip board data
-			fprintf(f,"%u,%f,%f,%f,%u\n",pwm,accel.x,accel.y,accel.z,wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
+			// accelerometer data is provided from the wingtip board on RPM1 and RPM2
+			fprintf(f,"%u,%u,%u,%u\n",pwm,wingtip,wingtip.get_rpm(0),wingtip.get_rpm(1),wingtip.get_de_raw(ii));  // will have to make sure this is the right way around
 		}
 
 		// Close file
