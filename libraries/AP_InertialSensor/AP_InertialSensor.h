@@ -287,7 +287,7 @@ private:
     uint8_t _gyro_count;
     uint8_t _accel_count;
     uint8_t _backend_count;
-    bool _advanced_calibration;
+    AP_Int8 _advanced_calibration;
 
     // the selected sample rate
     uint16_t _sample_rate;

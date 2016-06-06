@@ -587,7 +587,7 @@ AP_InertialSensor::detect_backends(void)
                  hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),
                  hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)));
 #elif HAL_INS_DEFAULT == HAL_INS_MATTPILOT
-    hal.console->printf("Interial Sensors\n")
+    hal.console->printf("Inertial Sensors\n");
     // MPU9250
     AP_InertialSensor_Backend *backend = AP_InertialSensor_MPU9250::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME));
     if (backend) {
