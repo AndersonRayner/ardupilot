@@ -14,7 +14,7 @@ AP_InertialSensor_Backend::AP_InertialSensor_Backend(AP_InertialSensor &imu) :
 
 void AP_InertialSensor_Backend::_rotate_and_correct_accel(uint8_t instance, Vector3f &accel) 
 {
-if (0)
+if (!_imu._advanced_calibration)
 {
     /*
       accel calibration is always done in sensor frame with this
@@ -55,7 +55,7 @@ void AP_InertialSensor_Backend::_rotate_and_correct_gyro(uint8_t instance, Vecto
     
 
 
-    if (0)  // The old way
+    if (!_imu._advanced_calibration)  // The old way
     {
         // gyro calibration is always assumed to have been done in sensor frame
         gyro -= _imu._gyro_offset[instance];

@@ -356,6 +356,9 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     AP_GROUPINFO("GYR_CAL3_Y",      43, AP_InertialSensor, _gyro_cal_y[1],  0),
     AP_GROUPINFO("GYR_CAL3_Z",      44, AP_InertialSensor, _gyro_cal_z[1],  0),
 
+    // Advanced Calibration
+    AP_GROUPINFO("ADV_CAL",      45, AP_InertialSensor, _advanced_calibration,  0),
+
     AP_GROUPEND
 };
 
