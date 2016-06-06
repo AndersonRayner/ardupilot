@@ -95,7 +95,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Gyro sensor offsets of Z axis. This is setup on each boot during gyro calibrations
     // @Units: rad/s
     // @User: Advanced
-    AP_GROUPINFO("GYROFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
+    AP_GROUPINFO("GYR1OFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
 
     // @Param: GYR2OFFS_X
     // @DisplayName: Gyro2 offsets of X axis
@@ -152,7 +152,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Accelerometer scaling of Z axis  Calculated during acceleration calibration routine
     // @Range: 0.8 1.2
     // @User: Advanced
-    AP_GROUPINFO("ACCSCAL",     12, AP_InertialSensor, _accel_scale[0],  0),
+    AP_GROUPINFO("ACC1SCAL",     12, AP_InertialSensor, _accel_scale[0],  0),
 
     // @Param: ACCOFFS_X
     // @DisplayName: Accelerometer offsets of X axis
@@ -174,7 +174,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Units: m/s/s
     // @Range: -3.5 3.5
     // @User: Advanced
-    AP_GROUPINFO("ACCOFFS",     13, AP_InertialSensor, _accel_offset[0], 0),
+    AP_GROUPINFO("ACC1OFFS",     13, AP_InertialSensor, _accel_offset[0], 0),
 
     // @Param: ACC2SCAL_X
     // @DisplayName: Accelerometer2 scaling of X axis
@@ -279,7 +279,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Use first IMU for attitude, velocity and position estimates
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
-    AP_GROUPINFO("USE", 20, AP_InertialSensor, _use[0],  1),
+    AP_GROUPINFO("USE1", 20, AP_InertialSensor, _use[0],  1),
 
     // @Param: USE2
     // @DisplayName: Use second IMU for attitude, velocity and position estimates
