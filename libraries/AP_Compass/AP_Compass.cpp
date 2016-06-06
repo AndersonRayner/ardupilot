@@ -458,28 +458,29 @@ void Compass::_detect_backends(void)
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_QFLIGHT
     _add_backend(AP_Compass_QFLIGHT::detect(*this));
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_BBBMINI
+    hal.console->printf("Magnetometers\n")
     AP_Compass_Backend *backend = AP_Compass_HMC5843::probe(*this, hal.i2c_mgr->get_device(HAL_COMPASS_HMC5843_I2C_BUS, HAL_COMPASS_HMC5843_I2C_ADDR));
     if (backend) {
         _add_backend(backend);
-        hal.console->printf("HMC5843: External compass detected\n");
+        hal.console->printf("  HMC5843: [ X ]\n");
     } else {
-        hal.console->printf("HMC5843: External compass not detected\n");
+        hal.console->printf("  HMC5843: [   ]\n");
     }
 
     backend = AP_Compass_AK8963::probe_mpu9250(*this, 0);
     if (backend) {
         _add_backend(backend);
-        hal.console->printf("AK8953: Onboard compass detected\n");
+        hal.console->printf("  AK8953: [ X ]\n"); // Onboard compass
     } else {
-        hal.console->printf("AK8953: Onboard compass not detected\n");
+        hal.console->printf("  AK8953: [   ]\n");
     }
 
-    backend = AP_Compass_AK8963::probe_mpu9250(*this, 1);
+    backend = AP_Compass_AK8963::probe_mpu9250(*this, 1); // External compass
     if (backend) {
         _add_backend(backend);
-        hal.console->printf("AK8953: External compass detected\n");
+        hal.console->printf("  AK8953: [ X ]\n");
     } else {
-        hal.console->printf("AK8953: External compass not detected\n");
+        hal.console->printf("  AK8953: [   ]\n");
     }
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
     _add_backend(AP_Compass_HMC5843::probe_mpu6000(*this));
