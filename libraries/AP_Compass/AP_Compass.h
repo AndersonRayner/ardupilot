@@ -389,9 +389,17 @@ private:
         // when we last got data
         uint32_t    last_update_ms;
         uint32_t    last_update_usec;
+
+        // Additions for my calibration stuff
+        AP_Vector3f _compass_cal_x;
+        AP_Vector3f _compass_cal_y;
+        AP_Vector3f _compass_cal_z;
+
     } _state[COMPASS_MAX_INSTANCES];
 
     CompassCalibrator _calibrator[COMPASS_MAX_INSTANCES];
+
+
 
     // if we want HIL only
     bool _hil_mode:1;

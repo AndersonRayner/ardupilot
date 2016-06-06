@@ -360,6 +360,22 @@ const AP_Param::GroupInfo Compass::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("CAL_FIT", 30, Compass, _calibration_threshold, 8.0f),
 
+    // @Param:ACC_CAL1
+    // ACC_CAL1_X gives ACC_X = ACC_CAL1_X.X * sensor.X + ACC_CAL1_X.Y * sensor.Y + ACC_CAL1_X.Z * sensor.Z + _accel_offset.X;
+    // ACC_CAL1_Y gives ACC_Y = ACC_CAL1_Y.X * sensor.X + ACC_CAL1_Y.Y * sensor.Y + ACC_CAL1_Y.Z * sensor.Z + _accel_offset.Y;
+    // ACC_CAL1_Z gives ACC_Z = ACC_CAL1_Z.X * sensor.X + ACC_CAL1_Z.Y * sensor.Y + ACC_CAL1_Z.Z * sensor.Z + _accel_offset.Z;
+    AP_GROUPINFO("CAL1_X",    31, Compass, _state[0]._compass_cal_x,  0),
+    AP_GROUPINFO("CAL1_Y",    32, Compass, _state[0]._compass_cal_y,  0),
+    AP_GROUPINFO("CAL1_Z",    33, Compass, _state[0]._compass_cal_z,  0),
+    // INS 2
+    AP_GROUPINFO("CAL2_X",    34, Compass, _state[1]._compass_cal_x,  0),
+    AP_GROUPINFO("CAL2_Y",    35, Compass, _state[1]._compass_cal_y,  0),
+    AP_GROUPINFO("CAL2_Z",    36, Compass, _state[1]._compass_cal_z,  0),
+    // INS 3
+    AP_GROUPINFO("CAL3_X",    37, Compass, _state[2]._compass_cal_x,  0),
+    AP_GROUPINFO("CAL3_Y",    38, Compass, _state[2]._compass_cal_y,  0),
+    AP_GROUPINFO("CAL3_Z",    39, Compass, _state[2]._compass_cal_z,  0),
+
     AP_GROUPEND
 };
 

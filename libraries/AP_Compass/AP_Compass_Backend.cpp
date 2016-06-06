@@ -41,7 +41,7 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
 {
     Compass::mag_state &state = _compass._state[i];
 
-    if (state.diagonals.get().is_zero()) {
+/* MATT ADD    if (state.diagonals.get().is_zero()) {
         state.diagonals.set(Vector3f(1.0f,1.0f,1.0f));
     }
 
@@ -49,12 +49,12 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
     const Vector3f &diagonals = state.diagonals.get();
     const Vector3f &offdiagonals = state.offdiagonals.get();
     const Vector3f &mot = state.motor_compensation.get();
-
+*/
     /*
      * note that _motor_offset[] is kept even if compensation is not
      * being applied so it can be logged correctly
      */
-    mag += offsets;
+  /* MATT ADD  mag += offsets;
     if(_compass._motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && !is_zero(_compass._thr_or_curr)) {
         state.motor_offset = mot * _compass._thr_or_curr;
         mag += state.motor_offset;
@@ -68,7 +68,43 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
         offdiagonals.y, offdiagonals.z,    diagonals.z
     );
 
+    mag = mat * mag;*/
+
+    //====== MY STUFF
+
+    if (state._compass_cal_x.get().is_zero()) {
+        state._compass_cal_x.set(Vector3f(1.0f,0.0f,0.0f));
+    }
+    if (state._compass_cal_y.get().is_zero()) {
+        state._compass_cal_y.set(Vector3f(0.0f,1.0f,0.0f));
+    }
+    if (state._compass_cal_z.get().is_zero()) {
+        state._compass_cal_z.set(Vector3f(0.0f,0.0f,1.0f));
+    }
+
+    /*
+     * note that _motor_offset[] is kept even if compensation is not
+     * being applied so it can be logged correctly
+     */
+
+
+    const Vector3f &cal_x = state._compass_cal_x.get();
+    const Vector3f &cal_y = state._compass_cal_y.get();
+    const Vector3f &cal_z = state._compass_cal_z.get();
+    const Vector3f &offsets = state.offset.get();
+
+    mag += offsets;
+    state.motor_offset.zero(); // Haven't got any motor offsets yet
+
+    Matrix3f mat(
+            cal_x.x, cal_x.y, cal_x.z,
+            cal_y.x, cal_y.y, cal_y.z,
+            cal_z.x, cal_z.y, cal_z.z
+    );  // Don't need to worry about rotations as they're inherantly done here
+
     mag = mat * mag;
+
+
 }
 
 /*
