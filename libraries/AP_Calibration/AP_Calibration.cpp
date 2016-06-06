@@ -255,26 +255,12 @@ void AP_Calibration::calibrate_compass(void) {
 		compass.accumulate();
 		compass.read();
 
-		// Wait for new data (this bit is a bit screwed...)
-		/*while (last_update>=compass.last_update_usec(0))
-		{
-		    hal.scheduler->delay(5);
-		    compass.read();
-		}
-		last_update = compass.last_update_usec(0);*/
-
-		// Only record the data while the vehicle is moving
-		//ins.wait_for_sample();
-		//ins.update();
-		//if (!ins.is_still())  // This might only be on the primary INS, will have to check
-		//{
 		    // Record data
 		    for (uint8_t kk=0; kk<compass.get_count(); kk++)
 		    {
 		        const Vector3f &mag = compass.get_field(kk);
 		        fprintf(f[kk],"%f,%f,%f\n",mag.x, mag.y, mag.z);
 		    }
-		//}
 
 		hal.scheduler->delay(20);
 
