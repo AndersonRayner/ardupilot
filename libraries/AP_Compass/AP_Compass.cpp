@@ -376,6 +376,9 @@ const AP_Param::GroupInfo Compass::var_info[] = {
     AP_GROUPINFO("CAL3_Y",    38, Compass, _state[2]._compass_cal_y,  0),
     AP_GROUPINFO("CAL3_Z",    39, Compass, _state[2]._compass_cal_z,  0),
 
+    // Advanced Calibration
+    AP_GROUPINFO("ADV_CAL",      40, Compass, _advanced_calibration,  0),
+
     AP_GROUPEND
 };
 

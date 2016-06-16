@@ -327,6 +327,7 @@ private:
     // backend objects
     AP_Compass_Backend *_backends[COMPASS_MAX_BACKEND];
     uint8_t     _backend_count;
+    AP_Int8 _advanced_calibration;
 
     // number of registered compasses.
     uint8_t     _compass_count;
