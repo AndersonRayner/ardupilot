@@ -33,9 +33,7 @@ void AP_InertialSensor_Backend::_rotate_and_correct_accel(uint8_t instance, Vect
 
         // rotate to body frame
         accel.rotate(_imu._board_orientation);
-    }
-    else
-    {
+    } else {
         // New magic version.  By using funky matricies, everything can be done in one step :)
         // Don't even need to do the sensor to body frame stuff, it's all done!
         const Vector3f  accel_in     = accel;
