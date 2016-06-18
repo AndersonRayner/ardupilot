@@ -307,6 +307,9 @@ public:
         return (enum LearnType)_learn.get();
     }
     
+    // return the compass id
+    int32_t get_compass_id(uint8_t ii) const { return _state[ii].dev_id; }
+
 private:
     /// Register a new compas driver, allocating an instance number
     ///

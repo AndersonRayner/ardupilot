@@ -79,6 +79,7 @@ public:
 
     /// calibrating - returns true if the gyros or accels are currently being calibrated
     bool calibrating() const { return _calibrating; }
+    void reset_IMU_calibration(void);
 
     /// Perform cold-start initialisation for just the gyros.
     ///
@@ -254,10 +255,6 @@ public:
     void acal_update();
 
     bool accel_cal_requires_reboot() const { return _accel_cal_requires_reboot; }
-
-    // My calibration function
-    void run_calibrate();
-
 
 private:
 

@@ -13,6 +13,11 @@ AP_Compass_Backend::AP_Compass_Backend(Compass &compass) :
 
 void AP_Compass_Backend::rotate_field(Vector3f &mag, uint8_t instance)
 {
+    if (_compass._advanced_calibration) {
+        // Compass rotations are done when correcting the field
+        return;
+    }
+
     Compass::mag_state &state = _compass._state[instance];
     mag.rotate(MAG_BOARD_ORIENTATION);
 
@@ -74,36 +79,22 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
 
     } else {
 
-        if (state._compass_cal_x.get().is_zero()) {
-            state._compass_cal_x.set(Vector3f(1.0f,0.0f,0.0f));
-        }
-        if (state._compass_cal_y.get().is_zero()) {
-            state._compass_cal_y.set(Vector3f(0.0f,1.0f,0.0f));
-        }
-        if (state._compass_cal_z.get().is_zero()) {
-            state._compass_cal_z.set(Vector3f(0.0f,0.0f,1.0f));
-        }
-
-        /*
-         * note that _motor_offset[] is kept even if compensation is not
-         * being applied so it can be logged correctly
-         */
-
-        const Vector3f &cal_x = state._compass_cal_x.get();
-        const Vector3f &cal_y = state._compass_cal_y.get();
-        const Vector3f &cal_z = state._compass_cal_z.get();
+        // Apply hard iron offset
         const Vector3f &offsets = state.offset.get();
-
         mag += offsets;
+
+        // Apply motor offsets
         state.motor_offset.zero(); // Haven't got any motor offsets yet
 
-        Matrix3f mat(
-                cal_x.x, cal_x.y, cal_x.z,
-                cal_y.x, cal_y.y, cal_y.z,
-                cal_z.x, cal_z.y, cal_z.z
-        );  // Don't need to worry about rotations as they're inherantly done here
+        // Multiply by rotation*soft-iron matrix
+        const Vector3f  mag_in  = mag;
+        const Vector3f &cal_x   = state._compass_cal_x.get();
+        const Vector3f &cal_y   = state._compass_cal_y.get();
+        const Vector3f &cal_z   = state._compass_cal_z.get();
 
-        mag = mat * mag;
+        mag.x = mag_in.x*cal_x.x + mag_in.y*cal_x.y + mag_in.z*cal_x.z;
+        mag.y = mag_in.x*cal_y.x + mag_in.y*cal_y.y + mag_in.z*cal_y.z;
+        mag.z = mag_in.x*cal_z.x + mag_in.y*cal_z.y + mag_in.z*cal_z.z;
     }
 
 }
