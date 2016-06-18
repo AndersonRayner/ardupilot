@@ -16,6 +16,17 @@
 
 #include "AP_Calibration.h"
 
+#define AP_COMPASS_TYPE_UNKNOWN         0x00
+#define AP_COMPASS_TYPE_HIL             0x01
+#define AP_COMPASS_TYPE_HMC5843         0x02
+#define AP_COMPASS_TYPE_HMC5883L        0x03
+#define AP_COMPASS_TYPE_PX4             0x04
+#define AP_COMPASS_TYPE_VRBRAIN         0x05
+#define AP_COMPASS_TYPE_AK8963_MPU9250  0x06
+#define AP_COMPASS_TYPE_AK8963_I2C      0x07
+#define AP_COMPASS_TYPE_LSM303D         0x08
+#define AP_COMPASS_TYPE_LSM9DS1         0x09
+
 extern const AP_HAL::HAL& hal;
 
 static AP_InertialSensor ins;
@@ -151,6 +162,46 @@ void AP_Calibration::calibrate_compass(void) {
 	// display number of detected accels/gyros
 	hal.console->printf("\n");
 	hal.console->printf("Number of detected magnetometers : %u\n", compass.get_count());
+	for (uint8_t ii=0; ii<compass.get_count(); ii++) {
+	    hal.console->printf("  %u - Compass ID %d, ",ii,compass.get_compass_id(ii));
+	    // Print the name of the compass
+	    switch (compass.get_compass_id(ii)) {
+	    case AP_COMPASS_TYPE_UNKNOWN :
+	        hal.console->printf("Unknown");
+	        break;
+	    case AP_COMPASS_TYPE_HIL :
+	        hal.console->printf("HIL");
+            break;
+	    case AP_COMPASS_TYPE_HMC5843 :
+	        hal.console->printf("HMC5843");
+            break;
+	    case AP_COMPASS_TYPE_HMC5883L :
+	        hal.console->printf("HMC5883L");
+            break;
+	    case AP_COMPASS_TYPE_PX4 :
+	        hal.console->printf("PX4");
+            break;
+	    case AP_COMPASS_TYPE_VRBRAIN :
+	        hal.console->printf("VRBRAIN");
+            break;
+	    case AP_COMPASS_TYPE_AK8963_MPU9250 :
+	        hal.console->printf("MPU9250");
+            break;
+	    case AP_COMPASS_TYPE_AK8963_I2C :
+	        hal.console->printf("AK8963_I2C");
+            break;
+	    case AP_COMPASS_TYPE_LSM303D :
+	        hal.console->printf("LSM303D");
+            break;
+	    case AP_COMPASS_TYPE_LSM9DS1 :
+	        hal.console->printf("LSM9DS1");
+            break;
+	    default :
+	        hal.console->printf("Unknown ID...");
+	        break;
+	    }
+	    hal.console->printf("\n");
+	}
 
 	// Reset all of the compass parameters
 	compass.reset_compass_calibration();
