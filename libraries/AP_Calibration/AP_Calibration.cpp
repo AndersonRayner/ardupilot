@@ -153,11 +153,7 @@ void AP_Calibration::calibrate_compass(void) {
 	hal.console->printf("Number of detected magnetometers : %u\n", compass.get_count());
 
 	// Reset all of the compass parameters
-	// Magnetometer 1
-    // AP_Param::set_object_value(&compass, compass.var_info, "_PIN", 65);
-	// Magnetometer 2
-	// Magnetometer 3
-
+	compass.reset_compass_calibration();
 
 	// Create a calibration file
 	hal.console->printf("Making calibration file\n");

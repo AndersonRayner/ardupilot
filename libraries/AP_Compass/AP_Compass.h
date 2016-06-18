@@ -105,6 +105,7 @@ public:
     void set_and_save_offsets(uint8_t i, const Vector3f &offsets);
     void set_and_save_diagonals(uint8_t i, const Vector3f &diagonals);
     void set_and_save_offdiagonals(uint8_t i, const Vector3f &diagonals);
+    void reset_compass_calibration(void);
 
     /// Saves the current offset x/y/z values for one or all compasses
     ///

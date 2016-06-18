@@ -920,3 +920,42 @@ bool Compass::consistent() const
     return true;
 }
 
+void Compass::reset_compass_calibration(void)
+{
+    hal.console->printf("Resetting compass calibration values\n");
+
+    for (uint8_t ii = 0; ii<COMPASS_MAX_INSTANCES; ii++) {
+        // Turn to advanced calibrations
+        _advanced_calibration = 0;
+        _advanced_calibration.save();
+
+        // Reset Offsets
+        Vector3f offsets;
+        offsets.x = 0;
+        offsets.y = 0;
+        offsets.z = 0;
+        _state[ii].offset = offsets;
+        _state[ii].offset.save();
+
+        // Reset Calibration Values
+        Vector3f calib;
+        calib.x = 1;
+        calib.y = 0;
+        calib.z = 0;
+        _state[ii]._compass_cal_x = calib;
+        _state[ii]._compass_cal_x.save();
+
+        calib.x = 0;
+        calib.y = 1;
+        calib.z = 0;
+        _state[ii]._compass_cal_y = calib;
+        _state[ii]._compass_cal_y.save();
+
+        calib.x = 0;
+        calib.y = 0;
+        calib.z = 1;
+        _state[ii]._compass_cal_z = calib;
+        _state[ii]._compass_cal_z.save();
+    }
+}
+
