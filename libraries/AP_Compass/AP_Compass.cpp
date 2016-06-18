@@ -575,8 +575,7 @@ void Compass::_detect_backends(void)
     }
 }
 
-void
-Compass::accumulate(void)
+void Compass::accumulate(void)
 {
     for (uint8_t i=0; i< _backend_count; i++) {
         // call accumulate on each of the backend
@@ -584,8 +583,7 @@ Compass::accumulate(void)
     }
 }
 
-bool
-Compass::read(void)
+bool Compass::read(void)
 {
     for (uint8_t i=0; i< _backend_count; i++) {
         // call read on each of the backend. This call updates field[i]
@@ -597,8 +595,7 @@ Compass::read(void)
     return healthy();
 }
 
-uint8_t
-Compass::get_healthy_mask() const
+uint8_t Compass::get_healthy_mask() const
 {
     uint8_t healthy_mask = 0;
     for(uint8_t i=0; i<COMPASS_MAX_INSTANCES; i++) {
@@ -609,8 +606,7 @@ Compass::get_healthy_mask() const
     return healthy_mask;
 }
 
-void
-Compass::set_offsets(uint8_t i, const Vector3f &offsets)
+void Compass::set_offsets(uint8_t i, const Vector3f &offsets)
 {
     // sanity check compass instance provided
     if (i < COMPASS_MAX_INSTANCES) {
@@ -618,8 +614,7 @@ Compass::set_offsets(uint8_t i, const Vector3f &offsets)
     }
 }
 
-void
-Compass::set_and_save_offsets(uint8_t i, const Vector3f &offsets)
+void Compass::set_and_save_offsets(uint8_t i, const Vector3f &offsets)
 {
     // sanity check compass instance provided
     if (i < COMPASS_MAX_INSTANCES) {
@@ -628,8 +623,7 @@ Compass::set_and_save_offsets(uint8_t i, const Vector3f &offsets)
     }
 }
 
-void
-Compass::set_and_save_diagonals(uint8_t i, const Vector3f &diagonals)
+void Compass::set_and_save_diagonals(uint8_t i, const Vector3f &diagonals)
 {
     // sanity check compass instance provided
     if (i < COMPASS_MAX_INSTANCES) {
@@ -637,8 +631,7 @@ Compass::set_and_save_diagonals(uint8_t i, const Vector3f &diagonals)
     }
 }
 
-void
-Compass::set_and_save_offdiagonals(uint8_t i, const Vector3f &offdiagonals)
+void Compass::set_and_save_offdiagonals(uint8_t i, const Vector3f &offdiagonals)
 {
     // sanity check compass instance provided
     if (i < COMPASS_MAX_INSTANCES) {
@@ -646,29 +639,25 @@ Compass::set_and_save_offdiagonals(uint8_t i, const Vector3f &offdiagonals)
     }
 }
 
-void
-Compass::save_offsets(uint8_t i)
+void Compass::save_offsets(uint8_t i)
 {
     _state[i].offset.save();  // save offsets
     _state[i].dev_id.save();  // save device id corresponding to these offsets
 }
 
-void
-Compass::save_offsets(void)
+void Compass::save_offsets(void)
 {
     for (uint8_t i=0; i<COMPASS_MAX_INSTANCES; i++) {
         save_offsets(i);
     }
 }
 
-void
-Compass::set_motor_compensation(uint8_t i, const Vector3f &motor_comp_factor)
+void Compass::set_motor_compensation(uint8_t i, const Vector3f &motor_comp_factor)
 {
     _state[i].motor_compensation.set(motor_comp_factor);
 }
 
-void
-Compass::save_motor_compensation()
+void Compass::save_motor_compensation()
 {
     _motor_comp_type.save();
     for (uint8_t k=0; k<COMPASS_MAX_INSTANCES; k++) {
@@ -676,8 +665,7 @@ Compass::save_motor_compensation()
     }
 }
 
-void
-Compass::set_initial_location(int32_t latitude, int32_t longitude)
+void Compass::set_initial_location(int32_t latitude, int32_t longitude)
 {
     // if automatic declination is configured, then compute
     // the declination based on the initial GPS fix
@@ -691,22 +679,19 @@ Compass::set_initial_location(int32_t latitude, int32_t longitude)
 }
 
 /// return true if the compass should be used for yaw calculations
-bool
-Compass::use_for_yaw(void) const
+bool Compass::use_for_yaw(void) const
 {
     uint8_t prim = get_primary();
     return healthy(prim) && use_for_yaw(prim);
 }
 
 /// return true if the specified compass can be used for yaw calculations
-bool
-Compass::use_for_yaw(uint8_t i) const
+bool Compass::use_for_yaw(uint8_t i) const
 {
     return _state[i].use_for_yaw;
 }
 
-void
-Compass::set_declination(float radians, bool save_to_eeprom)
+void Compass::set_declination(float radians, bool save_to_eeprom)
 {
     if (save_to_eeprom) {
         _declination.set_and_save(radians);
@@ -715,8 +700,7 @@ Compass::set_declination(float radians, bool save_to_eeprom)
     }
 }
 
-float
-Compass::get_declination() const
+float Compass::get_declination() const
 {
     return _declination.get();
 }
@@ -724,8 +708,7 @@ Compass::get_declination() const
 /*
   calculate a compass heading given the attitude from DCM and the mag vector
  */
-float
-Compass::calculate_heading(const Matrix3f &dcm_matrix, uint8_t i) const
+float Compass::calculate_heading(const Matrix3f &dcm_matrix, uint8_t i) const
 {
     float cos_pitch_sq = 1.0f-(dcm_matrix.c.x*dcm_matrix.c.x);
 
