@@ -39,56 +39,7 @@ void AP_Calibration::calibrate_IMU(void) {
 	hal.console->printf("    Number of detected gyros  : %u\n\n", ins.get_gyro_count());
 
 	// Reset all of the IMU parameters
-	// IMU 1
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_X", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_X_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_Y", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Y_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL1_Z_Z", 1);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACCOFFS_Z", 0);
-
-	// IMU 2
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_X", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_X_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_Y", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Y_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL2_Z_Z", 1);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC2OFFS_Z", 0);
-
-	// IMU 3
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_X", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_X_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_Y", 1);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Y_Z", 0);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_CAL3_Z_Z", 1);
-
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_X", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_Y", 0);
-	AP_Param::set_object_value(&ins, ins.var_info, "_ACC_ACC3OFFS_Z", 0);
+	ins.reset_IMU_calibration();
 
 	// Create a calibration file
 	hal.console->printf("Making calibration file\n");
