@@ -389,7 +389,7 @@ AP_InertialSensor_LSM9DS0::AP_InertialSensor_LSM9DS0(AP_InertialSensor &imu,
     , _drdy_pin_num_a(drdy_pin_num_a)
     , _drdy_pin_num_g(drdy_pin_num_g)
 {
-    _product_id = AP_PRODUCT_ID_NONE;
+    _product_id = AP_PRODUCT_ID_LSM9DS0;
 }
 
 AP_InertialSensor_Backend *AP_InertialSensor_LSM9DS0::probe(AP_InertialSensor &_imu,
@@ -440,6 +440,8 @@ bool AP_InertialSensor_LSM9DS0::_init_sensor()
 #if LSM9DS0_DEBUG
     _dump_registers();
 #endif
+
+    _product_id = AP_PRODUCT_ID_LSM9DS0;
 
     return success;
 }
