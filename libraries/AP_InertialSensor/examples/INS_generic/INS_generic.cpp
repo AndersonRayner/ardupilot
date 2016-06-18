@@ -9,11 +9,6 @@
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_Math/AP_Math.h>
 
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-#include <sys/stat.h>
 
 const AP_HAL::HAL &hal = AP_HAL::get_HAL();
 
@@ -37,7 +32,6 @@ void setup(void)
     hal.console->printf("Number of detected gyros  : %u\n\n", ins.get_gyro_count());
 
     hal.console->println("Complete. Reading:");
-
 }
 
 void loop(void)
@@ -50,7 +44,6 @@ void loop(void)
     "    d) display offsets and scaling\n"
     "    l) level (capture offsets from level)\n"
     "    t) test\n"
-    "    c) calibrate\n"
     "    r) reboot");
 
     // wait for user input
@@ -68,10 +61,6 @@ void loop(void)
 
         if (user_input == 't' || user_input == 'T') {
             run_test();
-        }
-
-        if (user_input == 'c' || user_input == 'C') {
-            ins.run_calibrate();
         }
 
         if (user_input == 'r' || user_input == 'R') {
