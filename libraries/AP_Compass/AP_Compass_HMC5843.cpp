@@ -242,10 +242,10 @@ void AP_Compass_HMC5843::accumulate()
    raw_field *= _gain_scale;
 
    // rotate to the desired orientation
-   if (is_external(_compass_instance) &&
-       _product_id == AP_COMPASS_TYPE_HMC5883L) {
-       raw_field.rotate(ROTATION_YAW_90);
-   }
+   //if (is_external(_compass_instance) &&
+   //    _product_id == AP_COMPASS_TYPE_HMC5883L) {
+   //    raw_field.rotate(ROTATION_YAW_90);
+   //}
 
    // rotate raw_field from sensor frame to body frame
    rotate_field(raw_field, _compass_instance);
