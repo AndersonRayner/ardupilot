@@ -43,7 +43,7 @@ void AP_Calibration::calibrate_IMU(void) {
 	Vector3f gyro;
 
 	hal.console->println("Calibrating inertial sensors...");
-	ins.init(100);
+	ins.init(500);
 
 	// display number of detected accels/gyros
 	hal.console->printf("    Number of detected accels : %u\n", ins.get_accel_count());
@@ -127,7 +127,7 @@ void AP_Calibration::calibrate_IMU(void) {
 
 
 		// Write data points
-		for (uint16_t ii = 0; ii<500; ii++)
+		for (uint16_t ii = 0; ii<1000; ii++)
 		{
 			// wait until we have a sample
 			ins.wait_for_sample();
