@@ -2098,7 +2098,7 @@ void Copter::mavlink_delay_cb()
  */
 void Copter::gcs_send_message(enum ap_message id)
 {
-    for (uint8_t i=0; i<num_gcs; i++) {
+    for (uint8_t i=1; i<num_gcs; i++) {  // Originally i=0, appears 0 is the linux console
         if (gcs[i].initialised) {
             gcs[i].send_message(id);
         }
