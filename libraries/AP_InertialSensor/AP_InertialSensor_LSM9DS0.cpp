@@ -407,6 +407,14 @@ AP_InertialSensor_Backend *AP_InertialSensor_LSM9DS0::probe(AP_InertialSensor &_
     return sensor;
 }
 
+void AP_InertialSensor_LSM9DS0::start()
+{
+    hal.console->print("Starting LSM9DS0\n");
+    hal.console->print("Registering LSM9DS0\n");
+    _gyro_instance = _imu.register_gyro(760);
+    _accel_instance = _imu.register_accel(800);
+}
+
 bool AP_InertialSensor_LSM9DS0::_init_sensor()
 {
     /*
@@ -509,9 +517,6 @@ bool AP_InertialSensor_LSM9DS0::_hardware_init()
     }
 
     _spi_sem->give();
-
-    _gyro_instance = _imu.register_gyro(760);
-    _accel_instance = _imu.register_accel(800);
 
     _set_accel_max_abs_offset(_accel_instance, 5.0f);
 

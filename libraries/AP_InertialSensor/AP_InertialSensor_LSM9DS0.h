@@ -18,6 +18,8 @@ public:
                                             AP_HAL::OwnPtr<AP_HAL::SPIDevice> dev_gyro,
                                             AP_HAL::OwnPtr<AP_HAL::SPIDevice> dev_accel);
 
+    void start() override;
+
 private:
     AP_InertialSensor_LSM9DS0(AP_InertialSensor &imu,
                               AP_HAL::OwnPtr<AP_HAL::SPIDevice> dev_gyro,
