@@ -409,8 +409,7 @@ AP_InertialSensor_Backend *AP_InertialSensor_LSM9DS0::probe(AP_InertialSensor &_
 
 void AP_InertialSensor_LSM9DS0::start()
 {
-    hal.console->print("Starting LSM9DS0\n");
-    hal.console->print("Registering LSM9DS0\n");
+    hal.console->printf("Registering LSM9DS0 - IMU%u\n",_imu.get_accel_count());
     _gyro_instance = _imu.register_gyro(760);
     _accel_instance = _imu.register_accel(800);
 }

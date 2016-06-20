@@ -327,6 +327,7 @@ void AP_InertialSensor_MPU9250::start()
     _dev->get_semaphore()->give();
 
     // grab the used instances
+    hal.console->printf("Registering MPU9250 - IMU%u\n",_imu.get_accel_count());
     _gyro_instance = _imu.register_gyro(DEFAULT_SAMPLE_RATE);
     _accel_instance = _imu.register_accel(DEFAULT_SAMPLE_RATE);
 
