@@ -210,9 +210,10 @@ bool AP_Arming::ins_checks(bool report)
                      */
                     threshold *= 3;
                 }
-                // EKF is less sensitive to Z-axis error and Z-axis is more
-                // likely to be temperature-sensitive on our hardware
+
+                // EKF is less sensitive to Z-axis error
                 vec_diff.z *= 0.5f;
+
                 if (vec_diff.length() <= threshold) {
                     last_accel_pass_ms[i] = AP_HAL::millis();
                 }

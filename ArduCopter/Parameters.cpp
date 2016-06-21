@@ -155,7 +155,7 @@ const AP_Param::Info Copter::var_info[] = {
     // @Range: 0.01 2.0
     // @Increment: 0.01
     // @User: Standard
-    GSCALAR(sonar_gain,     "RNGFND_GAIN",           SONAR_GAIN_DEFAULT),
+    GSCALAR(rangefinder_gain, "RNGFND_GAIN", RANGEFINDER_GAIN_DEFAULT),
 
     // @Param: FS_BATT_ENABLE
     // @DisplayName: Battery Failsafe Enable
@@ -457,8 +457,8 @@ const AP_Param::Info Copter::var_info[] = {
     // @Param: ARMING_CHECK
     // @DisplayName: Arming check
     // @Description: Allows enabling or disabling of pre-arming checks of receiver, accelerometer, barometer, compass and GPS
-    // @Values: 0:Disabled, 1:Enabled, -3:Skip Baro, -5:Skip Compass, -9:Skip GPS, -17:Skip INS, -33:Skip Params/Sonar, -65:Skip RC, 127:Skip Voltage
-    // @Bitmask: 0:All,1:Baro,2:Compass,3:GPS,4:INS,5:Parameters+Sonar,6:RC,7:Voltage
+    // @Values: 0:Disabled, 1:Enabled, -3:Skip Baro, -5:Skip Compass, -9:Skip GPS, -17:Skip INS, -33:Skip Params/Rangefinder, -65:Skip RC, 127:Skip Voltage
+    // @Bitmask: 0:All,1:Baro,2:Compass,3:GPS,4:INS,5:Parameters+Rangefinder,6:RC,7:Voltage
     // @User: Standard
     GSCALAR(arming_check, "ARMING_CHECK",           ARMING_CHECK_ALL),
 
@@ -895,10 +895,10 @@ const AP_Param::Info Copter::var_info[] = {
     // @Path: ../libraries/AP_RSSI/AP_RSSI.cpp
     GOBJECT(rssi, "RSSI_",  AP_RSSI),      
     
-#if CONFIG_SONAR == ENABLED
+#if RANGEFINDER_ENABLED == ENABLED
     // @Group: RNGFND
     // @Path: ../libraries/AP_RangeFinder/RangeFinder.cpp
-    GOBJECT(sonar,   "RNGFND", RangeFinder),
+    GOBJECT(rangefinder,   "RNGFND", RangeFinder),
 #endif
 
 #if AP_TERRAIN_AVAILABLE && AC_TERRAIN
@@ -1063,7 +1063,10 @@ void Copter::convert_pid_parameters(void)
         { Parameters::k_param_pid_rate_yaw,   7, AP_PARAM_FLOAT, "ATC_RAT_YAW_ILMI" },
 #endif
     };
-    AP_Param::ConversionInfo filt_conversion_info[] = {
+    AP_Param::ConversionInfo angle_and_filt_conversion_info[] = {
+        { Parameters::k_param_p_stabilize_roll, 0, AP_PARAM_FLOAT, "ATC_ANG_RLL_P" },
+        { Parameters::k_param_p_stabilize_pitch, 0, AP_PARAM_FLOAT, "ATC_ANG_PIT_P" },
+        { Parameters::k_param_p_stabilize_yaw, 0, AP_PARAM_FLOAT, "ATC_ANG_YAW_P" },
         { Parameters::k_param_pid_rate_roll, 6, AP_PARAM_FLOAT, "ATC_RAT_RLL_FILT" },
         { Parameters::k_param_pid_rate_pitch, 6, AP_PARAM_FLOAT, "ATC_RAT_PIT_FILT" },
         { Parameters::k_param_pid_rate_yaw, 6, AP_PARAM_FLOAT, "ATC_RAT_YAW_FILT" }
@@ -1090,9 +1093,9 @@ void Copter::convert_pid_parameters(void)
     for (uint8_t i=0; i<table_size; i++) {
         AP_Param::convert_old_parameter(&imax_conversion_info[i], 1.0f/4500.0f);
     }
-    // convert filter without scaling
-    table_size = ARRAY_SIZE(filt_conversion_info);
+    // convert angle controller gain and filter without scaling
+    table_size = ARRAY_SIZE(angle_and_filt_conversion_info);
     for (uint8_t i=0; i<table_size; i++) {
-        AP_Param::convert_old_parameter(&filt_conversion_info[i], 1.0f);
+        AP_Param::convert_old_parameter(&angle_and_filt_conversion_info[i], 1.0f);
     }
 }

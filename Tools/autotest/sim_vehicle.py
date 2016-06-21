@@ -8,6 +8,7 @@ import optparse
 import sys
 import atexit
 import os
+import os.path
 import subprocess
 import tempfile
 import getpass
@@ -113,6 +114,8 @@ def kill_tasks():
 
     import psutil
     for proc in psutil.process_iter():
+        if proc.status() == psutil.STATUS_ZOMBIE:
+            continue
         if proc.name() in victim_names:
             proc.kill()
 
@@ -123,7 +126,12 @@ def check_jsbsim_version():
     '''assert that the JSBSim we will run is the one we expect to run'''
     jsbsim_cmd = ["JSBSim", "--version"]
     progress_cmd("Get JSBSim version", jsbsim_cmd)
-    jsbsim_version = subprocess.Popen(jsbsim_cmd, stdout=subprocess.PIPE).communicate()[0]
+    try:
+        jsbsim_version = subprocess.Popen(jsbsim_cmd, stdout=subprocess.PIPE).communicate()[0]
+    except OSError as e:
+        jsbsim_version = '' # this value will trigger the ".index"
+                            # check below and produce a reasonable
+                            # error message
     try:
         jsbsim_version.index("ArduPilot")
     except ValueError:
@@ -264,6 +272,10 @@ default_params_filename: filename of default parameters file.  Taken to be relat
 extra_mavlink_cmds: extra parameters that will be passed to mavproxy
 '''
 _options_for_frame = {
+    "calibration": {
+        "extra_mavlink_cmds": "module load sitl_calibration;",
+    },
+    # COPTER
     "+": {
         "waf_target": "bin/arducopter-quad",
         "default_params_filename": "copter_params.parm"
@@ -277,26 +289,14 @@ _options_for_frame = {
         "waf_target": "bin/arducopter-quad",
         # this param set FRAME doesn't actually work because mavproxy
         # won't set a parameter unless it knows of it, and the param fetch happens asynchronously
-        "extra_mavlink_cmds": "param fetch frame; param set FRAME 1;",
-        "default_params_filename": "copter_params.parm"
-    },
-    "heli-dual": {
-        "make_target": "sitl-heli-dual",
-        "waf_target": "bin/arducopter-coax", # is this correct? -pb201604301447
-    },
-    "heli-compound": {
-        "make_target": "sitl-heli-compound",
-        "waf_target": "bin/arducopter-coax", # is this correct? -pb201604301447
-    },
-    "IrisRos": {
         "default_params_filename": "copter_params.parm",
-        "waf_target": "bin/arducopter-quad",
+        "extra_mavlink_cmds": "param fetch frame; param set FRAME 1;"
     },
-    "Gazebo": {
+    "hexa": {
+	"make_target": "sitl-hexa",
+        "waf_target": "bin/arducopter-hexa",
         "default_params_filename": "copter_params.parm",
-        "waf_target": "bin/arducopter-quad",
     },
-
     "octa": {
 	"make_target": "sitl-octa",
         "waf_target": "bin/arducopter-octa",
@@ -312,25 +312,40 @@ _options_for_frame = {
         "waf_target": "bin/arducopter-y6",
         "default_params_filename": "y6_params.parm",
     },
-    "firefly": {
-        "default_params_filename": "firefly.parm",
-        "waf_target": "bin/arducopter-firefly",
+    # COPTER TYPES
+    "IrisRos": {
+        "waf_target": "bin/arducopter-quad",
+        "default_params_filename": "copter_params.parm",
     },
+    "firefly": {
+        "waf_target": "bin/arducopter-firefly",
+        "default_params_filename": "firefly.parm",
+    },
+    # HELICOPTER
     "heli": {
-	"make_target": "sitl-heli",
+	    "make_target": "sitl-heli",
         "waf_target": "bin/arducopter-heli",
         "default_params_filename": "Helicopter.parm",
     },
-    "last_letter": {
-        "waf_target": "bin/arduplane",
+    "heli-dual": {
+        "make_target": "sitl-heli-dual",
+        "waf_target": "bin/arducopter-coax", # is this correct? -pb201604301447
     },
-    "CRRCSim": {
-        "waf_target": "bin/arduplane",
+    "heli-compound": {
+        "make_target": "sitl-heli-compound",
+        "waf_target": "bin/arducopter-coax", # is this correct? -pb201604301447
     },
-    "jsbsim": {
-        "waf_target": "bin/arduplane",
-        "default_params_filename": "ArduPlane.parm",
+    "singlecopter": {
+	    "make_target": "sitl-single",
+            "waf_target": "bin/arducopter-single",
+            "default_params_filename": "SingleCopter.parm",
     },
+    "coaxcopter": {
+	    "make_target": "sitl-coax",
+            "waf_target": "bin/arducopter-coax",
+            "default_params_filename": "CoaxCopter.parm",
+    },
+    # PLANE
     "quadplane-tilttri" : {
         "build_target" : "sitl-tri",
         "default_params_filename": "quadplane-tilttri.parm",
@@ -351,9 +366,29 @@ _options_for_frame = {
         "waf_target": "bin/arduplane",
         "default_params_filename": "plane.parm",
     },
+    # ROVER
     "rover": {
         "waf_target": "bin/ardurover",
         "default_params_filename": "Rover.parm",
+    },
+    "rover-skid": {
+        "waf_target": "bin/ardurover",
+        "default_params_filename": "Rover-skid.parm",
+    },
+    # SIM
+    "Gazebo": {
+        "waf_target": "bin/arducopter-quad",
+        "default_params_filename": "copter_params.parm",
+    },
+    "last_letter": {
+        "waf_target": "bin/arduplane",
+    },
+    "CRRCSim": {
+        "waf_target": "bin/arduplane",
+    },
+    "jsbsim": {
+        "waf_target": "bin/arduplane",
+        "default_params_filename": "ArduPlane.parm",
     },
 }
 
@@ -489,9 +524,9 @@ def progress_cmd(what, cmd):
     shell_text = "%s" % (" ".join([ '"%s"' % x for x in cmd ]))
     progress(shell_text)
 
-def run_cmd_blocking(what, cmd):
+def run_cmd_blocking(what, cmd, **kw):
     progress_cmd(what, cmd)
-    p = subprocess.Popen(cmd)
+    p = subprocess.Popen(cmd, **kw)
     return os.waitpid(p.pid,0)
 
 def run_in_terminal_window(autotest, name, cmd):
@@ -611,7 +646,12 @@ def start_mavproxy(opts, stuff):
     if len(extra_cmd):
         cmd.extend(['--cmd', extra_cmd])
 
-    run_cmd_blocking("Run MavProxy", cmd)
+    local_mp_modules_dir = os.path.abspath(
+            os.path.join(__file__, '..', '..', 'mavproxy_modules'))
+    env = dict(os.environ)
+    env['PYTHONPATH'] = local_mp_modules_dir + os.pathsep + env.get('PYTHONPATH', '')
+
+    run_cmd_blocking("Run MavProxy", cmd, env=env)
     progress("MAVProxy exitted")
 
 frame_options = options_for_frame(opts.frame, opts.vehicle, opts)

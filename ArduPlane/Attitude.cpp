@@ -1013,7 +1013,8 @@ void Plane::set_servos(void)
                     control_mode == TRAINING ||
                     control_mode == ACRO ||
                     control_mode == FLY_BY_WIRE_A ||
-                    control_mode == AUTOTUNE)) {
+                    control_mode == AUTOTUNE) &&
+                   !failsafe.ch3_counter) {
             // manual pass through of throttle while in FBWA or
             // STABILIZE mode with THR_PASS_STAB set
             channel_throttle->set_radio_out(channel_throttle->get_radio_in());
@@ -1147,8 +1148,7 @@ void Plane::set_servos(void)
 #if HIL_SUPPORT
     if (g.hil_mode == 1) {
         // get the servos to the GCS immediately for HIL
-        if (comm_get_txspace(MAVLINK_COMM_0) >= 
-            MAVLINK_MSG_ID_RC_CHANNELS_SCALED_LEN + MAVLINK_NUM_NON_PAYLOAD_BYTES) {
+        if (HAVE_PAYLOAD_SPACE(MAVLINK_COMM_0, RC_CHANNELS_SCALED)) {
             send_servo_out(MAVLINK_COMM_0);
         }
         if (!g.hil_servos) {
