@@ -942,7 +942,7 @@ void Compass::reset_compass_calibration(void)
 
     for (uint8_t ii = 0; ii<COMPASS_MAX_INSTANCES; ii++) {
         // Turn to advanced calibrations
-        _advanced_calibration = 0;
+        _advanced_calibration = 1;
         _advanced_calibration.save();
 
         // Reset Offsets
