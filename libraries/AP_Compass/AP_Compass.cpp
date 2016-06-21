@@ -490,30 +490,44 @@ void Compass::_detect_backends(void)
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_QFLIGHT
     _add_backend(AP_Compass_QFLIGHT::detect(*this));
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_BBBMINI
-    //hal.console->printf("Magnetometers\n");
-    AP_Compass_Backend *backend = AP_Compass_HMC5843::probe(*this, hal.i2c_mgr->get_device(HAL_COMPASS_HMC5843_I2C_BUS, HAL_COMPASS_HMC5843_I2C_ADDR));
-    if (backend) {
-        _add_backend(backend);
+    bool ret;
+
+    // External compass (HMC5883L)
+       ret = _add_backend(AP_Compass_HMC5843::probe(*this, hal.i2c_mgr->get_device(HAL_COMPASS_HMC5843_I2C_BUS, HAL_COMPASS_HMC5843_I2C_ADDR), true),
+                 AP_Compass_HMC5843::name, true);
+    if (ret) {
         hal.console->printf("    HMC5843: [ X ]\n");
     } else {
         hal.console->printf("    HMC5843: [   ]\n");
     }
 
-    backend = AP_Compass_AK8963::probe_mpu9250(*this, 0);
-    if (backend) {
-        _add_backend(backend);
-        hal.console->printf("     AK8953: [ X ]\n"); // Onboard compass
+    // Internal compass (MPU9250)
+    ret = _add_backend(AP_Compass_AK8963::probe_mpu9250(*this, 0),
+            AP_Compass_AK8963::name, false);
+    if (ret) {
+        hal.console->printf("     AK8953: [ X ]\n");
     } else {
         hal.console->printf("     AK8953: [   ]\n");
     }
 
-    backend = AP_Compass_AK8963::probe_mpu9250(*this, 1); // External compass
-    if (backend) {
-        _add_backend(backend);
+    // Internal compass (LSM9DS0)
+    _add_backend(AP_Compass_LSM303D::probe(*this, hal.spi->get_device("lsm9ds0_am")),
+                 AP_Compass_LSM303D::name, false);
+    if (ret) {
+        hal.console->printf("    LSM303D: [ X ]\n");
+    } else {
+        hal.console->printf("    LSM303D: [   ]\n");
+    }
+
+    // External compass (extMPU9250)
+    ret = _add_backend(AP_Compass_AK8963::probe_mpu9250(*this, 1),
+            AP_Compass_AK8963::name, true);
+    if (ret) {
         hal.console->printf("  extAK8953: [ X ]\n");
     } else {
         hal.console->printf("  extAK8953: [   ]\n");
     }
+
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
     _add_backend(AP_Compass_HMC5843::probe_mpu6000(*this),
                  AP_Compass_HMC5843::name, false);
