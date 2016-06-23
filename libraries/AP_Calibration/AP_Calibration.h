@@ -43,6 +43,7 @@ public:
     void calibrate_compass(void);
     void calibrate_controls(void);
     void calibrate_RPM(void);
+    void calibrate_motcompass(void);
 
 private:
 

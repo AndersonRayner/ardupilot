@@ -42,7 +42,8 @@ void loop(void)
     "    i) calibrate IMU\n"
     "    c) calibrate compass\n"
     "    a) calibrate control surface\n"
-    "    r) calibrate RPM\n");
+    "    r) calibrate RPM\n"
+    "    m) calibrate motcompass\n");
 
     // wait for user input
     while (!hal.console->available()) {
@@ -71,6 +72,11 @@ void loop(void)
         if (user_input == 'r' || user_input == 'R') {
         	hal.console->print("Starting RPM calibration\n");
             calib.calibrate_RPM();
+        }
+
+        if (user_input == 'm' || user_input == 'M') {
+            hal.console->print("Starting motor / compass calibration\n");
+            calib.calibrate_motcompass();
         }
     }
 }

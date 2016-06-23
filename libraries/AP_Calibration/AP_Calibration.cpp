@@ -428,7 +428,7 @@ void AP_Calibration::calibrate_RPM(void) {
     hal.console->printf("Starting recording\n");
 
     // Cycle motors and record results
-    for (uint16_t pwm=1075; pwm<1226; pwm=pwm+25)  // Improve this with detected min and max pwm for each servo
+    for (uint16_t pwm=1050; pwm<2001; pwm=pwm+50)  // Improve this with detected min and max pwm for each servo
     {
     	// Inform of PWM being tested
     	hal.console->printf("Testing PWM %4u\n",pwm);
@@ -439,11 +439,11 @@ void AP_Calibration::calibrate_RPM(void) {
     	hal.rcout->write(2, pwm);
     	hal.rcout->write(3, pwm);
 
-    	for (uint16_t counter=0; counter<100; counter++)
+    	for (uint16_t counter=0; counter<200; counter++)
     	{
     		// delay a bit
     	    uint64_t time_us_prev = AP_HAL::micros64();
-    	    while((AP_HAL::micros64()-time_us_prev)<20000)
+    	    while((AP_HAL::micros64()-time_us_prev)<10000)
     	    {
     	    	// wait
     	    }
@@ -457,6 +457,30 @@ void AP_Calibration::calibrate_RPM(void) {
     	}
     }
 
+    // Record turning off the motors
+    hal.rcout->write(0, 900);
+    hal.rcout->write(1, 900);
+    hal.rcout->write(2, 900);
+    hal.rcout->write(3, 900);
+
+    for (uint16_t counter=0; counter<600; counter++)
+    {
+        // delay a bit
+        uint64_t time_us_prev = AP_HAL::micros64();
+        while((AP_HAL::micros64()-time_us_prev)<10000)
+        {
+            // wait
+        }
+
+        // Update wingtip boards
+        wingtip.update();
+
+        //record PWM, accelerometer, and wingtip board data
+        fprintf(f,"%llu,%u,%u,%u,%u,%u\n",
+                AP_HAL::micros64(),900,wingtip.get_rpm(0),wingtip.get_rpm(1),wingtip.get_rpm(2),wingtip.get_rpm(3));
+    }
+
+
     // Close file
     hal.console->printf("Data collected!\n\n");
     fclose(f);
@@ -466,5 +490,11 @@ void AP_Calibration::calibrate_RPM(void) {
     hal.rcout->disable_ch(1);
     hal.rcout->disable_ch(2);
     hal.rcout->disable_ch(3);
+
+}
+
+void AP_Calibration::calibrate_motcompass(void) {
+    hal.console->println("Calibrating compass offset due to motors...");
+    //compass.init();
 
 }
