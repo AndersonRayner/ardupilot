@@ -41,9 +41,7 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     if (g.radio_tuning==TUNING_PITCH_TRIM) {
         // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
         // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [TUNE_LOW,TUNE_HIGH].
-
-        pitch_offset = (float)g.rc_6.control_in * -1.0f; // Turns out some funky stuff gets done to modify g.rc_6.control_in to make it scale between low and high.
-        //pitch_offset = g.rc_6.control_in * -9.0f; // Marc's way.  Won't work unless TUNE == 0.  Default to go back to if things aren't working right
+        pitch_offset = (float)g.rc_6.get_control_in() * -1.0f;
     }
 
     // Use the angle_trim value instead.  We don't want the two effects combining.
@@ -53,7 +51,7 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     }
 
     // return
-    roll_out = roll_in;
+    roll_out  = roll_in;
     pitch_out = pitch_in + pitch_offset;
 
     // Debugging stuff
