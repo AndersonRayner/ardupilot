@@ -1,0 +1,213 @@
+# fly ArduCopter in SITL
+# Flight mode switch positions are set-up in arducopter.param to be
+#   switch 1 = Circle
+#   switch 2 = Land
+#   switch 3 = RTL
+#   switch 4 = Auto
+#   switch 5 = Loiter
+#   switch 6 = Stabilize
+
+import util, pexpect, sys, time, math, shutil, os
+from common import *
+from arducopter import land, setup_rc, hover, arm_motors, disarm_motors, takeoff, change_alt
+from pymavlink import mavutil, mavwp
+import random
+
+# get location of scripts
+testdir=os.path.dirname(os.path.realpath(__file__))
+
+FRAME='+'
+HOME=mavutil.location(-35.362938,149.165085,584,270)
+AVCHOME=mavutil.location(40.072842,-105.230575,1586,0)
+
+homeloc = None
+num_wp = 0
+speedup_default = 1
+
+# fly a set of manoeuvres
+def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
+    '''Fly a series of twitches to see what happens'''
+    tstart = get_sim_time(mav)
+    success = True
+
+    # ensure all sticks in the middle
+    mavproxy.send('rc 1 1500\n')
+    mavproxy.send('rc 2 1500\n')
+    mavproxy.send('rc 3 1500\n')
+    mavproxy.send('rc 4 1500\n')
+
+    # switch to guided mode and take off
+    mavproxy.send('mode loiter\n')
+    wait_mode(mav, 'LOITER')
+
+    # fly to 10 m
+    if not change_alt(mavproxy, mav, 10):
+        failed_test_msg = "failed to attain test height"
+        print(failed_test_msg)
+        failed = True
+
+    # switch to althold mode
+    mavproxy.send('mode alt_hold\n')
+    wait_mode(mav, 'ALT_HOLD')
+
+    # Change RC_FEEL to get the right shapes for the twitches
+    rc_feels = ['100', '75', '50', '25']
+    for x in rc_feels:
+        mavproxy.send("param set RC_FEEL_RP "+x+"\n")
+        # twitch a little bit (roll)
+        mavproxy.send('rc 1 1000\n')
+        wait_roll(mav, -45, 2)
+        mavproxy.send('rc 1 2000\n')
+        wait_roll(mav, 45, 2)
+        mavproxy.send('rc 1 1500\n')
+        wait_seconds(mav, 2)
+        # twitch a little bit (pitch)
+        mavproxy.send('rc 2 1000\n')
+        wait_pitch(mav, -45, 2)
+        mavproxy.send('rc 2 2000\n')
+        wait_pitch(mav, 45, 2)
+        mavproxy.send('rc 2 1500\n')
+        wait_seconds(mav, 2)
+        # twitch a little bit (yaw)
+        mavproxy.send('rc 4 1200\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 4 1800\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 4 1500\n')
+        wait_seconds(mav, 2)
+        
+    # land aircraft to finish flight
+    land(mavproxy, mav)
+
+    return success
+
+def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
+    '''fly ArduCopter in SIL
+
+    you can pass viewerip as an IP address to optionally send fg and
+    mavproxy packets too for local viewing of the flight in real time
+    '''
+    global homeloc
+
+    home = "%f,%f,%u,%u" % (HOME.lat, HOME.lng, HOME.alt, HOME.heading)
+    sil = util.start_SIL(binary, wipe=True, model='+', home=home, speedup=speedup_default)
+    mavproxy = util.start_MAVProxy_SIL('ArduCopter', options='--sitl=127.0.0.1:5501 --out=127.0.0.1:19550 --quadcopter')
+    mavproxy.expect('Received [0-9]+ parameters')
+
+    # setup test parameters
+    mavproxy.send("param load %s/copter_params.parm\n" % testdir)
+    mavproxy.expect('Loaded [0-9]+ parameters')
+    mavproxy.send("param set LOG_REPLAY 1\n")
+    mavproxy.send("param set LOG_DISARMED 1\n")
+    time.sleep(3)
+
+    # reboot with new parameters
+    util.pexpect_close(mavproxy)
+    util.pexpect_close(sil)
+
+    sil = util.start_SIL(binary, model='+', home=home, speedup=speedup_default, valgrind=valgrind, gdb=gdb)
+    options = '--sitl=127.0.0.1:5501 --out=127.0.0.1:19550 --quadcopter --streamrate=5'
+    if viewerip:
+        options += ' --out=%s:14550' % viewerip
+    if map:
+        options += ' --map'
+    mavproxy = util.start_MAVProxy_SIL('ArduCopter', options=options)
+    mavproxy.expect('Telemetry log: (\S+)')
+    logfile = mavproxy.match.group(1)
+    print("LOGFILE %s" % logfile)
+
+    buildlog = util.reltopdir("../buildlogs/ArduCopter-test.tlog")
+    print("buildlog=%s" % buildlog)
+    copyTLog = False
+    if os.path.exists(buildlog):
+        os.unlink(buildlog)
+    try:
+        os.link(logfile, buildlog)
+    except Exception:
+        print( "WARN: Failed to create symlink: " + logfile + " => " + buildlog + ", Will copy tlog manually to target location" )
+        copyTLog = True
+
+    # the received parameters can come before or after the ready to fly message
+    mavproxy.expect(['Received [0-9]+ parameters', 'Ready to FLY'])
+    mavproxy.expect(['Received [0-9]+ parameters', 'Ready to FLY'])
+
+    util.expect_setup_callback(mavproxy, expect_callback)
+
+    expect_list_clear()
+    expect_list_extend([sil, mavproxy])
+
+    # get a mavlink connection going
+    try:
+        mav = mavutil.mavlink_connection('127.0.0.1:19550', robust_parsing=True)
+    except Exception, msg:
+        print("Failed to start mavlink connection on 127.0.0.1:19550" % msg)
+        raise
+    mav.message_hooks.append(message_hook)
+    mav.idle_hooks.append(idle_hook)
+
+
+    failed = False
+    failed_test_msg = "None"
+
+    try:
+        mav.wait_heartbeat()
+        setup_rc(mavproxy)
+        homeloc = mav.location()
+
+        # wait 10sec to allow EKF to settle
+        wait_seconds(mav, 10)
+
+        # Arm
+        print("# Arm motors")
+        if not arm_motors(mavproxy, mav):
+            failed_test_msg = "arm_motors failed"
+            print(failed_test_msg)
+            failed = True
+
+        print("# Takeoff")
+        if not takeoff(mavproxy, mav, 5):
+            failed_test_msg = "takeoff failed"
+            print(failed_test_msg)
+            failed = True
+
+        # Fly a set of maneuvours for Systems ID
+        print("#")
+        print("########## Fly maneuvours file ##########")
+        print("#")
+        if not fly_manoeuvres(mavproxy, mav):
+            failed_test_msg = "fly_manoeuvres failed"
+            print(failed_test_msg)
+            failed = True
+        else:
+            print("Flew copter maneuvours OK")
+
+        # wait for disarm
+        mav.motors_disarmed_wait()
+
+        if not log_download(mavproxy, mav, util.reltopdir("../buildlogs/ArduCopter-log.bin")):
+            failed_test_msg = "log_download failed"
+            print(failed_test_msg)
+            failed = True
+
+    except pexpect.TIMEOUT, failed_test_msg:
+        failed_test_msg = "Timeout"
+        failed = True
+
+    mav.close()
+    util.pexpect_close(mavproxy)
+    util.pexpect_close(sil)
+
+    valgrind_log = sil.valgrind_log_filepath()
+    if os.path.exists(valgrind_log):
+        os.chmod(valgrind_log, 0644)
+        shutil.copy(valgrind_log, util.reltopdir("../buildlogs/ArduCopter-valgrind.log"))
+
+    # [2014/05/07] FC Because I'm doing a cross machine build (source is on host, build is on guest VM) I cannot hard link
+    # This flag tells me that I need to copy the data out
+    if copyTLog:
+        shutil.copy(logfile, buildlog)
+        
+    if failed:
+        print("FAILED: %s" % failed_test_msg)
+        return False
+    return True
