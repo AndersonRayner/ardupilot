@@ -150,7 +150,7 @@ parser.add_option("-j", default=None, type='int', help='build CPUs')
 
 opts, args = parser.parse_args()
 
-import  arducopter, arduplane, apmrover2, quadplane
+import  arducopter, arduplane, apmrover2, quadplane, mattcopter
 
 steps = [
     'prerequisites',
@@ -172,6 +172,7 @@ steps = [
     'build.ArduCopter',
     'defaults.ArduCopter',
     'fly.ArduCopter',
+    'fly.MattCopter',
 
     'build.Helicopter',
     'fly.CopterAVC',
@@ -201,6 +202,8 @@ def skip_step(step):
 
 def binary_path(step, debug=False):
     if step.find("ArduCopter") != -1:
+        binary_name = "arducopter-quad"
+    if step.find("MattCopter") != -1:
         binary_name = "arducopter-quad"
     elif step.find("ArduPlane") != -1:
         binary_name = "arduplane"
@@ -267,6 +270,9 @@ def run_step(step):
 
     if step == 'fly.ArduCopter':
         return arducopter.fly_ArduCopter(binary, viewerip=opts.viewerip, map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
+
+    if step == 'fly.MattCopter':
+        return mattcopter.fly_ArduCopter(binary, viewerip=opts.viewerip, map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
 
     if step == 'fly.CopterAVC':
         return arducopter.fly_CopterAVC(binary, viewerip=opts.viewerip, map=opts.map, valgrind=opts.valgrind, gdb=opts.gdb)
