@@ -56,7 +56,8 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case LOITER:
-            success = loiter_init(ignore_checks);
+           // success = loiter_init(ignore_checks);
+            success = manoeuvre_init(ignore_checks);
             break;
 
         case GUIDED:
@@ -106,6 +107,9 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
         case AVOID_ADSB:
             success = avoid_adsb_init(ignore_checks);
             break;
+
+        case MANOEUVRE:
+            success = manoeuvre_init(ignore_checks);
 
         default:
             success = false;
@@ -183,7 +187,8 @@ void Copter::update_flight_mode()
             break;
 
         case LOITER:
-            loiter_run();
+            //loiter_run();
+            manoeuvre_run();
             break;
 
         case GUIDED:
@@ -232,6 +237,10 @@ void Copter::update_flight_mode()
 
         case AVOID_ADSB:
             avoid_adsb_run();
+            break;
+
+        case MANOEUVRE:
+            manoeuvre_run();
             break;
 
         default:
@@ -410,6 +419,9 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     case AVOID_ADSB:
         port->print("AVOID_ADSB");
         break;
+    case MANOEUVRE:
+        port->print("MANOEUVRE");
+
     default:
         port->printf("Mode(%u)", (unsigned)mode);
         break;
