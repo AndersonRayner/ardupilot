@@ -23,6 +23,8 @@ struct manoeuvre_state_struct {
 static uint32_t manoeuvre_override_time;                         // the last time the pilot overrode the controls
 static uint32_t manoeuvre_start_time;                            // the start time of the manoeuvre sequence
 
+float manoeuvre_target_angle;
+
 
 // manoeuvre_init - initialise manoeuvre controller
 bool Copter::manoeuvre_init(bool ignore_checks)
@@ -42,6 +44,9 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     takeoff_stop();
 
     gcs_send_text(MAV_SEVERITY_INFO,"SysID Manoeuvures Mode Engaged");
+
+    manoeuvre_target_angle = 500.0f;
+
     return true;
 }
 
@@ -107,13 +112,16 @@ void Copter::manoeuvre_run()
         target_pitch = 0.0f;
         target_yaw_rate = 0.0f;
 
-        // Override controls with funky stuff
-        if (millis()-manoeuvre_start_time>3000) {
-            target_roll = 0.0f;
-        } else if (millis()-manoeuvre_start_time>2000) {
-            target_roll = -4500.0f;
-        } else if (millis()-manoeuvre_start_time>1000) {
-            target_roll =  4500.0f;
+            // Override controls with funky stuff
+            if (millis()-manoeuvre_start_time>6000) {
+                manoeuvre_target_angle = manoeuvre_target_angle + 500.0f;
+                manoeuvre_start_time = millis();
+            } else if (millis()-manoeuvre_start_time>3000) {
+                target_roll = 0.0f;
+            } else if (millis()-manoeuvre_start_time>2000) {
+                target_roll = manoeuvre_target_angle;
+            } else if (millis()-manoeuvre_start_time>1000) {
+                target_roll =  -manoeuvre_target_angle;
         }
     }
 
