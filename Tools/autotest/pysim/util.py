@@ -82,7 +82,7 @@ def build_SIL(build_target, j=None, debug=False, board='sitl'):
     waf_configure(board, j=j, debug=debug)
 
     # then clean
-    waf_clean()
+    # waf_clean()
 
     # then build
     cmd_make = [relwaf(), "build", "--target", build_target]
