@@ -56,38 +56,8 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
     mavproxy.send('mode loiter\n')
     wait_mode(mav, 'LOITER')
 
-    # let it do it's thing
-    wait_seconds(mav, 36)
-
-    # switch to althold mode
-    mavproxy.send('mode alt_hold\n')
-    wait_mode(mav, 'ALT_HOLD')
-
-    # Change RC_FEEL to get the right shapes for the twitches
-    rc_feels = ['100', '75', '50', '25']
-    for x in rc_feels:
-        mavproxy.send("param set RC_FEEL_RP "+x+"\n")
-        # twitch a little bit (roll)
-        mavproxy.send('rc 1 1000\n')
-        wait_roll(mav, -45, 2)
-        mavproxy.send('rc 1 2000\n')
-        wait_roll(mav, 45, 2)
-        mavproxy.send('rc 1 1500\n')
-        wait_seconds(mav, 2)
-        # twitch a little bit (pitch)
-        mavproxy.send('rc 2 1000\n')
-        wait_pitch(mav, -45, 2)
-        mavproxy.send('rc 2 2000\n')
-        wait_pitch(mav, 45, 2)
-        mavproxy.send('rc 2 1500\n')
-        wait_seconds(mav, 2)
-        # twitch a little bit (yaw)
-        mavproxy.send('rc 4 1200\n')
-        wait_seconds(mav, 1)
-        mavproxy.send('rc 4 1800\n')
-        wait_seconds(mav, 1)
-        mavproxy.send('rc 4 1500\n')
-        wait_seconds(mav, 2)
+    # let it do it's thing.  Eventually I'll wait for an 'all done' command
+    wait_seconds(mav, 90)
 
     return success
 
