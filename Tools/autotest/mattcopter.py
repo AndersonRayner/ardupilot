@@ -57,7 +57,7 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
     wait_mode(mav, 'LOITER')
 
     # let it do it's thing
-    wait_seconds(mav, 30)
+    wait_seconds(mav, 36)
 
     # switch to althold mode
     mavproxy.send('mode alt_hold\n')
