@@ -88,9 +88,6 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
         wait_seconds(mav, 1)
         mavproxy.send('rc 4 1500\n')
         wait_seconds(mav, 2)
-        
-    # land aircraft to finish flight
-    land(mavproxy, mav)
 
     return success
 
@@ -193,6 +190,9 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
             failed = True
         else:
             print("Flew copter maneuvours OK")
+            
+        # land aircraft to finish flight
+        land(mavproxy, mav)
 
         # wait for disarm
         mav.motors_disarmed_wait()
