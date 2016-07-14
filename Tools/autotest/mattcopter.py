@@ -21,7 +21,7 @@ HOME=mavutil.location(-33.8869497,151.1921042,30,180)
 
 homeloc = None
 num_wp = 0
-speedup_default = 1
+speedup_default = 5
 
 # fly a set of manoeuvres
 def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
@@ -44,6 +44,20 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
         failed_test_msg = "failed to attain test height"
         print(failed_test_msg)
         failed = True
+
+    # switch to manoeuvre mode 
+    #mavproxy.send('mode 19\n')
+    #wait_mode(mav, '19');
+    mavproxy.send('rc 1 1500\n')
+    mavproxy.send('rc 2 1500\n')
+    mavproxy.send('rc 3 1500\n')
+    mavproxy.send('rc 4 1500\n')
+    
+    mavproxy.send('mode loiter\n')
+    wait_mode(mav, 'LOITER')
+
+    # let it do it's thing
+    wait_seconds(mav, 30)
 
     # switch to althold mode
     mavproxy.send('mode alt_hold\n')
