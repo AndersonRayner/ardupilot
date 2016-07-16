@@ -58,25 +58,25 @@ def fly_manoeuvres(mavproxy, mav, override_mode=0, timeout=300):
     # wait for stuff to start happening
     if override_mode:
         # Test roll override
-        wait_seconds(mav, 15)
+        wait_seconds(mav, 14.5)
         mavproxy.send('rc 1 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 1 1500\n')
         
         # Test pitch override
-        wait_seconds(mav, 15)
+        wait_seconds(mav, 14.5)
         mavproxy.send('rc 2 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 2 1500\n')
         
         # Test throttle override
-        wait_seconds(mav, 15)
+        wait_seconds(mav, 14.5)
         mavproxy.send('rc 3 1600\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 3 1500\n')
         
         # Test yaw override
-        wait_seconds(mav, 15)
+        wait_seconds(mav, 14.5)
         mavproxy.send('rc 4 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 4 1500\n')
