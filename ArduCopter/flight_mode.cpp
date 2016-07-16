@@ -110,6 +110,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
 
         case MANOEUVRE:
             success = manoeuvre_init(ignore_checks);
+            break;
 
         default:
             success = false;
@@ -421,7 +422,7 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case MANOEUVRE:
         port->print("MANOEUVRE");
-
+        break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);
         break;
