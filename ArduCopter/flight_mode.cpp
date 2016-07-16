@@ -246,6 +246,11 @@ void Copter::exit_mode(control_mode_t old_control_mode, control_mode_t new_contr
     }
 #endif
 
+    if (old_control_mode == MANOEUVRE) {
+        manoeuvre_stop();
+        // need to do something to never allow it to fail - fall back into alt_hold perhaps...
+    }
+
     // stop mission when we leave auto mode
     if (old_control_mode == AUTO) {
         if (mission.state() == AP_Mission::MISSION_RUNNING) {
