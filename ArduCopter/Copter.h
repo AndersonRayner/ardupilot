@@ -680,6 +680,7 @@ private:
     void do_erase_logs(void);
     void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float meas_target, float meas_min, float meas_max, float new_gain_rp, float new_gain_rd, float new_gain_sp, float new_ddt);
     void Log_Write_AutoTuneDetails(float angle_cd, float rate_cds);
+    void Log_Write_Manoeuvre(uint8_t state, uint8_t step, uint8_t axis);
     void Log_Write_Current();
     void Log_Write_Optflow();
     void Log_Write_Nav_Tuning();

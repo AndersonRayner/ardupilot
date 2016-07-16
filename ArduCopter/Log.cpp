@@ -213,6 +213,26 @@ void Copter::Log_Write_AutoTuneDetails(float angle_cd, float rate_cds)
 }
 #endif
 
+struct PACKED log_MANOEUVRE {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint8_t  state;
+    uint8_t  step;
+    uint8_t  axis;
+};
+
+void Copter::Log_Write_Manoeuvre(uint8_t state, uint8_t step, uint8_t axis)
+{
+    struct log_MANOEUVRE pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_MANOEUVRE_MSG),
+        time_us     : AP_HAL::micros64(),
+        state       : state,
+        step        : step,
+        axis        : axis
+    };
+    DataFlash.WriteBlock(&pkt, sizeof(pkt));
+}
+
 // Write a Current data packet
 void Copter::Log_Write_Current()
 {
@@ -729,6 +749,8 @@ const struct LogStructure Copter::log_structure[] = {
     { LOG_AUTOTUNEDETAILS_MSG, sizeof(log_AutoTuneDetails),
       "ATDE", "Qff",          "TimeUS,Angle,Rate" },
 #endif
+    { LOG_MANOEUVRE_MSG, sizeof(log_MANOEUVRE),
+      "SID", "QBBB",             "TimeUS,State,Step,Axis" },
     { LOG_PARAMTUNE_MSG, sizeof(log_ParameterTuning),
       "PTUN", "QBfHHH",          "TimeUS,Param,TunVal,CtrlIn,TunLo,TunHi" },  
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       
@@ -836,6 +858,7 @@ void Copter::Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float meas_targ
                                 float meas_min, float meas_max, float new_gain_rp, \
                                 float new_gain_rd, float new_gain_sp, float new_ddt) {}
 void Copter::Log_Write_AutoTuneDetails(float angle_cd, float rate_cds) {}
+void Copter::Log_Write_Manoeuvre(uint8_t state, uint8_t step, uint8_t axis) {}
 void Copter::Log_Write_Current() {}
 void Copter::Log_Write_Nav_Tuning() {}
 void Copter::Log_Write_Control_Tuning() {}
