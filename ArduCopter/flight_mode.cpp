@@ -56,8 +56,7 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             break;
 
         case LOITER:
-           // success = loiter_init(ignore_checks);
-            success = manoeuvre_init(ignore_checks);
+            success = loiter_init(ignore_checks);
             break;
 
         case GUIDED:
@@ -184,8 +183,7 @@ void Copter::update_flight_mode()
             break;
 
         case LOITER:
-            //loiter_run();
-            manoeuvre_run();
+            loiter_run();
             break;
 
         case GUIDED:
