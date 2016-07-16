@@ -46,6 +46,21 @@ float manoeuvre_target_angle;
 // manoeuvre_init - initialise manoeuvre controller
 bool Copter::manoeuvre_init(bool ignore_checks)
 {
+    // only allow SysID manoeuvres from loiter or alt_hold
+    if (control_mode != LOITER && control_mode != ALT_HOLD) {
+        return false;
+    }
+
+    // ensure throttle is above zero
+    if (ap.throttle_zero) {
+        return false;
+    }
+
+    // ensure we are flying
+    if (!motors.armed() || !ap.auto_armed || ap.land_complete) {
+        return false;
+    }
+
     // initialise vertical speeds and leash lengths
     pos_control.set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     pos_control.set_accel_z(g.pilot_accel_z);
