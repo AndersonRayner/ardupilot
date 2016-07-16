@@ -17,7 +17,7 @@ struct manoeuvre_state_struct {
     uint8_t             pilot_override      : 1;    // 1 = pilot is overriding controls so we suspend tuning temporarily
     uint8_t             positive_direction  : 1;    // 0 = tuning in negative direction (i.e. left for roll), 1 = positive direction (i.e. right for roll)
     uint8_t             step                : 2;    // Sets current step through manoeuvres process
-    uint8_t             twitching           : 1;
+    bool                twitching              ;
 } manoeuvre_state;
 
 static uint32_t manoeuvre_override_time;                         // the last time the pilot overrode the controls
@@ -97,13 +97,13 @@ void Copter::manoeuvre_run()
         }
     }
 
-    // check for zero rates
+    // check for zero rates to start manoeuvre
     if (
              ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
              ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
              ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD ) &&
-               !manoeuvre_state.pilot_override                                        ) {
-
+               !manoeuvre_state.pilot_override                                  &&
+               !manoeuvre_state.twitching                                           ) {
 
         // Can start twitching if not rotating and pilot not inputting controls
         gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
