@@ -24,10 +24,10 @@ num_wp = 0
 speedup_default = 5
 
 # fly a set of manoeuvres
-def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
+def fly_manoeuvres(mavproxy, mav, override_mode=0, timeout=300):
     '''Fly a series of twitches to see what happens'''
     tstart = get_sim_time(mav)
-    success = True
+    success = False
 
     # ensure all sticks in the middle
     mavproxy.send('rc 1 1500\n')
@@ -35,7 +35,7 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
     mavproxy.send('rc 3 1500\n')
     mavproxy.send('rc 4 1500\n')
 
-    # switch to guided mode and take off
+    # switch to loiter mode to attain test height
     mavproxy.send('mode loiter\n')
     wait_mode(mav, 'LOITER')
 
@@ -46,19 +46,50 @@ def fly_manoeuvres(mavproxy, mav, side=50, timeout=300):
         failed = True
 
     # switch to manoeuvre mode 
-    #mavproxy.send('mode 19\n')
-    #wait_mode(mav, '19');
+    mavproxy.send('mode 19\n')
+    wait_mode(mav, 'Mode(19)'); # it never gets this because it's not a named mode yet
+
+    # Make sure everything is centred so that manoeuvres can start
     mavproxy.send('rc 1 1500\n')
     mavproxy.send('rc 2 1500\n')
     mavproxy.send('rc 3 1500\n')
     mavproxy.send('rc 4 1500\n')
     
-    mavproxy.send('mode loiter\n')
-    wait_mode(mav, 'LOITER')
+    # wait for stuff to start happening
+    if override_mode:
+        # Test roll override
+        wait_seconds(mav, 15)
+        mavproxy.send('rc 1 1400\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 1 1500\n')
+        
+        # Test pitch override
+        wait_seconds(mav, 15)
+        mavproxy.send('rc 2 1400\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 2 1500\n')
+        
+        # Test throttle override
+        wait_seconds(mav, 15)
+        mavproxy.send('rc 3 1600\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 3 1500\n')
+        
+        # Test yaw override
+        wait_seconds(mav, 15)
+        mavproxy.send('rc 4 1400\n')
+        wait_seconds(mav, 1)
+        mavproxy.send('rc 4 1500\n')
+
 
     # let it do it's thing.  Eventually I'll wait for an 'all done' command
-    wait_seconds(mav, 90)
-
+    wait_seconds(mav, 30)
+    
+    # Switch to loiter mode
+    mavproxy.send('mode loiter\n')
+    wait_mode(mav, 'LOITER')
+    
+    success = True
     return success
 
 def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
@@ -144,8 +175,9 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
             print(failed_test_msg)
             failed = True
 
+        # Take off
         print("# Takeoff")
-        if not takeoff(mavproxy, mav, 5):
+        if not takeoff(mavproxy, mav, 2):
             failed_test_msg = "takeoff failed"
             print(failed_test_msg)
             failed = True
@@ -154,13 +186,26 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
         print("#")
         print("########## Fly maneuvours file ##########")
         print("#")
-        if not fly_manoeuvres(mavproxy, mav):
+        override_test = 0;
+        if not fly_manoeuvres(mavproxy, mav, override_test):
             failed_test_msg = "fly_manoeuvres failed"
             print(failed_test_msg)
             failed = True
         else:
             print("Flew copter maneuvours OK")
             
+        # Check override of maneuvours
+        print("#")
+        print("########## Fly maneuvours file ##########")
+        print("#")
+        override_test = 1;
+        if not fly_manoeuvres(mavproxy, mav, override_test):
+            failed_test_msg = "fly_manoeuvres override failed"
+            print(failed_test_msg)
+            failed = True
+        else:
+            print("Overrode copter maneuvours OK")
+
         # land aircraft to finish flight
         land(mavproxy, mav)
 
