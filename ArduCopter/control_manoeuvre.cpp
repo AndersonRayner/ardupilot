@@ -12,12 +12,21 @@
 
 #define MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS 500
 
+// things that can be tuned
+enum SysID_state {
+    SYSID_NOT_ACTIVE = 0,
+    SYSID_PILOT_OVERRIDE = 1,
+    SYSID_WAIT_STEADY = 2,
+    SYSID_TWITCHING = 3,
+};
+
+
 // autotune_state_struct - hold state flags
 struct manoeuvre_state_struct {
-    uint8_t             pilot_override      : 1;    // 1 = pilot is overriding controls so we suspend tuning temporarily
-    uint8_t             positive_direction  : 1;    // 0 = tuning in negative direction (i.e. left for roll), 1 = positive direction (i.e. right for roll)
-    uint8_t             step                : 2;    // Sets current step through manoeuvres process
-    bool                twitching              ;
+    SysID_state         state      ;    // 1 = pilot is overriding controls so we suspend tuning temporarily
+    bool                reverse_dir;    // 0 = twitching in negative direction (i.e. left for roll), 1 = positive direction (i.e. right for roll)
+    uint8_t             step       ;    // Sets current step through manoeuvres process
+    uint8_t             axis       ;
 } manoeuvre_state;
 
 static uint32_t manoeuvre_override_time;                         // the last time the pilot overrode the controls
@@ -43,7 +52,9 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     gcs_send_text(MAV_SEVERITY_INFO,"SysID Manoeuvures Mode Engaged");
 
     manoeuvre_target_angle = 500.0f;
-    manoeuvre_state.twitching = false;
+    manoeuvre_state.axis = 1;
+    manoeuvre_state.step = 0;
+    manoeuvre_state.reverse_dir = 0;
 
     return true;
 }
@@ -71,11 +82,10 @@ void Copter::manoeuvre_run()
     if (!is_zero(target_roll) || !is_zero(target_pitch) || !is_zero(target_yaw_rate) || target_climb_rate != 0) {
 
         // Pilot override, stop twitching...
-        if (!manoeuvre_state.pilot_override) {
+        if (manoeuvre_state.state != SYSID_PILOT_OVERRIDE) {
             gcs_send_text(MAV_SEVERITY_INFO,"Pilot overriding controls");
-            manoeuvre_state.pilot_override = true;
-            manoeuvre_state.twitching = false;
-            Log_Write_Manoeuvre(1, 1, 1);
+            manoeuvre_state.state = SYSID_PILOT_OVERRIDE;
+            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
 
             // set gains to their original (flyable) values
             // autotune_load_orig_gains();
@@ -85,13 +95,12 @@ void Copter::manoeuvre_run()
         // reset pilot override time
         manoeuvre_override_time = millis();
 
-    } else if (manoeuvre_state.pilot_override) {
+    } else if (manoeuvre_state.state == SYSID_PILOT_OVERRIDE) {
         // check if we should resume twitching after pilot's override
         if (millis() - manoeuvre_override_time > MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS) {
             gcs_send_text(MAV_SEVERITY_INFO,"Waiting for steady vehicle");
-            manoeuvre_state.pilot_override = false;             // turn off pilot override
-            manoeuvre_state.twitching = false;
-            Log_Write_Manoeuvre(3, 1, 1);
+            manoeuvre_state.state = SYSID_WAIT_STEADY;
+            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
 
             // set gains to their intra-test values (which are very close to the original gains)
             // autotune_load_intra_test_gains(); //I think we should be keeping the originals here to let the I term settle quickly
@@ -101,22 +110,20 @@ void Copter::manoeuvre_run()
     }
 
     // check for zero rates to start manoeuvre
-    if (
+    if (     manoeuvre_state.state == SYSID_WAIT_STEADY                         &&
              ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
              ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
-             ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD ) &&
-               !manoeuvre_state.pilot_override                                  &&
-               !manoeuvre_state.twitching                                           ) {
+             ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD )     ) {
 
         // Can start twitching if not rotating and pilot not inputting controls
         gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
-        manoeuvre_state.twitching = true;
-        Log_Write_Manoeuvre(4, 1, 1);
+        manoeuvre_state.state = SYSID_TWITCHING;
+        Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
         manoeuvre_start_time = millis();
     }
 
     // Twitch if allowed, overriding all other target controls
-    if (manoeuvre_state.twitching) {
+    if (manoeuvre_state.state == SYSID_TWITCHING) {
         // disable rate and throttle limits
         attitude_control.use_ff_and_input_shaping(false);
         motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
@@ -132,6 +139,7 @@ void Copter::manoeuvre_run()
             if (manoeuvre_target_angle > 6000.0f) {
                 manoeuvre_target_angle = 500.0f;
             }
+            manoeuvre_state.step++;
             manoeuvre_start_time = millis();
         } else if (millis()-manoeuvre_start_time>3000) {
             target_roll = 0.0f;
