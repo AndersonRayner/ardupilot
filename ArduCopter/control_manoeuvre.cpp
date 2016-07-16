@@ -52,9 +52,13 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     gcs_send_text(MAV_SEVERITY_INFO,"SysID Manoeuvures Mode Engaged");
 
     manoeuvre_target_angle = 500.0f;
+
+    manoeuvre_state.state = SYSID_NOT_ACTIVE;
     manoeuvre_state.axis = 1;
     manoeuvre_state.step = 0;
     manoeuvre_state.reverse_dir = 0;
+
+    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
 
     return true;
 }
@@ -161,7 +165,8 @@ void Copter::manoeuvre_run()
 
 void Copter::manoeuvre_stop()
 {
-    // do nothing (at the moment...)
+    manoeuvre_state.state = SYSID_NOT_ACTIVE;
+    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
 }
 
 
