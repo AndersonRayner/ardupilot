@@ -12,12 +12,20 @@
 
 #define MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS 500
 
-// things that can be tuned
+// SysID state enum
 enum SysID_state {
     SYSID_NOT_ACTIVE = 0,
     SYSID_PILOT_OVERRIDE = 1,
     SYSID_WAIT_STEADY = 2,
     SYSID_TWITCHING = 3,
+};
+
+// SysID axis being twitched
+enum SysID_axis {
+    SYSID_ROLL = 0,
+    SYSID_PITCH = 1,
+    SYSID_YAW = 2,
+    SYSID_THROTTLE = 3,
 };
 
 
