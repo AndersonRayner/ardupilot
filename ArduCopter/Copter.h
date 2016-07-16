@@ -734,6 +734,7 @@ private:
     void althold_run();
     bool manoeuvre_init(bool ignore_checks);
     void manoeuvre_run();
+    void manoeuvre_stop();
     bool auto_init(bool ignore_checks);
     void auto_run();
     void auto_takeoff_start(const Location& dest_loc);

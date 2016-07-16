@@ -147,6 +147,11 @@ void Copter::manoeuvre_run()
 
 }
 
+void Copter::manoeuvre_stop()
+{
+    // do nothing (at the moment...)
+}
+
 
 // Additional code for use later
 /*
