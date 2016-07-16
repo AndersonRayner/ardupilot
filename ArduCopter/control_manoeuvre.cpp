@@ -12,12 +12,12 @@
 
 #define MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS 500
 
-
 // autotune_state_struct - hold state flags
 struct manoeuvre_state_struct {
     uint8_t             pilot_override      : 1;    // 1 = pilot is overriding controls so we suspend tuning temporarily
     uint8_t             positive_direction  : 1;    // 0 = tuning in negative direction (i.e. left for roll), 1 = positive direction (i.e. right for roll)
     uint8_t             step                : 2;    // Sets current step through manoeuvres process
+    uint8_t             twitching           : 1;
 } manoeuvre_state;
 
 static uint32_t manoeuvre_override_time;                         // the last time the pilot overrode the controls
@@ -29,9 +29,6 @@ float manoeuvre_target_angle;
 // manoeuvre_init - initialise manoeuvre controller
 bool Copter::manoeuvre_init(bool ignore_checks)
 {
-
-
-
     // initialise vertical speeds and leash lengths
     pos_control.set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     pos_control.set_accel_z(g.pilot_accel_z);
@@ -46,6 +43,7 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     gcs_send_text(MAV_SEVERITY_INFO,"SysID Manoeuvures Mode Engaged");
 
     manoeuvre_target_angle = 500.0f;
+    manoeuvre_state.twitching = false;
 
     return true;
 }
@@ -74,21 +72,24 @@ void Copter::manoeuvre_run()
 
         // Pilot override, stop twitching...
         if (!manoeuvre_state.pilot_override) {
+            gcs_send_text(MAV_SEVERITY_INFO,"Pilot overriding controls");
             manoeuvre_state.pilot_override = true;
+            manoeuvre_state.twitching = false;
             // set gains to their original (flyable) values
             // autotune_load_orig_gains();
-            //attitude_control.limit_angle_to_rate_request(true);
-
-            // reset pilot override time
-            manoeuvre_override_time = millis();
+            attitude_control.use_ff_and_input_shaping(true);
         }
 
+        // reset pilot override time
+        manoeuvre_override_time = millis();
+
     } else if (manoeuvre_state.pilot_override) {
-        // check if we should resume tuning after pilot's override
+        // check if we should resume twitching after pilot's override
         if (millis() - manoeuvre_override_time > MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS) {
-            hal.console->printf("Starting SysID Manoeuvures!\n");
+            gcs_send_text(MAV_SEVERITY_INFO,"Waiting for steady vehcile");
             manoeuvre_state.pilot_override = false;             // turn off pilot override
-            manoeuvre_start_time = millis();
+            manoeuvre_state.twitching = false;
+
             // set gains to their intra-test values (which are very close to the original gains)
             // autotune_load_intra_test_gains(); //I think we should be keeping the originals here to let the I term settle quickly
             // autotune_state.step = AUTOTUNE_STEP_WAITING_FOR_LEVEL; // set tuning step back from beginning
@@ -98,11 +99,20 @@ void Copter::manoeuvre_run()
 
     // check for zero rates
     if (
-            ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) ||
-            ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) ||
-            ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD )    )
-    {
+             ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
+             ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
+             ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD ) &&
+               !manoeuvre_state.pilot_override                                        ) {
+
+
         // Can start twitching if not rotating and pilot not inputting controls
+        gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
+        manoeuvre_state.twitching = true;
+        manoeuvre_start_time = millis();
+    }
+
+    // Twitch if allowed, overriding all other target controls
+    if (manoeuvre_state.twitching) {
         // disable rate and throttle limits
         attitude_control.use_ff_and_input_shaping(false);
         motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
@@ -112,16 +122,19 @@ void Copter::manoeuvre_run()
         target_pitch = 0.0f;
         target_yaw_rate = 0.0f;
 
-            // Override controls with funky stuff
-            if (millis()-manoeuvre_start_time>6000) {
-                manoeuvre_target_angle = manoeuvre_target_angle + 500.0f;
-                manoeuvre_start_time = millis();
-            } else if (millis()-manoeuvre_start_time>3000) {
-                target_roll = 0.0f;
-            } else if (millis()-manoeuvre_start_time>2000) {
-                target_roll = manoeuvre_target_angle;
-            } else if (millis()-manoeuvre_start_time>1000) {
-                target_roll =  -manoeuvre_target_angle;
+        // Override controls with funky stuff
+        if (millis()-manoeuvre_start_time>6000) {
+            manoeuvre_target_angle = manoeuvre_target_angle + 500.0f;
+            if (manoeuvre_target_angle > 6000.0f) {
+                manoeuvre_target_angle = 500.0f;
+            }
+            manoeuvre_start_time = millis();
+        } else if (millis()-manoeuvre_start_time>3000) {
+            target_roll = 0.0f;
+        } else if (millis()-manoeuvre_start_time>2000) {
+            target_roll = manoeuvre_target_angle;
+        } else if (millis()-manoeuvre_start_time>1000) {
+            target_roll =  -manoeuvre_target_angle;
         }
     }
 
@@ -160,4 +173,4 @@ attitude_control.rate_bf_yaw_target(direction_sign * autotune_target_rate + auto
 break;
 
 NEED TO SWITCH EVERYTHING BACK AFTER EXIT FROM FLIGHT MODE
-*/
+ */
