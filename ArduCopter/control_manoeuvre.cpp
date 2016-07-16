@@ -75,6 +75,8 @@ void Copter::manoeuvre_run()
             gcs_send_text(MAV_SEVERITY_INFO,"Pilot overriding controls");
             manoeuvre_state.pilot_override = true;
             manoeuvre_state.twitching = false;
+            Log_Write_Manoeuvre(1, 1, 1);
+
             // set gains to their original (flyable) values
             // autotune_load_orig_gains();
             attitude_control.use_ff_and_input_shaping(true);
@@ -86,9 +88,10 @@ void Copter::manoeuvre_run()
     } else if (manoeuvre_state.pilot_override) {
         // check if we should resume twitching after pilot's override
         if (millis() - manoeuvre_override_time > MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS) {
-            gcs_send_text(MAV_SEVERITY_INFO,"Waiting for steady vehcile");
+            gcs_send_text(MAV_SEVERITY_INFO,"Waiting for steady vehicle");
             manoeuvre_state.pilot_override = false;             // turn off pilot override
             manoeuvre_state.twitching = false;
+            Log_Write_Manoeuvre(3, 1, 1);
 
             // set gains to their intra-test values (which are very close to the original gains)
             // autotune_load_intra_test_gains(); //I think we should be keeping the originals here to let the I term settle quickly
@@ -108,6 +111,7 @@ void Copter::manoeuvre_run()
         // Can start twitching if not rotating and pilot not inputting controls
         gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
         manoeuvre_state.twitching = true;
+        Log_Write_Manoeuvre(4, 1, 1);
         manoeuvre_start_time = millis();
     }
 
