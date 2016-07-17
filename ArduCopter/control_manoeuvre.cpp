@@ -1,6 +1,8 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include "Copter.h"
 #include <dirent.h>
+#include <stdio.h>
+#include <string.h>
 
 
 /*
@@ -12,6 +14,8 @@
 #define MANOEUVRE_LEVEL_RATE_Y_CD   750
 
 #define MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS 500
+
+#define MANOEUVRE_DIRECTORY "/home/matt/sf_ardupilot/manoeuvres/"
 
 // SysID state enum
 enum SysID_state {
@@ -42,6 +46,10 @@ static uint32_t manoeuvre_override_time;                         // the last tim
 static uint32_t manoeuvre_start_time;                            // the start time of the manoeuvre sequence
 
 float manoeuvre_target_angle;
+
+// Manoeuvre file handling
+DIR *dir;
+struct dirent *ent;
 
 
 // manoeuvre_init - initialise manoeuvre controller
@@ -85,19 +93,16 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
 
     // Print a list of the maneuvoure files in a directory
-    DIR *dir;
-    struct dirent *ent;
-    hal.console->printf("Found the following manoeuvre files\n");
-    if ((dir = opendir ("/home/matt/sf_ardupilot/manoeuvres/")) != NULL) {
-      /* print all the files and directories within directory */
-      while ((ent = readdir (dir)) != NULL) {
-        hal.console->printf("  name %10s | type %u\n", ent->d_name,ent->d_type);
-      }
-      closedir (dir);
+    if ((dir = opendir(MANOEUVRE_DIRECTORY)) != NULL) {
+        hal.console->printf("successfullly opened manoeuvre directory\n");
     } else {
-      /* could not open directory */
+        hal.console->printf("failed to open manoeuvre directory\n");
+        // failed to enter the mode if it can't find any manoeuvres to run.
+        // is this the correct behaviour?
+        return false;
     }
 
+    manoeuvre_get_file();
 
     return true;
 }
@@ -204,8 +209,52 @@ void Copter::manoeuvre_run()
 
 void Copter::manoeuvre_stop()
 {
+    // close the manoeuvres directory.  This will cause the manoeuvre index to reset
+    // upon re-entering manoeuvre mode
+    closedir (dir);
+
+    // set gains to their original values
+    //manoeuvre_load_orig_gains();
+
+    // re-enable angle-to-rate request limits
+    attitude_control.use_ff_and_input_shaping(true);
+
     manoeuvre_state.state = SYSID_NOT_ACTIVE;
     Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+}
+
+bool Copter::manoeuvre_get_file()
+{
+    // Gets the next manouvre file and stores it in the global struct << ent >>
+    // returns 1 if successful, 0 if no more files left
+    //
+    // ent->d_type == 4      -> folder
+    //             == 8      -> file
+
+    const char *ext;
+
+    while ((ent = readdir (dir)) != NULL) {
+        hal.console->printf("  name %10s | type %u\n", ent->d_name,ent->d_type);
+        if (ent->d_type == 8) {
+            // is a file, check the extension
+            ext = strrchr(ent->d_name, '.');
+
+            if (strcmp(ext,".man") == 0) {
+                hal.console->printf("      correct extension -> %s\n", ext);
+                // return 1;
+
+            } else {
+                hal.console->printf("      incorrect extension -> %s\n", ext);
+                // file has no or incorrect extension, keep searching
+            }
+        }
+    }
+
+    // If we get to here, there are no more manoeuvres to run
+    // This should probably switch us into a previous mode (or potentially just leave all RCs at 1500)
+    hal.console->printf("No more manoeuvres to run\n");
+
+   return 0;
 }
 
 
