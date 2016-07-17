@@ -58,31 +58,30 @@ def fly_manoeuvres(mavproxy, mav, override_mode=0, timeout=300):
     # wait for stuff to start happening
     if override_mode:
         # Test roll override
-        wait_seconds(mav, 14.5)
+        wait_seconds(mav, 2.5)
         mavproxy.send('rc 1 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 1 1500\n')
         
         # Test pitch override
-        wait_seconds(mav, 14.5)
+        wait_seconds(mav, 5.5)
         mavproxy.send('rc 2 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 2 1500\n')
         
         # Test throttle override
-        wait_seconds(mav, 14.5)
+        wait_seconds(mav, 2.5)
         mavproxy.send('rc 3 1600\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 3 1500\n')
         
         # Test yaw override
-        wait_seconds(mav, 14.5)
+        wait_seconds(mav, 2.5)
         mavproxy.send('rc 4 1400\n')
         wait_seconds(mav, 1)
         mavproxy.send('rc 4 1500\n')
 
-
-    # let it do it's thing.  Eventually I'll wait for an 'all done' command
+    # Wait for things to do their thing.  Ideally it would wait for a trigger to continue
     wait_seconds(mav, 30)
     
     # Switch to loiter mode
@@ -196,7 +195,7 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
             
         # Check override of maneuvours
         print("#")
-        print("########## Fly maneuvours file ##########")
+        print("########## Fly maneuvours file with overrides ##########")
         print("#")
         override_test = 1;
         if not fly_manoeuvres(mavproxy, mav, override_test):
