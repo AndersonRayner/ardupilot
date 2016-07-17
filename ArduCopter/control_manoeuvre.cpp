@@ -91,7 +91,7 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     if ((dir = opendir ("/home/matt/sf_ardupilot/manoeuvres/")) != NULL) {
       /* print all the files and directories within directory */
       while ((ent = readdir (dir)) != NULL) {
-        hal.console->printf("  %s\n", ent->d_name);
+        hal.console->printf("  name %10s | type %u\n", ent->d_name,ent->d_type);
       }
       closedir (dir);
     } else {
