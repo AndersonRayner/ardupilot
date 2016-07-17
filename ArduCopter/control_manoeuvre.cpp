@@ -156,6 +156,18 @@ void Copter::manoeuvre_run()
             // set gains to their original (flyable) values
             // autotune_load_orig_gains();
             attitude_control.use_ff_and_input_shaping(true);
+
+            // Rewind the file back to the start.  We'll need to try it again
+            rewind(manoeuvre_fid);
+            // read the first two line (header)
+            char buf[100];
+            fgets(buf,100, manoeuvre_fid);
+            fgets(buf,100, manoeuvre_fid);
+
+            // File is open and ready to be read
+            // Read the first line to get everything ready
+            manoeuvre_read_line();
+
         }
 
         // reset pilot override time
