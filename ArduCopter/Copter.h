@@ -747,6 +747,7 @@ private:
     void manoeuvre_run();
     void manoeuvre_stop();
     bool manoeuvre_get_file();
+    bool manoeuvre_read_line();
     bool auto_init(bool ignore_checks);
     void auto_run();
     void auto_takeoff_start(const Location& dest_loc);
