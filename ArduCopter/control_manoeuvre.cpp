@@ -1,5 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 #include "Copter.h"
+#include <dirent.h>
 
 
 /*
@@ -82,6 +83,21 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     manoeuvre_state.reverse_dir = 0;
 
     Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+
+    // Print a list of the maneuvoure files in a directory
+    DIR *dir;
+    struct dirent *ent;
+    hal.console->printf("Found the following manoeuvre files\n");
+    if ((dir = opendir ("/home/matt/sf_ardupilot/manoeuvres/")) != NULL) {
+      /* print all the files and directories within directory */
+      while ((ent = readdir (dir)) != NULL) {
+        hal.console->printf("  %s\n", ent->d_name);
+      }
+      closedir (dir);
+    } else {
+      /* could not open directory */
+    }
+
 
     return true;
 }
