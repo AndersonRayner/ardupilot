@@ -743,7 +743,7 @@ const struct LogStructure Copter::log_structure[] = {
       "ATDE", "Qff",          "TimeUS,Angle,Rate" },
 #endif
     { LOG_MANOEUVRE_MSG, sizeof(log_MANOEUVRE),
-      "SID", "QBBB",             "TimeUS,State,Step,Axis" },
+      "SID", "QBBB",             "TimeUS,State,ID,Axis" },
     { LOG_PARAMTUNE_MSG, sizeof(log_ParameterTuning),
       "PTUN", "QBfHHH",          "TimeUS,Param,TunVal,CtrlIn,TunLo,TunHi" },  
     { LOG_OPTFLOW_MSG, sizeof(log_Optflow),       

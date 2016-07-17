@@ -3,7 +3,7 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <stdlib.h>
 
 /*
  * control_manoeuvre.pde - init and run calls for manoeuvre, flight mode
@@ -23,6 +23,7 @@ enum SysID_state {
     SYSID_PILOT_OVERRIDE = 1,
     SYSID_WAIT_STEADY = 2,
     SYSID_TWITCHING = 3,
+    SYSID_FINISHED = 4,
 };
 
 // SysID axis being twitched
@@ -40,7 +41,20 @@ struct manoeuvre_state_struct {
     bool                reverse_dir;    // 0 = twitching in negative direction (i.e. left for roll), 1 = positive direction (i.e. right for roll)
     uint8_t             step       ;    // Sets current step through manoeuvres process
     uint8_t             axis       ;
+    uint8_t             file_number;
 } manoeuvre_state;
+
+struct manoeuvre_sequence_struct {
+    uint8_t       ID        ;    // Manoeuvre ID number                           [ - ]
+    uint32_t      t_step    ;    // Time to keep doing this stem                  [ ms ]
+    float         trim_pitch;    // Trim pitch angle to do manoeuvre (offsets de) [ deg ]
+    float         dt        ;    // Climb rate of current step                    [ m/s?? ]
+    float         de        ;    // Target pitch angle of current step            [ deg ]
+    float         da        ;    // Target roll angle of current step             [ deg ]
+    float         dr        ;    // Target yaw rate of current step               [ deg/s ]
+    float         ch5       ;    // unused
+    float         ch6       ;    // unused
+} manoeuvre_sequence;
 
 static uint32_t manoeuvre_override_time;                         // the last time the pilot overrode the controls
 static uint32_t manoeuvre_start_time;                            // the start time of the manoeuvre sequence
@@ -91,7 +105,7 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     manoeuvre_state.step = 0;
     manoeuvre_state.reverse_dir = 0;
 
-    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
 
     // Print a list of the maneuvoure files in a directory
     if ((dir = opendir(MANOEUVRE_DIRECTORY)) != NULL) {
@@ -103,6 +117,7 @@ bool Copter::manoeuvre_init(bool ignore_checks)
         return false;
     }
 
+    // Load the first manoeuvre file
     manoeuvre_get_file();
 
     return true;
@@ -112,6 +127,8 @@ bool Copter::manoeuvre_init(bool ignore_checks)
 // should be called at 100hz or more
 void Copter::manoeuvre_run()
 {
+    //const float direction_sign = manoeuvre_state.reverse_dir ? 1.0f : -1.0f;
+
     // initialize vertical speeds and acceleration
     pos_control.set_speed_z(-g.pilot_velocity_z_max, g.pilot_velocity_z_max);
     pos_control.set_accel_z(g.pilot_accel_z);
@@ -134,7 +151,7 @@ void Copter::manoeuvre_run()
         if (manoeuvre_state.state != SYSID_PILOT_OVERRIDE) {
             gcs_send_text(MAV_SEVERITY_INFO,"Pilot overriding controls");
             manoeuvre_state.state = SYSID_PILOT_OVERRIDE;
-            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
 
             // set gains to their original (flyable) values
             // autotune_load_orig_gains();
@@ -149,7 +166,7 @@ void Copter::manoeuvre_run()
         if (millis() - manoeuvre_override_time > MANOEUVRE_PILOT_OVERRIDE_TIMEOUT_MS) {
             gcs_send_text(MAV_SEVERITY_INFO,"Waiting for steady vehicle");
             manoeuvre_state.state = SYSID_WAIT_STEADY;
-            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+            Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
 
             // set gains to their intra-test values (which are very close to the original gains)
             // autotune_load_intra_test_gains(); //I think we should be keeping the originals here to let the I term settle quickly
@@ -166,8 +183,10 @@ void Copter::manoeuvre_run()
 
         // Can start twitching if not rotating and pilot not inputting controls
         gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
+        // set gains to twitching values
+        //manoeuvre_load_twitch_gains();
         manoeuvre_state.state = SYSID_TWITCHING;
-        Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+        Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
         manoeuvre_start_time = millis();
     }
 
@@ -177,25 +196,29 @@ void Copter::manoeuvre_run()
         attitude_control.use_ff_and_input_shaping(false);
         motors.set_desired_spool_state(AP_Motors::DESIRED_THROTTLE_UNLIMITED);
 
-        target_climb_rate = 0.0f;
-        target_roll = 0.0f;
-        target_pitch = 0.0f;
-        target_yaw_rate = 0.0f;
 
-        // Override controls with funky stuff
-        if (millis()-manoeuvre_start_time>6000) {
-            manoeuvre_target_angle = manoeuvre_target_angle + 500.0f;
-            if (manoeuvre_target_angle > 6000.0f) {
-                manoeuvre_target_angle = 500.0f;
+        // Update control inputs if the time for the step has passed
+        if (millis()-manoeuvre_start_time>manoeuvre_sequence.t_step) {
+            // Read a new line
+            if (manoeuvre_read_line()) {
+                // Reset manoeuvre_start_time
+                manoeuvre_start_time = millis();
+            } else {
+                // End of that file, increment to the next one
+                if (manoeuvre_get_file()) {
+                    // Reset back to waiting for steady to wait for next test to start
+                    manoeuvre_state.state = SYSID_WAIT_STEADY;
+                    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
+                } else {
+                    // no more files, reverts back to pilot control inputs
+                }
             }
-            manoeuvre_state.step++;
-            manoeuvre_start_time = millis();
-        } else if (millis()-manoeuvre_start_time>3000) {
-            target_roll = 0.0f;
-        } else if (millis()-manoeuvre_start_time>2000) {
-            target_roll = manoeuvre_target_angle;
-        } else if (millis()-manoeuvre_start_time>1000) {
-            target_roll =  -manoeuvre_target_angle;
+        } else {
+            // Override controls with values from manoeuvre file
+            target_climb_rate = manoeuvre_sequence.dt;
+            target_pitch = manoeuvre_sequence.de*100.0f;
+            target_roll = manoeuvre_sequence.da*100.0f;
+            target_yaw_rate = manoeuvre_sequence.dr;
         }
     }
 
@@ -221,7 +244,7 @@ void Copter::manoeuvre_stop()
     attitude_control.use_ff_and_input_shaping(true);
 
     manoeuvre_state.state = SYSID_NOT_ACTIVE;
-    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_state.step, manoeuvre_state.axis);
+    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
 }
 
 bool Copter::manoeuvre_get_file()
@@ -234,6 +257,7 @@ bool Copter::manoeuvre_get_file()
 
     const char *ext;
     char manoeuvre_file[60];
+    char buf[100];
 
     while ((ent = readdir (dir)) != NULL) {
         hal.console->printf("  name %10s | type %u\n", ent->d_name,ent->d_type);
@@ -250,15 +274,20 @@ bool Copter::manoeuvre_get_file()
                 hal.console->printf("      trying to open %s\n",manoeuvre_file);
 
                 if ((manoeuvre_fid = fopen(manoeuvre_file,"r"))) {
-                    hal.console->printf("         file successfully opened\n");
-                    fclose(manoeuvre_fid);
+                    hal.console->printf("         file successfully opened\n\n");
+
+                    // read the first two line (header)
+                    fgets(buf,100, manoeuvre_fid);
+                    fgets(buf,100, manoeuvre_fid);
+
+                    // File is open and ready to be read
+                    // Read the first line
+                    manoeuvre_read_line();
+                    return 1;
+
                 } else {
                     hal.console->printf("         failed file open\n");
                 }
-
-
-                // return 1;
-
             } else {
                 hal.console->printf("      incorrect extension -> %s\n", ext);
                 // file has no or incorrect extension, keep searching
@@ -270,7 +299,58 @@ bool Copter::manoeuvre_get_file()
     // This should probably switch us into a previous mode (or potentially just leave all RCs at 1500)
     hal.console->printf("No more manoeuvres to run\n");
 
+
+    // Set SysID state to finished and log
+    manoeuvre_state.state = SYSID_FINISHED;
+    Log_Write_Manoeuvre(manoeuvre_state.state, manoeuvre_sequence.ID, manoeuvre_state.axis);
+
+    // switch flight mode back to altitude hold
+    set_mode(ALT_HOLD, MODE_REASON_MISSION_END);
+
+    // Set t_step so that it indefinately runs the previous input until the mode changes
+    manoeuvre_sequence.t_step = -1;
+
+
    return 0;
+}
+
+bool Copter::manoeuvre_read_line()
+{
+    // Returns 1 on successful line read
+    //         0 on a failed line read (also causes the file to be closed)
+
+    char buf[100];
+
+    if ((fgets(buf,100, manoeuvre_fid)!=NULL)) {
+        sscanf(buf, "%u %u %f %f %f %f %f %f %f",
+                &manoeuvre_sequence.ID,
+                &manoeuvre_sequence.t_step,
+                &manoeuvre_sequence.trim_pitch,
+                &manoeuvre_sequence.dt,
+                &manoeuvre_sequence.de,
+                &manoeuvre_sequence.da,
+                &manoeuvre_sequence.dr,
+                &manoeuvre_sequence.ch5,
+                &manoeuvre_sequence.ch6  );
+
+        // need some way to check if this was vaild...
+        hal.console->printf("Read: %3u %6u %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
+                manoeuvre_sequence.ID,
+                manoeuvre_sequence.t_step,
+                manoeuvre_sequence.trim_pitch,
+                manoeuvre_sequence.dt,
+                manoeuvre_sequence.de,
+                manoeuvre_sequence.da,
+                manoeuvre_sequence.dr,
+                manoeuvre_sequence.ch5,
+                manoeuvre_sequence.ch6  );
+        return 1;
+    } else {
+        // That's the end of the file.  Time to close it
+        fclose(manoeuvre_fid);
+    }
+
+    return 0;
 }
 
 
