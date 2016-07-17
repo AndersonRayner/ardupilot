@@ -177,9 +177,9 @@ void Copter::manoeuvre_run()
 
     // check for zero rates to start manoeuvre
     if (     manoeuvre_state.state == SYSID_WAIT_STEADY                         &&
-             ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
-             ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
-             ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD )     ) {
+            ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
+            ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
+            ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD )     ) {
 
         // Can start twitching if not rotating and pilot not inputting controls
         gcs_send_text(MAV_SEVERITY_INFO,"Beginning twitches");
@@ -199,7 +199,7 @@ void Copter::manoeuvre_run()
 
         // Update control inputs if the time for the step has passed
         if (millis()-manoeuvre_start_time>manoeuvre_sequence.t_step) {
-            // Read a new line
+            // Read a new line and checks it exists
             if (manoeuvre_read_line()) {
                 // Reset manoeuvre_start_time
                 manoeuvre_start_time = millis();
@@ -216,7 +216,7 @@ void Copter::manoeuvre_run()
         } else {
             // Override controls with values from manoeuvre file
             target_climb_rate = manoeuvre_sequence.dt;
-            target_pitch = manoeuvre_sequence.de*100.0f;
+            target_pitch = manoeuvre_sequence.de*100.0f;//+manoeuvre_sequence.trim_pitch*100.0f; // Adding this stops it working...
             target_roll = manoeuvre_sequence.da*100.0f;
             target_yaw_rate = manoeuvre_sequence.dr;
         }
@@ -296,9 +296,7 @@ bool Copter::manoeuvre_get_file()
     }
 
     // If we get to here, there are no more manoeuvres to run
-    // This should probably switch us into a previous mode (or potentially just leave all RCs at 1500)
     hal.console->printf("No more manoeuvres to run\n");
-
 
     // Set SysID state to finished and log
     manoeuvre_state.state = SYSID_FINISHED;
@@ -307,11 +305,14 @@ bool Copter::manoeuvre_get_file()
     // switch flight mode back to altitude hold
     set_mode(ALT_HOLD, MODE_REASON_MISSION_END);
 
+    // Inform the GCS
+    // gcs_send_text(MAV_SEVERITY_INFO,"SysID Finished"); // it may not like this
+
     // Set t_step so that it indefinately runs the previous input until the mode changes
     manoeuvre_sequence.t_step = -1;
 
-
-   return 0;
+    // Return 0 to indicate we're finished
+    return 0;
 }
 
 bool Copter::manoeuvre_read_line()
@@ -334,7 +335,7 @@ bool Copter::manoeuvre_read_line()
                 &manoeuvre_sequence.ch6  );
 
         // need some way to check if this was vaild...
-        hal.console->printf("Read: %3u %6u %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
+        hal.console->printf("Running: %3u %6u %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f\n",
                 manoeuvre_sequence.ID,
                 manoeuvre_sequence.t_step,
                 manoeuvre_sequence.trim_pitch,
@@ -344,12 +345,16 @@ bool Copter::manoeuvre_read_line()
                 manoeuvre_sequence.dr,
                 manoeuvre_sequence.ch5,
                 manoeuvre_sequence.ch6  );
+
+        // Return and indicate we have something to run
         return 1;
+
     } else {
         // That's the end of the file.  Time to close it
         fclose(manoeuvre_fid);
     }
 
+    // If we get to here, then there is nothing left to run in this file
     return 0;
 }
 
