@@ -50,6 +50,7 @@ float manoeuvre_target_angle;
 // Manoeuvre file handling
 DIR *dir;
 struct dirent *ent;
+FILE *manoeuvre_fid;
 
 
 // manoeuvre_init - initialise manoeuvre controller
@@ -232,6 +233,7 @@ bool Copter::manoeuvre_get_file()
     //             == 8      -> file
 
     const char *ext;
+    char manoeuvre_file[60];
 
     while ((ent = readdir (dir)) != NULL) {
         hal.console->printf("  name %10s | type %u\n", ent->d_name,ent->d_type);
@@ -240,7 +242,21 @@ bool Copter::manoeuvre_get_file()
             ext = strrchr(ent->d_name, '.');
 
             if (strcmp(ext,".man") == 0) {
+                // Appears to be a manoeuvre file
                 hal.console->printf("      correct extension -> %s\n", ext);
+
+                // Try opening and reading the file
+                sprintf(manoeuvre_file, "%s%s",MANOEUVRE_DIRECTORY,ent->d_name);
+                hal.console->printf("      trying to open %s\n",manoeuvre_file);
+
+                if ((manoeuvre_fid = fopen(manoeuvre_file,"r"))) {
+                    hal.console->printf("         file successfully opened\n");
+                    fclose(manoeuvre_fid);
+                } else {
+                    hal.console->printf("         failed file open\n");
+                }
+
+
                 // return 1;
 
             } else {
