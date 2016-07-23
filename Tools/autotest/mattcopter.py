@@ -165,7 +165,7 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
         homeloc = mav.location()
 
         # wait 10sec to allow EKF to settle
-        wait_seconds(mav, 10)
+        wait_seconds(mav, 30)
 
         # Arm
         print("# Arm motors")
@@ -176,7 +176,7 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
 
         # Take off
         print("# Takeoff")
-        if not takeoff(mavproxy, mav, 2):
+        if not takeoff(mavproxy, mav, 10):
             failed_test_msg = "takeoff failed"
             print(failed_test_msg)
             failed = True

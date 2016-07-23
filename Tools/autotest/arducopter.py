@@ -988,7 +988,7 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
         homeloc = mav.location()
 
         # wait 10sec to allow EKF to settle
-        wait_seconds(mav, 10)
+        wait_seconds(mav, 30)
 
         # Arm
         print("# Arm motors")
@@ -1341,7 +1341,7 @@ def fly_CopterAVC(binary, viewerip=None, map=False, valgrind=False, gdb=False):
         mavproxy.send('rc 8 1000\n')
 
         # wait 20sec to allow EKF to settle
-        wait_seconds(mav, 20)
+        wait_seconds(mav, 30)
 
         # Arm
         print("# Arm motors")
