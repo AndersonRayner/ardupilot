@@ -122,6 +122,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(twentyfive_hz_logging, 25,    110),
     SCHED_TASK(dataflash_periodic,    400,    300),
     SCHED_TASK(perf_update,           0.1,    75),
+    SCHED_TASK(sys_id_logging,       100,    100),
     SCHED_TASK(read_receiver_rssi,    10,     75),
     SCHED_TASK(rpm_update,            10,    200),
     SCHED_TASK(wingtip_update,        50,    100),
@@ -436,6 +437,51 @@ void Copter::twentyfive_hz_logging()
     // log output
     Log_Write_Precland();
 #endif
+}
+
+// Logging for Systems ID, run at 100 Hz
+// Use the log mask 1180476
+void Copter::sys_id_logging()
+{
+
+    if (should_log(MASK_LOG_SYS_ID)) {
+        // Log RPM
+        // Handled by Wingtip, only 50 Hz at the moment
+
+        // Log PWM in/out
+        DataFlash.Log_Write_RCIN();
+        DataFlash.Log_Write_RCOUT();
+
+        // Log desired + actual attitudes and rates
+        Vector3f targets = attitude_control.get_att_target_euler_cd();
+        targets.z = wrap_360_cd(targets.z);
+        DataFlash.Log_Write_Attitude(ahrs, targets);
+        DataFlash.Log_Write_Rate(ahrs, motors, attitude_control, pos_control);
+#if OPTFLOW == ENABLED
+        DataFlash.Log_Write_EKF(ahrs,optflow.enabled());
+#else
+        DataFlash.Log_Write_EKF(ahrs,false);
+#endif
+
+        // DataFlash.Log_Write_IMU(ins);
+        // Data at 25 Hz
+        if (mainLoop_count % 16 == 0) {
+            // Cycle 0
+            DataFlash.Log_Write_Vibration(ins);
+        } else if (mainLoop_count % 16 == 4) {
+            // Cycle 1
+            DataFlash.Log_Write_Baro(barometer);
+        } else if (mainLoop_count % 16 == 8) {
+            // Cycle 2
+        } else if (mainLoop_count % 16 == 12) {
+            // Cycle 3
+        }
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+        sitl.Log_Write_SIMSTATE(&DataFlash);
+#endif
+
+      }
 }
 
 void Copter::dataflash_periodic(void)

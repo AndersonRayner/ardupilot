@@ -308,6 +308,7 @@ enum ThrowModeState {
 #define MASK_LOG_MOTBATT                (1UL<<17)
 #define MASK_LOG_IMU_FAST               (1UL<<18)
 #define MASK_LOG_IMU_RAW                (1UL<<19)
+#define MASK_LOG_SYS_ID                 (1UL<<20)
 #define MASK_LOG_ANY                    0xFFFF
 
 // DATA - event logging
