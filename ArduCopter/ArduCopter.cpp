@@ -440,7 +440,7 @@ void Copter::twentyfive_hz_logging()
 }
 
 // Logging for Systems ID, run at 100 Hz
-// Use the log mask 1180476
+// Use the log mask 1048844
 void Copter::sys_id_logging()
 {
 
@@ -468,13 +468,16 @@ void Copter::sys_id_logging()
         if (mainLoop_count % 16 == 0) {
             // Cycle 0
             DataFlash.Log_Write_Vibration(ins);
+            //DataFlash.Log_Write_Airspeed(airspeed);
         } else if (mainLoop_count % 16 == 4) {
             // Cycle 1
-            DataFlash.Log_Write_Baro(barometer);
+            Log_Write_Control_Tuning();   // CTUN
         } else if (mainLoop_count % 16 == 8) {
             // Cycle 2
+            Log_Write_Nav_Tuning();       // NTUN
         } else if (mainLoop_count % 16 == 12) {
             // Cycle 3
+            DataFlash.Log_Write_Current(battery);
         }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
