@@ -105,10 +105,10 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
     mavproxy.expect('Received [0-9]+ parameters')
 
     # setup test parameters
-    mavproxy.send("param load %s/copter_params.parm\n" % testdir)
+    mavproxy.send("param load %s/copter_params_matt.parm\n" % testdir)
     mavproxy.expect('Loaded [0-9]+ parameters')
-    mavproxy.send("param set LOG_REPLAY 1\n")
-    mavproxy.send("param set LOG_DISARMED 1\n")
+    mavproxy.send("param set LOG_REPLAY 0\n")
+    mavproxy.send("param set LOG_DISARMED 0\n")
     time.sleep(3)
 
     # reboot with new parameters
