@@ -44,6 +44,7 @@ def fly_manoeuvres(mavproxy, mav, override_mode=0, timeout=300):
         failed_test_msg = "failed to attain test height"
         print(failed_test_msg)
         failed = True
+    wait_seconds(mav, 10)
 
     # switch to manoeuvre mode 
     mavproxy.send('mode 19\n')
@@ -176,7 +177,7 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
 
         # Take off
         print("# Takeoff")
-        if not takeoff(mavproxy, mav, 10):
+        if not takeoff(mavproxy, mav, 3):
             failed_test_msg = "takeoff failed"
             print(failed_test_msg)
             failed = True
