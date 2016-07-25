@@ -176,6 +176,9 @@ void Frame::calculate_forces(const Aircraft &aircraft,
                              Vector3f &body_accel)
 {
     Vector3f thrust; // newtons
+    Vector3f aero_forces; // newtons
+    Vector3f air_speeds;
+    float w, u, cl;
 
     for (uint8_t i=0; i<num_motors; i++) {
         Vector3f mraccel, mthrust;
@@ -184,7 +187,15 @@ void Frame::calculate_forces(const Aircraft &aircraft,
         thrust += mthrust;
     }
 
-    body_accel = thrust/mass;
+    // Calculate lift/drag
+    air_speeds = aircraft.get_velocity_air_bf();
+    w = air_speeds[2]; u = airspeed[0];
+    cl = atan(u/-w)*6.0f;    // Remember the axes are rooted
+    aero_forces[0] = constrain_float(cl*0.5f*1.225f*w*w*0.1,-1.0,1.0f);
+    aero_forces[1] = 0.0f;
+    aero_forces[2] = 0.0f;
+
+    body_accel = (aero_forces+thrust)/mass;
 
     if (terminal_rotation_rate > 0) {
         // rotational air resistance
