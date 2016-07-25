@@ -120,6 +120,9 @@ bool Copter::manoeuvre_init(bool ignore_checks)
     // Load the first manoeuvre file
     manoeuvre_get_file();
 
+    // Switch to pilot override mode to allow system to start
+    manoeuvre_state.state = SYSID_PILOT_OVERRIDE;
+
     return true;
 }
 
