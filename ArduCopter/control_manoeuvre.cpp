@@ -191,7 +191,7 @@ void Copter::manoeuvre_run()
     }
 
     // check for zero rates to start manoeuvre
-    if (     manoeuvre_state.state == SYSID_WAIT_STEADY                         &&
+    if (     manoeuvre_state.state == SYSID_WAIT_STEADY                        &&
             ((ToDeg(ahrs.get_gyro().x) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
             ((ToDeg(ahrs.get_gyro().y) * 100.0f) < MANOEUVRE_LEVEL_RATE_RP_CD) &&
             ((ToDeg(ahrs.get_gyro().z) * 100.0f) < MANOEUVRE_LEVEL_RATE_Y_CD )     ) {
