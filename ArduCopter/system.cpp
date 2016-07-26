@@ -250,6 +250,9 @@ void Copter::init_ardupilot()
     //-----------------------------
     init_barometer(true);
 
+    // initialise airspeed sensor
+    init_airspeed();
+
     // initialise rangefinder
     init_rangefinder();
 

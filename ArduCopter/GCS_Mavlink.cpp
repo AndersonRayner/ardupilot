@@ -380,9 +380,15 @@ void NOINLINE Copter::send_servo_out(mavlink_channel_t chan)
 
 void NOINLINE Copter::send_vfr_hud(mavlink_channel_t chan)
 {
+    float aspeed;
+    if (airspeed.enabled()) {
+        aspeed = airspeed.get_airspeed();
+    } else if (!ahrs.airspeed_estimate(&aspeed)) {
+        aspeed = 0;
+    }
     mavlink_msg_vfr_hud_send(
         chan,
-        gps.ground_speed(),
+        aspeed,
         gps.ground_speed(),
         (ahrs.yaw_sensor / 100) % 360,
         (int16_t)(motors.get_throttle() * 100),
@@ -2143,7 +2149,7 @@ void Copter::mavlink_delay_cb()
  */
 void Copter::gcs_send_message(enum ap_message id)
 {
-    for (uint8_t i=0; i<num_gcs; i++) {
+    for (uint8_t i=1; i<num_gcs; i++) {  // Originally i=0, appears 0 is the linux console
         if (gcs[i].initialised) {
             gcs[i].send_message(id);
         }

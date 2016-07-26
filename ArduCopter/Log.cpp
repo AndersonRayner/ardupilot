@@ -567,6 +567,13 @@ void Copter::Log_Write_Baro(void)
     }
 }
 
+void Copter::Log_Write_Airspeed(void)
+{
+    if (!ahrs.have_ekf_logging()) {
+        DataFlash.Log_Write_Airspeed(airspeed);
+    }
+}
+
 struct PACKED log_ParameterTuning {
     LOG_PACKET_HEADER;
     uint64_t time_us;

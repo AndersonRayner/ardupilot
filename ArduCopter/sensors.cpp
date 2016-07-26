@@ -26,6 +26,40 @@ void Copter::read_barometer(void)
     motors.set_air_density_ratio(barometer.get_air_density_ratio());
 }
 
+void Copter::init_airspeed(void)
+{
+    airspeed.init();
+
+    zero_airspeed(true);
+    gcs_send_text(MAV_SEVERITY_WARNING,"Airspeed Zeroed");
+}
+
+void Copter::read_airspeed(void)
+{
+    if (airspeed.enabled()) {
+        airspeed.read();
+        if (should_log(MASK_LOG_IMU)) {
+            Log_Write_Airspeed();
+        }
+
+        // supply a new temperature to the barometer from the digital
+        // airspeed sensor if we can
+        float temperature;
+        if (airspeed.get_temperature(temperature)) {
+            barometer.set_external_temperature(temperature);
+        }
+    }
+}
+
+void Copter::zero_airspeed(bool in_startup)
+{
+    airspeed.calibrate(in_startup);
+    read_airspeed();
+    // update barometric calibration with new airspeed supplied temperature
+    barometer.update_calibration();
+    gcs_send_text(MAV_SEVERITY_INFO,"Airspeed calibration started");
+}
+
 void Copter::init_rangefinder(void)
 {
 #if RANGEFINDER_ENABLED == ENABLED
