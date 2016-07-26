@@ -254,6 +254,13 @@ void Copter::init_disarm_motors()
     // disable gps velocity based centrefugal force compensation
     ahrs.set_correct_centrifugal(false);
     hal.util->set_soft_armed(false);
+
+    // Copy the DataFlash file from the RAMdisk to the eMMC
+    // This should only happen for the BBBMini and should be
+    // moved to when the log is closed.
+    char command[50];
+    strcpy( command, "cp /mnt/RAMdisk/* /root/APM/logs/" );
+    system(command);
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos

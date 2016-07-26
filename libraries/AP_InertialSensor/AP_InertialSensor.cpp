@@ -470,6 +470,10 @@ AP_InertialSensor::init(uint16_t sample_rate)
     _loop_delta_t = 1.0f / sample_rate;
 
     if (_gyro_count == 0 && _accel_count == 0) {
+        // Causes a problem as some sensors don't have a ::start command (LSM9DS0), meaning they
+        // automatically increment _gyro_count and _accel_count when the hardware gets initialised
+        // so that some IMUs (MPU9250) that have a start command never actually get started.  WTF!!!!
+        // Fixed for LSM9DS0 on 20th June, 2016
         _start_backends();
     }
 
@@ -538,6 +542,25 @@ AP_InertialSensor::detect_backends(void)
     _add_backend(AP_InertialSensor_LSM9DS0::probe(*this,
                  hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),
                  hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME)));
+#elif HAL_INS_DEFAULT == HAL_INS_MATTPILOT
+    //hal.console->printf("Inertial Sensors\n");
+    // MPU9250
+    AP_InertialSensor_Backend *backend = AP_InertialSensor_MPU9250::probe(*this, hal.spi->get_device(HAL_INS_MPU9250_NAME));
+    if (backend) {
+        _add_backend(backend);
+        hal.console->printf("    MPU9250: [ X ]\n");
+    } else {
+        hal.console->printf("    MPU9250: [   ]\n");
+    }
+
+    // LSM9DS0
+    backend = AP_InertialSensor_LSM9DS0::probe(*this,hal.spi->get_device(HAL_INS_LSM9DS0_G_NAME),hal.spi->get_device(HAL_INS_LSM9DS0_A_NAME));
+    if (backend) {
+        _add_backend(backend);
+        hal.console->printf("    LSM9DS0: [ X ]\n");
+    } else {
+        hal.console->printf("    LSM9DS0: [   ]\n");
+    }
 #elif HAL_INS_DEFAULT == HAL_INS_L3G4200D
     _add_backend(AP_InertialSensor_L3G4200D::probe(*this, hal.i2c_mgr->get_device(HAL_INS_L3G4200D_I2C_BUS, HAL_INS_L3G4200D_I2C_ADDR)));
 #elif HAL_INS_DEFAULT == HAL_INS_RASPILOT
