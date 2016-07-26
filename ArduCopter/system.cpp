@@ -287,7 +287,7 @@ void Copter::init_ardupilot()
     ins.set_raw_logging(should_log(MASK_LOG_IMU_RAW));
     ins.set_dataflash(&DataFlash);
 
-    cliSerial->print("\nReady to FLY ");
+    cliSerial->print("\nReady to FLY\n\n");
 
     // flag that initialisation has completed
     ap.initialised = true;
