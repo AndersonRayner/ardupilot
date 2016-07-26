@@ -86,6 +86,7 @@
 #include <AP_Terrain/AP_Terrain.h>
 #include <AP_ADSB/AP_ADSB.h>
 #include <AP_RPM/AP_RPM.h>
+#include <AP_Wingtip/AP_Wingtip.h>
 #include <AC_InputManager/AC_InputManager.h>        // Pilot input handling library
 #include <AC_InputManager/AC_InputManager_Heli.h>   // Heli specific pilot input handling library
 #include <AP_Button/AP_Button.h>
@@ -186,6 +187,7 @@ private:
     } rangefinder_state = { false, false, 0, 0 };
 
     AP_RPM rpm_sensor;
+    AP_Wingtip wingtip_sensor;
 
     // Inertial Navigation EKF
     NavEKF EKF{&ahrs, barometer, rangefinder};
@@ -667,6 +669,7 @@ private:
     void send_rpm(mavlink_channel_t chan);
     void rpm_update();
     void button_update();
+    void wingtip_update();
     void send_pid_tuning(mavlink_channel_t chan);
     void gcs_send_message(enum ap_message id);
     void gcs_send_mission_item_reached_message(uint16_t mission_index);

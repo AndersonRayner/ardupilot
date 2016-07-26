@@ -60,4 +60,5 @@ LIBRARIES += AC_PrecLand
 LIBRARIES += AP_IRLock
 LIBRARIES += AC_InputManager
 LIBRARIES += AP_ADSB
+LIBRARIES += AP_Wingtip
 LIBRARIES += AP_Avoidance
