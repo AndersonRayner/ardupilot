@@ -176,6 +176,7 @@ private:
     AP_Baro barometer;
     Compass compass;
     AP_InertialSensor ins;
+    AP_Airspeed airspeed;
 
     RangeFinder rangefinder {serial_manager};
     struct {
@@ -694,6 +695,7 @@ private:
     void Log_Write_Data(uint8_t id, float value);
     void Log_Write_Error(uint8_t sub_system, uint8_t error_code);
     void Log_Write_Baro(void);
+    void Log_Write_Airspeed(void);
     void Log_Write_Parameter_Tuning(uint8_t param, float tuning_val, int16_t control_in, int16_t tune_low, int16_t tune_high);
     void Log_Write_Home_And_Origin();
     void Log_Sensor_Health();
@@ -974,6 +976,9 @@ private:
     void radio_passthrough_to_motors();
     void init_barometer(bool full_calibration);
     void read_barometer(void);
+    void init_airspeed(void);
+    void zero_airspeed(bool in_startup);
+    void read_airspeed(void);
     void init_rangefinder(void);
     void read_rangefinder(void);
     bool rangefinder_alt_ok();
