@@ -256,6 +256,9 @@ void Copter::init_ardupilot()
     // initialise AP_RPM library
     rpm_sensor.init();
 
+    // initialise AP_Wingtip library
+    wingtip_sensor.init();
+
     // initialise mission library
     mission.init();
 
