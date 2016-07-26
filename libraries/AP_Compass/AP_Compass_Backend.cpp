@@ -13,6 +13,11 @@ AP_Compass_Backend::AP_Compass_Backend(Compass &compass) :
 
 void AP_Compass_Backend::rotate_field(Vector3f &mag, uint8_t instance)
 {
+    if (_compass._advanced_calibration) {
+        // Compass rotations are done when correcting the field
+        return;
+    }
+
     Compass::mag_state &state = _compass._state[instance];
     mag.rotate(MAG_BOARD_ORIENTATION);
 
@@ -41,34 +46,57 @@ void AP_Compass_Backend::correct_field(Vector3f &mag, uint8_t i)
 {
     Compass::mag_state &state = _compass._state[i];
 
-    if (state.diagonals.get().is_zero()) {
-        state.diagonals.set(Vector3f(1.0f,1.0f,1.0f));
-    }
+    if (!_compass._advanced_calibration)
+    {
+        if (state.diagonals.get().is_zero()) {
+            state.diagonals.set(Vector3f(1.0f,1.0f,1.0f));
+        }
 
-    const Vector3f &offsets = state.offset.get();
-    const Vector3f &diagonals = state.diagonals.get();
-    const Vector3f &offdiagonals = state.offdiagonals.get();
-    const Vector3f &mot = state.motor_compensation.get();
+        const Vector3f &offsets = state.offset.get();
+        const Vector3f &diagonals = state.diagonals.get();
+        const Vector3f &offdiagonals = state.offdiagonals.get();
+        const Vector3f &mot = state.motor_compensation.get();
 
-    /*
-     * note that _motor_offset[] is kept even if compensation is not
-     * being applied so it can be logged correctly
-     */
-    mag += offsets;
-    if(_compass._motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && !is_zero(_compass._thr_or_curr)) {
-        state.motor_offset = mot * _compass._thr_or_curr;
-        mag += state.motor_offset;
+        /*
+         * note that _motor_offset[] is kept even if compensation is not
+         * being applied so it can be logged correctly
+         */
+        mag += offsets;
+        if(_compass._motor_comp_type != AP_COMPASS_MOT_COMP_DISABLED && !is_zero(_compass._thr_or_curr)) {
+            state.motor_offset = mot * _compass._thr_or_curr;
+            mag += state.motor_offset;
+        } else {
+            state.motor_offset.zero();
+        }
+
+        Matrix3f mat(
+                diagonals.x, offdiagonals.x, offdiagonals.y,
+                offdiagonals.x,    diagonals.y, offdiagonals.z,
+                offdiagonals.y, offdiagonals.z,    diagonals.z
+        );
+
+        mag = mat * mag;
+
     } else {
-        state.motor_offset.zero();
+
+        // Apply hard iron offset
+        const Vector3f &offsets = state.offset.get();
+        mag += offsets;
+
+        // Apply motor offsets
+        state.motor_offset.zero(); // Haven't got any motor offsets yet
+
+        // Multiply by rotation*soft-iron matrix
+        const Vector3f  mag_in  = mag;
+        const Vector3f &cal_x   = state._compass_cal_x.get();
+        const Vector3f &cal_y   = state._compass_cal_y.get();
+        const Vector3f &cal_z   = state._compass_cal_z.get();
+
+        mag.x = mag_in.x*cal_x.x + mag_in.y*cal_x.y + mag_in.z*cal_x.z;
+        mag.y = mag_in.x*cal_y.x + mag_in.y*cal_y.y + mag_in.z*cal_y.z;
+        mag.z = mag_in.x*cal_z.x + mag_in.y*cal_z.y + mag_in.z*cal_z.z;
     }
 
-    Matrix3f mat(
-        diagonals.x, offdiagonals.x, offdiagonals.y,
-        offdiagonals.x,    diagonals.y, offdiagonals.z,
-        offdiagonals.y, offdiagonals.z,    diagonals.z
-    );
-
-    mag = mat * mag;
 }
 
 /*

@@ -342,9 +342,9 @@ bool AP_Compass_HMC5843::_read_sample()
         return false;
     }
 
-    _mag_x = -rx;
-    _mag_y =  ry;
-    _mag_z = -rz;
+    _mag_x = rx;
+    _mag_y = ry;
+    _mag_z = rz;
 
     _retry_time = 0;
 

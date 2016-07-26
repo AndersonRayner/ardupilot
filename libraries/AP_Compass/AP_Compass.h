@@ -106,6 +106,7 @@ public:
     void set_and_save_offsets(uint8_t i, const Vector3f &offsets);
     void set_and_save_diagonals(uint8_t i, const Vector3f &diagonals);
     void set_and_save_offdiagonals(uint8_t i, const Vector3f &diagonals);
+    void reset_compass_calibration(void);
 
     /// Saves the current offset x/y/z values for one or all compasses
     ///
@@ -307,6 +308,9 @@ public:
         return (enum LearnType)_learn.get();
     }
     
+    // return the compass id
+    int32_t get_compass_id(uint8_t ii) const { return _state[ii].dev_id; }
+
 private:
     /// Register a new compas driver, allocating an instance number
     ///
@@ -328,6 +332,7 @@ private:
     // backend objects
     AP_Compass_Backend *_backends[COMPASS_MAX_BACKEND];
     uint8_t     _backend_count;
+    AP_Int8 _advanced_calibration;
 
     // number of registered compasses.
     uint8_t     _compass_count;
@@ -390,6 +395,12 @@ private:
         // when we last got data
         uint32_t    last_update_ms;
         uint32_t    last_update_usec;
+
+        // Additions for my calibration stuff
+        AP_Vector3f _compass_cal_x;
+        AP_Vector3f _compass_cal_y;
+        AP_Vector3f _compass_cal_z;
+
     } _state[COMPASS_MAX_INSTANCES];
 
     CompassCalibrator _calibrator[COMPASS_MAX_INSTANCES];
