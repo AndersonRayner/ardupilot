@@ -389,7 +389,7 @@ AP_InertialSensor_LSM9DS0::AP_InertialSensor_LSM9DS0(AP_InertialSensor &imu,
     , _drdy_pin_num_a(drdy_pin_num_a)
     , _drdy_pin_num_g(drdy_pin_num_g)
 {
-    _product_id = AP_PRODUCT_ID_NONE;
+    _product_id = AP_PRODUCT_ID_LSM9DS0;
 }
 
 AP_InertialSensor_Backend *AP_InertialSensor_LSM9DS0::probe(AP_InertialSensor &_imu,
@@ -405,6 +405,13 @@ AP_InertialSensor_Backend *AP_InertialSensor_LSM9DS0::probe(AP_InertialSensor &_
     }
 
     return sensor;
+}
+
+void AP_InertialSensor_LSM9DS0::start()
+{
+    hal.console->printf("Registering LSM9DS0 - IMU%u\n",_imu.get_accel_count());
+    _gyro_instance = _imu.register_gyro(760);
+    _accel_instance = _imu.register_accel(800);
 }
 
 bool AP_InertialSensor_LSM9DS0::_init_sensor()
@@ -441,6 +448,8 @@ bool AP_InertialSensor_LSM9DS0::_init_sensor()
     _dump_registers();
 #endif
 
+    _product_id = AP_PRODUCT_ID_LSM9DS0;
+
     return success;
 }
 
@@ -453,18 +462,35 @@ bool AP_InertialSensor_LSM9DS0::_hardware_init()
     uint8_t whoami;
     uint8_t tries;
 
-    whoami = _register_read_g(WHO_AM_I_G);
-    if (whoami != LSM9DS0_G_WHOAMI) {
+    // Try to obtain WHOAMI for the gyro
+    for (tries = 0; tries < 5; tries++) {
+        whoami = _register_read_g(WHO_AM_I_G);
+        if (whoami == LSM9DS0_G_WHOAMI) {
+            break;
+        }
+        hal.scheduler->delay(10);
+    }
+
+    if (tries == 5) {
         hal.console->printf("LSM9DS0: unexpected gyro WHOAMI 0x%x\n", (unsigned)whoami);
         goto fail_whoami;
     }
 
-    whoami = _register_read_xm(WHO_AM_I_XM);
-    if (whoami != LSM9DS0_XM_WHOAMI) {
+    // Try to obtain WHOAMI for the accelerometer
+    for (tries = 0; tries < 5; tries++) {
+        whoami = _register_read_xm(WHO_AM_I_XM);
+        if (whoami == LSM9DS0_XM_WHOAMI) {
+            break;
+        }
+        hal.scheduler->delay(10);
+    }
+
+    if (tries == 5) {
         hal.console->printf("LSM9DS0: unexpected acc/mag  WHOAMI 0x%x\n", (unsigned)whoami);
         goto fail_whoami;
     }
 
+    // Try to turn the devices on
     for (tries = 0; tries < 5; tries++) {
         _dev_gyro->set_speed(AP_HAL::Device::SPEED_LOW);
         _dev_accel->set_speed(AP_HAL::Device::SPEED_LOW);
@@ -490,9 +516,6 @@ bool AP_InertialSensor_LSM9DS0::_hardware_init()
     }
 
     _spi_sem->give();
-
-    _gyro_instance = _imu.register_gyro(760);
-    _accel_instance = _imu.register_accel(800);
 
     _set_accel_max_abs_offset(_accel_instance, 5.0f);
 
@@ -725,7 +748,7 @@ void AP_InertialSensor_LSM9DS0::_read_data_transaction_a()
         return;
     }
 
-    Vector3f accel_data(raw_data.x, -raw_data.y, -raw_data.z);
+    Vector3f accel_data(raw_data.y, raw_data.x, -raw_data.z);
     accel_data *= _accel_scale;
 
     _rotate_and_correct_accel(_accel_instance, accel_data);
@@ -745,7 +768,7 @@ void AP_InertialSensor_LSM9DS0::_read_data_transaction_g()
         return;
     }
 
-    Vector3f gyro_data(raw_data.x, -raw_data.y, -raw_data.z);
+    Vector3f gyro_data(raw_data.y, raw_data.x, -raw_data.z);
 
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_RASPILOT
     // LSM303D on RasPilot

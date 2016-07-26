@@ -93,7 +93,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Gyro sensor offsets of Z axis. This is setup on each boot during gyro calibrations
     // @Units: rad/s
     // @User: Advanced
-    AP_GROUPINFO("GYROFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
+    AP_GROUPINFO("GYR1OFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
 
     // @Param: GYR2OFFS_X
     // @DisplayName: Gyro2 offsets of X axis
@@ -150,7 +150,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Accelerometer scaling of Z axis  Calculated during acceleration calibration routine
     // @Range: 0.8 1.2
     // @User: Advanced
-    AP_GROUPINFO("ACCSCAL",     12, AP_InertialSensor, _accel_scale[0],  0),
+    AP_GROUPINFO("ACC1SCAL",     12, AP_InertialSensor, _accel_scale[0],  0),
 
     // @Param: ACCOFFS_X
     // @DisplayName: Accelerometer offsets of X axis
@@ -172,7 +172,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Units: m/s/s
     // @Range: -3.5 3.5
     // @User: Advanced
-    AP_GROUPINFO("ACCOFFS",     13, AP_InertialSensor, _accel_offset[0], 0),
+    AP_GROUPINFO("ACC1OFFS",     13, AP_InertialSensor, _accel_offset[0], 0),
 
     // @Param: ACC2SCAL_X
     // @DisplayName: Accelerometer2 scaling of X axis
@@ -277,7 +277,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Use first IMU for attitude, velocity and position estimates
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
-    AP_GROUPINFO("USE", 20, AP_InertialSensor, _use[0],  1),
+    AP_GROUPINFO("USE1", 20, AP_InertialSensor, _use[0],  1),
 
     // @Param: USE2
     // @DisplayName: Use second IMU for attitude, velocity and position estimates
@@ -324,6 +324,38 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
       NOTE: parameter indexes have gaps above. When adding new
       parameters check for conflicts carefully
      */
+
+    // @Param:ACC_CAL1
+    // ACC_CAL1_X gives ACC_X = ACC_CAL1_X.X * sensor.X + ACC_CAL1_X.Y * sensor.Y + ACC_CAL1_X.Z * sensor.Z + _accel_offset.X;
+    // ACC_CAL1_Y gives ACC_Y = ACC_CAL1_Y.X * sensor.X + ACC_CAL1_Y.Y * sensor.Y + ACC_CAL1_Y.Z * sensor.Z + _accel_offset.Y;
+    // ACC_CAL1_Z gives ACC_Z = ACC_CAL1_Z.X * sensor.X + ACC_CAL1_Z.Y * sensor.Y + ACC_CAL1_Z.Z * sensor.Z + _accel_offset.Z;
+    AP_GROUPINFO("ACC_CAL1_X",    27, AP_InertialSensor, _accel_cal_x[0],  0),
+    AP_GROUPINFO("ACC_CAL1_Y",    28, AP_InertialSensor, _accel_cal_y[0],  0),
+    AP_GROUPINFO("ACC_CAL1_Z",    29, AP_InertialSensor, _accel_cal_z[0],  0),
+    // INS 2
+    AP_GROUPINFO("ACC_CAL2_X",    30, AP_InertialSensor, _accel_cal_x[1],  0),
+    AP_GROUPINFO("ACC_CAL2_Y",    31, AP_InertialSensor, _accel_cal_y[1],  0),
+    AP_GROUPINFO("ACC_CAL2_Z",    32, AP_InertialSensor, _accel_cal_z[1],  0),
+    // INS 3
+    AP_GROUPINFO("ACC_CAL3_X",    33, AP_InertialSensor, _accel_cal_x[2],  0),
+    AP_GROUPINFO("ACC_CAL3_Y",    34, AP_InertialSensor, _accel_cal_y[2],  0),
+    AP_GROUPINFO("ACC_CAL3_Z",    35, AP_InertialSensor, _accel_cal_z[2],  0),
+    // GYR 1
+    // GYR_CAL1 gives GYR_X = GYR_CAL1_X.X * sensor.X + GYR_CAL1_X.Y * sensor.Y + GYR_CAL1_X.Z * sensor.Z + _gyro_offset.X;
+    AP_GROUPINFO("GYR_CAL1_X",      36, AP_InertialSensor, _gyro_cal_x[0],  0),
+    AP_GROUPINFO("GYR_CAL1_Y",      37, AP_InertialSensor, _gyro_cal_y[0],  0),
+    AP_GROUPINFO("GYR_CAL1_Z",      38, AP_InertialSensor, _gyro_cal_z[0],  0),
+    // GYR 2
+    AP_GROUPINFO("GYR_CAL2_X",      39, AP_InertialSensor, _gyro_cal_x[1],  0),
+    AP_GROUPINFO("GYR_CAL2_Y",      40, AP_InertialSensor, _gyro_cal_y[1],  0),
+    AP_GROUPINFO("GYR_CAL2_Z",      41, AP_InertialSensor, _gyro_cal_z[1],  0),
+    // GYR 3
+    AP_GROUPINFO("GYR_CAL3_X",      42, AP_InertialSensor, _gyro_cal_x[1],  0),
+    AP_GROUPINFO("GYR_CAL3_Y",      43, AP_InertialSensor, _gyro_cal_y[1],  0),
+    AP_GROUPINFO("GYR_CAL3_Z",      44, AP_InertialSensor, _gyro_cal_z[1],  0),
+
+    // Advanced Calibration
+    AP_GROUPINFO("ADV_CAL",      45, AP_InertialSensor, _advanced_calibration,  0),
 
     AP_GROUPEND
 };
@@ -483,6 +515,18 @@ AP_InertialSensor::init(uint16_t sample_rate)
         if (_accel_scale[i].get().is_zero()) {
             _accel_scale[i].set(Vector3f(1,1,1));
         }
+    }
+
+    // initialise the accel and gyro matricies if need be.  This is needed
+    // as we can't define default non-zero values for vectors in AP_Param
+    for (uint8_t i=0; i<get_accel_count(); i++)
+    {
+        if (_accel_cal_x[i].get().is_zero()) { _accel_cal_x[i].set(Vector3f(1,0,0)); }
+        if (_accel_cal_y[i].get().is_zero()) { _accel_cal_y[i].set(Vector3f(0,1,0)); }
+        if (_accel_cal_z[i].get().is_zero()) { _accel_cal_z[i].set(Vector3f(0,0,1)); }
+        if (_gyro_cal_x[i].get().is_zero())  { _gyro_cal_x[i].set(Vector3f(1,0,0)); }
+        if (_gyro_cal_y[i].get().is_zero())  { _gyro_cal_y[i].set(Vector3f(0,1,0)); }
+        if (_gyro_cal_z[i].get().is_zero())  { _gyro_cal_z[i].set(Vector3f(0,0,1)); }
     }
 
     // calibrate gyros unless gyro calibration has been disabled
@@ -1496,4 +1540,50 @@ bool AP_InertialSensor::get_primary_accel_cal_sample_avg(uint8_t sample_num, Vec
     ret = avg;
     ret.rotate(_board_orientation);
     return true;
+}
+
+void AP_InertialSensor::reset_IMU_calibration(void)
+{
+    hal.console->printf("Resetting accel and gyro calibration values\n");
+
+    for (uint8_t ii = 0; ii<INS_MAX_INSTANCES; ii++) {
+        // Turn to advanced calibrations
+        _advanced_calibration = 1;
+        _advanced_calibration.save();
+
+        // Reset Offsets
+        Vector3f offsets;
+        offsets.x = 0;
+        offsets.y = 0;
+        offsets.z = 0;
+        _accel_offset[ii] = offsets;
+        _accel_offset[ii].save();
+
+        // Reset Calibration Values
+        Vector3f calib;
+        calib.x = 1;
+        calib.y = 0;
+        calib.z = 0;
+        _accel_cal_x[ii] = calib;
+        _accel_cal_x[ii].save();
+        _gyro_cal_x[ii] = calib;
+        _gyro_cal_x[ii].save();
+
+        calib.x = 0;
+        calib.y = 1;
+        calib.z = 0;
+        _accel_cal_y[ii] = calib;
+        _accel_cal_y[ii].save();
+        _gyro_cal_y[ii] = calib;
+        _gyro_cal_y[ii].save();
+
+
+        calib.x = 0;
+        calib.y = 0;
+        calib.z = 1;
+        _accel_cal_z[ii] = calib;
+        _accel_cal_z[ii].save();
+        _gyro_cal_z[ii] = calib;
+        _gyro_cal_z[ii].save();
+    }
 }
