@@ -127,6 +127,24 @@ const AP_Param::GroupInfo AP_Airspeed::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("SKIP_CAL",  7, AP_Airspeed, _skip_cal, 0),
 
+    // @Param: ARSPD_MIN
+    // @DisplayName: Minimum Airspeed
+    // @Description: This is the minimum airspeed you want to fly at in modes where the autopilot controls the airspeed. This should be set to a value around 20% higher than the level flight stall speed for the airframe. This value is also used in the STALL_PREVENTION code.
+    // @Units: m/s
+    // @Range: 5 100
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("MIN", 8, AP_Airspeed, _airspeed_min, 9),
+
+    // @Param: ARSPD_MAX
+    // @DisplayName: Maximum Airspeed
+    // @Description: This is the maximum airspeed that you want to allow for your airframe in auto-throttle modes. You should ensure that this value is sufficiently above the ARSPD_MIN value to allow for a sufficient flight envelope to accurately control altitude using airspeed. A value at least 50% above ARSPD_MIN is recommended.
+    // @Units: m/s
+    // @Range: 5 100
+    // @Increment: 1
+    // @User: Standard
+    AP_GROUPINFO("MAX", 9, AP_Airspeed, _airspeed_max, 22),
+
     // @Param: PSI_RANGE
     // @DisplayName: The PSI range of the device
     // @Description: This parameter allows you to to set the PSI (pounds per square inch) range for your sensor. You should not change this unless you examine the datasheet for your device
@@ -137,12 +155,21 @@ const AP_Param::GroupInfo AP_Airspeed::var_info[] = {
 };
 
 
-AP_Airspeed::AP_Airspeed(const AP_Vehicle::FixedWing &parms)
+//AP_Airspeed::AP_Airspeed(const AP_Vehicle::FixedWing &parms)
+//   : _EAS2TAS(1.0f)
+//   , _calibration(parms)
+//{
+//    AP_Param::setup_object_defaults(this, var_info);
+//}
+
+AP_Airspeed::AP_Airspeed()
     : _EAS2TAS(1.0f)
-    , _calibration(parms)
+    , _calibration()
+    , analog(_pin, _psi_range)
+    , digital(_psi_range)
 {
     AP_Param::setup_object_defaults(this, var_info);
-}
+};
 
 
 /*
