@@ -247,8 +247,8 @@ bool AP_Compass_LSM303D::_read_sample()
         return false;
     }
 
-    _mag_x = rx.x;
-    _mag_y = rx.y;
+    _mag_x = rx.y;
+    _mag_y = rx.x;
     _mag_z = rx.z;
 
     return true;
