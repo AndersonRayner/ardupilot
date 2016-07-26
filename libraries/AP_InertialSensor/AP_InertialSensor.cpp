@@ -794,18 +794,22 @@ bool AP_InertialSensor::accel_calibrated_ok_all() const
 
     // check each accelerometer has offsets saved
     for (uint8_t i=0; i<get_accel_count(); i++) {
-        // exactly 0.0 offset is extremely unlikely
-        if (_accel_offset[i].get().is_zero()) {
-            return false;
-        }
-        // exactly 1.0 scaling is extremely unlikely
-        const Vector3f &scaling = _accel_scale[i].get();
-        if (is_equal(scaling.x,1.0f) && is_equal(scaling.y,1.0f) && is_equal(scaling.z,1.0f)) {
-            return false;
-        }
-        // zero scaling also indicates not calibrated
-        if (_accel_scale[i].get().is_zero()) {
-            return false;
+
+        // Ignore if we're using advanced calibration
+        if (!_advanced_calibration) {
+            // exactly 0.0 offset is extremely unlikely
+            if (_accel_offset[i].get().is_zero()) {
+                return false;
+            }
+            // exactly 1.0 scaling is extremely unlikely
+            const Vector3f &scaling = _accel_scale[i].get();
+            if (is_equal(scaling.x,1.0f) && is_equal(scaling.y,1.0f) && is_equal(scaling.z,1.0f)) {
+                return false;
+            }
+            // zero scaling also indicates not calibrated
+            if (_accel_scale[i].get().is_zero()) {
+                return false;
+            }
         }
     }
 
