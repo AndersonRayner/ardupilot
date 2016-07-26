@@ -51,6 +51,7 @@ static I2CDriver i2cDriver1(1);
 static I2CDriver i2cDriver2(2);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 static I2CDriver i2cDriver0(2);
+static I2CDriver i2cDriver1(1);
 #elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
 static const std::vector<const char *> i2c_devpaths({
     /* UEFI with lpss set to ACPI */
@@ -210,7 +211,8 @@ HAL_Linux::HAL_Linux() :
         &i2cDriver0,
         &i2cDriver1,
         &i2cDriver2,
-#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE ||\
+      CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
         &i2cDriver0,
         &i2cDriver1,
         NULL,
@@ -339,7 +341,9 @@ void HAL_Linux::run(int argc, char* const argv[], Callbacks* callbacks) const
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BEBOP || CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_DISCO
     i2c1->begin();
     i2c2->begin();
-#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE
+#elif CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_MINLURE ||\
+      CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+    i2c->begin();
     i2c1->begin();
 #endif
     spi->init();

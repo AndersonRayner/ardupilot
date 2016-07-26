@@ -25,7 +25,7 @@ using namespace Linux;
 #elif APM_BUILD_TYPE(APM_BUILD_Replay)
 #define STORAGE_DIR "."
 #else
-#define STORAGE_DIR "/var/APM"
+#define STORAGE_DIR "/root/APM/"
 #endif
 #define STORAGE_FILE STORAGE_DIR "/" SKETCHNAME ".stg"
 

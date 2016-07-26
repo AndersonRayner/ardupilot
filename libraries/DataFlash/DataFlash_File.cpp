@@ -437,7 +437,7 @@ char *DataFlash_File::_log_file_name(const uint16_t log_num) const
 char *DataFlash_File::_lastlog_file_name(void) const
 {
     char *buf = NULL;
-    if (asprintf(&buf, "%s/LASTLOG.TXT", _log_directory) == 0) {
+    if (asprintf(&buf, "/root/APM/logs/LASTLOG.TXT") == 0) {
         return NULL;
     }
     return buf;
