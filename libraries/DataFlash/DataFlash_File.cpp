@@ -793,6 +793,18 @@ void DataFlash_File::stop_logging(void)
         log_write_started = false;
         ::close(fd);
     }
+
+
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+    // Transfer the file from the RAMDisk to eMMC for the BBBMini
+    //
+    // Copy the DataFlash file from the RAMdisk to the eMMC
+    // This should only happen for the BBBMini and should be
+    // moved to when the log is closed.
+    char command[50];
+    strcpy( command, "cp /mnt/RAMdisk/* /root/APM/logs/" );
+    system(command);
+#endif
 }
 
 
