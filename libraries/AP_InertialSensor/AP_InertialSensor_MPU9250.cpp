@@ -393,16 +393,16 @@ void AP_InertialSensor_MPU9250::_accumulate(uint8_t *rx)
 {
     Vector3f accel, gyro;
 
-    accel = Vector3f(int16_val(rx, 1),
-                     int16_val(rx, 0),
+    accel = Vector3f( int16_val(rx, 1),
+                      int16_val(rx, 0),
                      -int16_val(rx, 2));
     accel *= MPU9250_ACCEL_SCALE_1G;
     accel.rotate(_default_rotation);
     _rotate_and_correct_accel(_accel_instance, accel);
     _notify_new_accel_raw_sample(_accel_instance, accel);
 
-    gyro = Vector3f(int16_val(rx, 5),
-                    int16_val(rx, 4),
+    gyro = Vector3f( int16_val(rx, 5),
+                     int16_val(rx, 4),
                     -int16_val(rx, 6));
     gyro *= GYRO_SCALE;
     gyro.rotate(_default_rotation);

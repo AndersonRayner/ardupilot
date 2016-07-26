@@ -18,6 +18,11 @@
 #define INS_VIBRATION_CHECK_INSTANCES 2
 
 #include <stdint.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+#include <sys/stat.h>
 
 #include <AP_AccelCal/AP_AccelCal.h>
 #include <AP_HAL/AP_HAL.h>
@@ -74,6 +79,7 @@ public:
 
     /// calibrating - returns true if the gyros or accels are currently being calibrated
     bool calibrating() const { return _calibrating; }
+    void reset_IMU_calibration(void);
 
     /// Perform cold-start initialisation for just the gyros.
     ///
@@ -249,6 +255,7 @@ public:
     void acal_update();
 
     bool accel_cal_requires_reboot() const { return _accel_cal_requires_reboot; }
+
 private:
 
     // load backend drivers
@@ -277,6 +284,7 @@ private:
     uint8_t _gyro_count;
     uint8_t _accel_count;
     uint8_t _backend_count;
+    AP_Int8 _advanced_calibration;
 
     // the selected sample rate
     uint16_t _sample_rate;
@@ -318,6 +326,14 @@ private:
     AP_Vector3f _accel_scale[INS_MAX_INSTANCES];
     AP_Vector3f _accel_offset[INS_MAX_INSTANCES];
     AP_Vector3f _gyro_offset[INS_MAX_INSTANCES];
+
+    AP_Vector3f _accel_cal_x[INS_MAX_INSTANCES];
+    AP_Vector3f _accel_cal_y[INS_MAX_INSTANCES];
+    AP_Vector3f _accel_cal_z[INS_MAX_INSTANCES];
+
+    AP_Vector3f _gyro_cal_x[INS_MAX_INSTANCES];
+    AP_Vector3f _gyro_cal_y[INS_MAX_INSTANCES];
+    AP_Vector3f _gyro_cal_z[INS_MAX_INSTANCES];
 
     // accelerometer max absolute offsets to be used for calibration
     float _accel_max_abs_offsets[INS_MAX_INSTANCES];
