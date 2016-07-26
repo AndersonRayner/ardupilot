@@ -35,9 +35,37 @@ void Copter::get_pilot_desired_lean_angles(float roll_in, float pitch_in, float 
     // do lateral tilt to euler roll conversion
     roll_in = (18000/M_PI) * atanf(cosf(pitch_in*(M_PI/18000))*tanf(roll_in*(M_PI/18000)));
 
+    // Apply the pitch offset for transitioning stuff
+    float pitch_offset;
+
+    if (g.radio_tuning==TUNING_PITCH_TRIM) {
+        // Read Ch6 input and use to adjust pitch_in value if TUNE == 57.
+        // Scaled between TUNE_LOW and TUNE_HIGH which should be in centi-degrees. Ch6 between [TUNE_LOW,TUNE_HIGH].
+        pitch_offset = (float)g.rc_6.get_control_in() * -1.0f;
+    }
+
+    // Use the angle_trim value instead.  We don't want the two effects combining.
+    else {
+        // Add pitch offset as set by TRIM_ANGLE parameter
+        pitch_offset = -g.angle_trim;
+    }
+
     // return
-    roll_out = roll_in;
-    pitch_out = pitch_in;
+    roll_out  = roll_in;
+    pitch_out = pitch_in + pitch_offset;
+
+    // Debugging stuff
+    /* static int counter;
+    counter++;
+    if (counter == 200)
+    {
+        // hal.console->printf("tune_low     : %.0f     ",(float)g.radio_tuning_low);
+        // hal.console->printf("tune_high    : %.0f     ",(float)g.radio_tuning_high);
+        // hal.console->printf("rc6    : %.0f     ",(float)g.rc_6.control_in);
+        // hal.console->printf("pitch_in  : %6.2f deg  |  ",pitch_in/100.0f);
+        // hal.console->printf("pitch_out : %6.2f deg\n",pitch_out/100.0f);
+        counter = 0;
+    } */
 }
 
 // get_pilot_desired_heading - transform pilot's yaw input into a

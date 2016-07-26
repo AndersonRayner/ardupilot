@@ -187,6 +187,9 @@ public:
 
         // 97: RSSI
         k_param_rssi = 97,
+
+        // 98: misc3
+        k_param_angle_trim, // sets the trim angle between 0 (hover) and 90 (forward flight) deg
                 
         //
         // 100: Inertial Nav
@@ -451,6 +454,7 @@ public:
     AP_Int8         ch12_option;
     AP_Int8         arming_check;
     AP_Int8         disarm_delay;
+    AP_Float        angle_trim;
 
     AP_Int8         land_repositioning;
     AP_Int8         fs_ekf_action;
