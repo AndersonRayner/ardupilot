@@ -16,7 +16,7 @@ class Airspeed_Calibration {
 public:
     friend class AP_Airspeed;
     // constructor
-    Airspeed_Calibration(const AP_Vehicle::FixedWing &parms);
+    Airspeed_Calibration(void);
 
     // initialise the calibration
     void init(float initial_ratio);
@@ -32,14 +32,20 @@ private:
     const float Q1; // process noise matrix bottom right element
     Vector3f state; // state vector
     const float DT; // time delta
-    const AP_Vehicle::FixedWing &aparm;
 };
 
 class AP_Airspeed
 {
 public:
     // constructor
-    AP_Airspeed(const AP_Vehicle::FixedWing &parms);
+    AP_Airspeed();
+  /*      : _EAS2TAS(1.0f)
+        , _calibration()
+        , analog(_pin, _psi_range)
+        , digital(_psi_range)
+    {
+		AP_Param::setup_object_defaults(this, var_info);
+    };*/
 
     void init(void);
 
@@ -124,6 +130,16 @@ public:
         return _EAS2TAS;
     }
 
+    // get the min set airspeed
+    float get_airspeed_min(void) const {
+        return _airspeed_min;
+    }
+
+    // get the max set airspeed
+    float get_airspeed_max(void) const {
+        return _airspeed_max;
+    }
+
     // update airspeed ratio calibration
     void update_calibration(const Vector3f &vground);
 
@@ -156,6 +172,8 @@ private:
     AP_Int8         _autocal;
     AP_Int8         _tube_order;
     AP_Int8         _skip_cal;
+    AP_Float        _airspeed_min;
+    AP_Float        _airspeed_max;
     float           _raw_airspeed;
     float           _airspeed;
     float			_last_pressure;
