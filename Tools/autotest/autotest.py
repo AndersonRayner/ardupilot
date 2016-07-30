@@ -203,7 +203,7 @@ def skip_step(step):
 def binary_path(step, debug=False):
     if step.find("ArduCopter") != -1:
         binary_name = "arducopter-quad"
-    if step.find("MattCopter") != -1:
+    elif step.find("MattCopter") != -1:
         binary_name = "arducopter-quad"
     elif step.find("ArduPlane") != -1:
         binary_name = "arduplane"
