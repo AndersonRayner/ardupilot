@@ -469,17 +469,17 @@ void Copter::sys_id_logging()
         }
 
         // Data at 25 Hz
-        if (mainLoop_count % 16 == 1) {
+        if (mainLoop_count % 16 == 0) {
             // Cycle 0
             DataFlash.Log_Write_Vibration(ins);
             DataFlash.Log_Write_Airspeed(airspeed);
-        } else if (mainLoop_count % 16 == 5) {
+        } else if (mainLoop_count % 16 == 4) {
             // Cycle 1
             Log_Write_Control_Tuning();   // CTUN
-        } else if (mainLoop_count % 16 == 9) {
+        } else if (mainLoop_count % 16 == 8) {
             // Cycle 2
             Log_Write_Nav_Tuning();       // NTUN
-        } else if (mainLoop_count % 16 == 13) {
+        } else if (mainLoop_count % 16 == 12) {
             // Cycle 3
             DataFlash.Log_Write_Current(battery);
         }
