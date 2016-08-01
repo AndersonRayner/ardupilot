@@ -24,9 +24,21 @@
 #include <AP_HAL_Linux/GPIO_BBB.h>
 #endif
 
+// Number of backends allowed
+#define MAX_WINGTIP_BACKENDS 2
+
+// Define I2C bus
+#define WINGTIP_BOARD_RESET_LEVEL 0
+#define WINGTIP_I2C_BUS 1
+#define WINGTIP_I2C_ADDR0 32
+#define WINGTIP_I2C_ADDR1 33
+
+class AP_Wingtip_Backend;
+
 class AP_Wingtip
 {
 public:
+    friend class AP_Wingtip_Backend;
 
     AP_Wingtip(void);
 
@@ -66,6 +78,7 @@ private:
        uint16_t data[4];
     };
 
-    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
+    AP_Wingtip_Backend *_drivers[MAX_WINGTIP_BACKENDS];
 
+    uint8_t num_instances:2;
 };
