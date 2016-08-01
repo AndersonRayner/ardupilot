@@ -22,6 +22,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Wingtip/AP_Wingtip.h>
 
+#define WINGTIP_TYPE 2
 
 const AP_HAL::HAL& hal = AP_HAL::get_HAL();
 static AP_Wingtip Wingtip;
@@ -29,7 +30,7 @@ static AP_Wingtip Wingtip;
 void setup()
 {
     hal.console->println("APM Wingtip Sensor library test\n\n");
-	AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", 2);
+	AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", WINGTIP_TYPE);
     Wingtip.init();
 
 }
