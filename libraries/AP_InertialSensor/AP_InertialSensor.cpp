@@ -277,7 +277,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Use first IMU for attitude, velocity and position estimates
     // @Values: 0:Disabled,1:Enabled
     // @User: Advanced
-    AP_GROUPINFO("USE1", 20, AP_InertialSensor, _use[0],  1),
+    AP_GROUPINFO("USE", 20, AP_InertialSensor, _use[0],  1),
 
     // @Param: USE2
     // @DisplayName: Use second IMU for attitude, velocity and position estimates

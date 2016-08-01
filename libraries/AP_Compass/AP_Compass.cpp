@@ -121,7 +121,7 @@ const AP_Param::GroupInfo Compass::var_info[] = {
     // @Description: Configure compass so it is attached externally. This is auto-detected on PX4 and Pixhawk. Set to 1 if the compass is externally connected. When externally connected the COMPASS_ORIENT option operates independently of the AHRS_ORIENTATION board orientation option. If set to 0 or 1 then auto-detection by bus connection can override the value. If set to 2 then auto-detection will be disabled.
     // @Values: 0:Internal,1:External,2:ForcedExternal
     // @User: Advanced
-    AP_GROUPINFO("EXTERN", 9, Compass, _state[0].external, 0),
+    AP_GROUPINFO("EXTERNAL", 9, Compass, _state[0].external, 0),
 
     // @Param: OFS2_X
     // @DisplayName: Compass2 offsets in milligauss on the X axis
@@ -286,7 +286,7 @@ const AP_Param::GroupInfo Compass::var_info[] = {
     // @Param: DIA_Z
     // @DisplayName: Compass soft-iron diagonal Z component
     // @Description: DIA_Z in the compass soft-iron calibration matrix: [[DIA_X, ODI_X, ODI_Y], [ODI_X, DIA_Y, ODI_Z], [ODI_Y, ODI_Z, DIA_Z]]
-    AP_GROUPINFO("DIA1",    24, Compass, _state[0].diagonals, 0),
+    AP_GROUPINFO("DIA",    24, Compass, _state[0].diagonals, 0),
 
     // @Param: ODI_X
     // @DisplayName: Compass soft-iron off-diagonal X component
@@ -299,7 +299,7 @@ const AP_Param::GroupInfo Compass::var_info[] = {
     // @Param: ODI_Z
     // @DisplayName: Compass soft-iron off-diagonal Z component
     // @Description: ODI_Z in the compass soft-iron calibration matrix: [[DIA_X, ODI_X, ODI_Y], [ODI_X, DIA_Y, ODI_Z], [ODI_Y, ODI_Z, DIA_Z]]
-    AP_GROUPINFO("ODI1",    25, Compass, _state[0].offdiagonals, 0),
+    AP_GROUPINFO("ODI",    25, Compass, _state[0].offdiagonals, 0),
 
     // @Param: DIA2_X
     // @DisplayName: Compass2 soft-iron diagonal X component
