@@ -439,7 +439,7 @@ char *DataFlash_File::_lastlog_file_name(void) const
     // I need to put something in here that means I can use a different
     // LASTLOG.TXT directory to my log directory because of the RAMdisk
     char *buf = NULL;
-    if (asprintf(&buf, "/root/APM/logs/LASTLOG.TXT") == 0) {
+    if (asprintf(&buf, "%s/LASTLOG.TXT", _log_directory) == 0) {
         return NULL;
     }
     return buf;

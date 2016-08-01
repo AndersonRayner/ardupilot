@@ -463,19 +463,23 @@ void Copter::sys_id_logging()
         DataFlash.Log_Write_EKF(ahrs,false);
 #endif
 
-        // DataFlash.Log_Write_IMU(ins);
+        // Data at 50 Hz
+        if (mainLoop_count % 8 == 0) {
+            DataFlash.Log_Write_Wingtip(wingtip_sensor);
+        }
+
         // Data at 25 Hz
-        if (mainLoop_count % 16 == 0) {
+        if (mainLoop_count % 16 == 1) {
             // Cycle 0
             DataFlash.Log_Write_Vibration(ins);
-            //DataFlash.Log_Write_Airspeed(airspeed);
-        } else if (mainLoop_count % 16 == 4) {
+            DataFlash.Log_Write_Airspeed(airspeed);
+        } else if (mainLoop_count % 16 == 5) {
             // Cycle 1
             Log_Write_Control_Tuning();   // CTUN
-        } else if (mainLoop_count % 16 == 8) {
+        } else if (mainLoop_count % 16 == 9) {
             // Cycle 2
             Log_Write_Nav_Tuning();       // NTUN
-        } else if (mainLoop_count % 16 == 12) {
+        } else if (mainLoop_count % 16 == 13) {
             // Cycle 3
             DataFlash.Log_Write_Current(battery);
         }
