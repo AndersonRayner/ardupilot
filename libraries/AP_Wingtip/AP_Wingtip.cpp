@@ -15,7 +15,11 @@
  */
 
 #include "AP_Wingtip.h"
+#include <AP_HAL/I2CDevice.h>
+
 extern const AP_HAL::HAL& hal;
+
+// Define reset pins
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 AP_HAL::DigitalSource *_cs;
 #define _TYPE_default 1
@@ -23,7 +27,11 @@ AP_HAL::DigitalSource *_cs;
 #define _TYPE_default 0
 #endif
 
+// Define I2C bus
 #define WINGTIP_BOARD_RESET_LEVEL 0
+#define WINGTIP_I2C_BUS 1
+#define WINGTIP_I2C_ADDR0 32
+#define WINGTIP_I2C_ADDR1 33
 
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
@@ -47,25 +55,12 @@ void AP_Wingtip::init(void)
 {
     memset(_healthy,0,sizeof(_healthy));  // Haven't received a reading yet -> assume not healthy
     memset(_enabled,1,sizeof(_enabled));
+    memset(_RPM,0,sizeof(_RPM));
+    memset(_de,0,sizeof(_de));
 
-    if (_type == 0) {
-        _RPM[0] =   0;
-        _RPM[1] = 100;
-        _RPM[2] = 200;
-        _RPM[3] = 300;
 
-        _de[0] =   0.0f;
-        _de[1] = 100.0f;
-
-        _de_raw[0] =   0;
-        _de_raw[1] = 100;
-
-    } else {
-        memset(_RPM,0,sizeof(_RPM));
-        memset(_de,0,sizeof(_de));
-
+    // Reset the external boards
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-        // Reset the external boards
         _cs = hal.gpio->channel(BBB_P9_15);
         if (_cs == NULL) {
             AP_HAL::panic("Unable to reset wingtip boards");
@@ -75,17 +70,17 @@ void AP_Wingtip::init(void)
         _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
         hal.scheduler->delay(5);
         _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
+        hal.scheduler->delay(5);
 #endif
 
-    }
+
+     _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
+
 }
 
 // Update all the wingtip data
 void AP_Wingtip::update(void)
 {
-
-    AP_HAL::Semaphore* i2c1_sem = hal.i2c1->get_semaphore();
-
     switch (_type) {
     {
     case 0 : // Fake the data
@@ -104,9 +99,14 @@ void AP_Wingtip::update(void)
     }
     case 1 :  // From the wingtip boards
     {
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
-        union wingtip_data data1;
+       /*
+        *
+        *
+        *     _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
+    _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR1);
+        *
+        * union wingtip_data data1;
         union wingtip_data data2;
 
         uint8_t CRC;
@@ -159,8 +159,7 @@ void AP_Wingtip::update(void)
         } else {
             // mark sensor unhealthy
             _healthy[1] = 0; // rpm3, rpm4, de2
-        }
-#endif
+        }*/
 
         break;
     }
@@ -169,15 +168,18 @@ void AP_Wingtip::update(void)
         union wingtip_data data1;
         uint8_t CRC;
 
-        // Take semaphore
-        if (!i2c1_sem->take(5)) {
+        // take i2c bus sempahore
+        if (!_dev || !_dev->get_semaphore()->take(15)) {
             return;
         }
 
-        hal.i2c1->read(0x32, 9, data1.rxBuffer);
+        // Read data from board
+        if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
+            return;
+        }
 
         // Return semaphore
-        i2c1_sem->give();
+        _dev->get_semaphore()->give();
 
         // Calculate checksum
         CRC = 0;

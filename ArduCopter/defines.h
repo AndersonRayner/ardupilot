@@ -106,6 +106,7 @@ enum control_mode_t {
     BRAKE =        17,  // full-brake using inertial/GPS system, no pilot input
     THROW =        18,  // throw to launch mode using inertial/GPS system, no pilot input
     AVOID_ADSB =   19,  // automatic avoidance of obstacles in the macro scale - e.g. full-sized aircraft
+    MANOEUVRE =   20   // automates a series of manoeuvres for Systems ID
 };
 
 enum mode_reason_t {
@@ -286,6 +287,7 @@ enum ThrowModeState {
 #define LOG_HELI_MSG                    0x20
 #define LOG_PRECLAND_MSG                0x21
 #define LOG_GUIDEDTARGET_MSG            0x22
+#define LOG_MANOEUVRE_MSG               0x23
 
 #define MASK_LOG_ATTITUDE_FAST          (1<<0)
 #define MASK_LOG_ATTITUDE_MED           (1<<1)
@@ -306,6 +308,7 @@ enum ThrowModeState {
 #define MASK_LOG_MOTBATT                (1UL<<17)
 #define MASK_LOG_IMU_FAST               (1UL<<18)
 #define MASK_LOG_IMU_RAW                (1UL<<19)
+#define MASK_LOG_SYS_ID                 (1UL<<20)
 #define MASK_LOG_ANY                    0xFFFF
 
 // DATA - event logging

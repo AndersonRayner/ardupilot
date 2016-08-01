@@ -8,6 +8,12 @@
 // default sensors are present and healthy: gyro, accelerometer, barometer, rate_control, attitude_stabilization, yaw_position, altitude control, x/y position control, motor_control
 #define MAVLINK_SENSOR_PRESENT_DEFAULT (MAV_SYS_STATUS_SENSOR_3D_GYRO | MAV_SYS_STATUS_SENSOR_3D_ACCEL | MAV_SYS_STATUS_SENSOR_ABSOLUTE_PRESSURE | MAV_SYS_STATUS_SENSOR_ANGULAR_RATE_CONTROL | MAV_SYS_STATUS_SENSOR_ATTITUDE_STABILIZATION | MAV_SYS_STATUS_SENSOR_YAW_POSITION | MAV_SYS_STATUS_SENSOR_Z_ALTITUDE_CONTROL | MAV_SYS_STATUS_SENSOR_XY_POSITION_CONTROL | MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS | MAV_SYS_STATUS_AHRS)
 
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+#define GCS_MIN 1
+#else
+#define GCS_MIN 0
+#endif
+
 void Copter::gcs_send_heartbeat(void)
 {
     gcs_send_message(MSG_HEARTBEAT);
@@ -337,7 +343,7 @@ void NOINLINE Copter::send_hwstatus(mavlink_channel_t chan)
     mavlink_msg_hwstatus_send(
         chan,
         hal.analogin->board_voltage()*1000,
-        hal.i2c->lockup_count());
+        0);
 }
 
 void NOINLINE Copter::send_servo_out(mavlink_channel_t chan)
@@ -2149,7 +2155,7 @@ void Copter::mavlink_delay_cb()
  */
 void Copter::gcs_send_message(enum ap_message id)
 {
-    for (uint8_t i=1; i<num_gcs; i++) {  // Originally i=0, appears 0 is the linux console
+    for (uint8_t i=GCS_MIN; i<num_gcs; i++) {
         if (gcs[i].initialised) {
             gcs[i].send_message(id);
         }

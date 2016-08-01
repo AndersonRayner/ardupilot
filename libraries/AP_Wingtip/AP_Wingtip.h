@@ -66,4 +66,6 @@ private:
        uint16_t data[4];
     };
 
+    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
+
 };

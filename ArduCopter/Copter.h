@@ -613,6 +613,7 @@ private:
     void update_batt_compass(void);
     void ten_hz_logging_loop();
     void twentyfive_hz_logging();
+    void sys_id_logging();
     void three_hz_loop();
     void one_hz_loop();
     void update_GPS(void);
@@ -680,6 +681,7 @@ private:
     void do_erase_logs(void);
     void Log_Write_AutoTune(uint8_t axis, uint8_t tune_step, float meas_target, float meas_min, float meas_max, float new_gain_rp, float new_gain_rd, float new_gain_sp, float new_ddt);
     void Log_Write_AutoTuneDetails(float angle_cd, float rate_cds);
+    void Log_Write_Manoeuvre(uint8_t state, uint8_t step, uint8_t axis);
     void Log_Write_Current();
     void Log_Write_Optflow();
     void Log_Write_Nav_Tuning();
@@ -742,6 +744,11 @@ private:
     void get_pilot_desired_angle_rates(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, float &roll_out, float &pitch_out, float &yaw_out);
     bool althold_init(bool ignore_checks);
     void althold_run();
+    bool manoeuvre_init(bool ignore_checks);
+    void manoeuvre_run();
+    void manoeuvre_stop();
+    bool manoeuvre_get_file();
+    bool manoeuvre_read_line();
     bool auto_init(bool ignore_checks);
     void auto_run();
     void auto_takeoff_start(const Location& dest_loc);

@@ -107,6 +107,10 @@ bool Copter::set_mode(control_mode_t mode, mode_reason_t reason)
             success = avoid_adsb_init(ignore_checks);
             break;
 
+        case MANOEUVRE:
+            success = manoeuvre_init(ignore_checks);
+            break;
+
         default:
             success = false;
             break;
@@ -234,6 +238,10 @@ void Copter::update_flight_mode()
             avoid_adsb_run();
             break;
 
+        case MANOEUVRE:
+            manoeuvre_run();
+            break;
+
         default:
             break;
     }
@@ -247,6 +255,11 @@ void Copter::exit_mode(control_mode_t old_control_mode, control_mode_t new_contr
         autotune_stop();
     }
 #endif
+
+    if (old_control_mode == MANOEUVRE) {
+        manoeuvre_stop();
+        // need to do something to never allow it to fail - fall back into alt_hold perhaps...
+    }
 
     // stop mission when we leave auto mode
     if (old_control_mode == AUTO) {
@@ -409,6 +422,9 @@ void Copter::print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case AVOID_ADSB:
         port->print("AVOID_ADSB");
+        break;
+    case MANOEUVRE:
+        port->print("MANOEUVRE");
         break;
     default:
         port->printf("Mode(%u)", (unsigned)mode);
