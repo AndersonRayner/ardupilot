@@ -22,16 +22,21 @@
 
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
-#include <AP_Math/AP_Math.h>
 #include <stdio.h>
-#include <utility>
 
 extern const AP_HAL::HAL &hal;
 
-AP_Wingtip_SITL::AP_Wingtip_SITL() :
-    {
+AP_Wingtip_SITL::AP_Wingtip_SITL(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
+    : AP_Wingtip_Backend(_wingtip, instance, _state)
+{
+    init();
+}
 
-    }
+
+AP_Wingtip_SITL::~AP_Wingtip_SITL()
+{
+  // do nothing
+}
 
 bool AP_Wingtip_SITL::init()
 {
@@ -40,8 +45,10 @@ bool AP_Wingtip_SITL::init()
 }
 
 
-bool AP_Wingtip_SITL::update()
+void AP_Wingtip_SITL::update()
 {
+    // do nothing
+   /*
     _RPM[0]++;
     _RPM[1]++;
     _RPM[2]++;
@@ -52,6 +59,5 @@ bool AP_Wingtip_SITL::update()
 
     _healthy[0] = 1;  // rpm1, rpm2, de1
     _healthy[1] = 1; // rpm3, rpm4, de2
-
-    return true;
+    */
 }

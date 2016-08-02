@@ -20,23 +20,27 @@
   backend driver for wingtip SITL
  */
 
-#include <AP_HAL/AP_HAL.h>
-#include <AP_Param/AP_Param.h>
-#include <AP_HAL/I2CDevice.h>
-#include <utility>
-
+#include "AP_Wingtip.h"
 #include "Wingtip_Backend.h"
-#include <AP_HAL/I2CDevice.h>
+
+#include <AP_HAL/AP_HAL.h>
+
 
 class AP_Wingtip_SITL : public AP_Wingtip_Backend
 {
 public:
-    AP_Wingtip_SITL();
-    ~AP_Wingtip_SITL(void) {}
 
+    // constructor
+    AP_Wingtip_SITL(AP_Wingtip &wingtip_board,  uint8_t instance, AP_Wingtip::Wingtip_State &_state);
+
+    // destructor
+    ~AP_Wingtip_SITL(void);
+
+    // initialise board
     bool init();
 
-    bool update();
+    // update state
+    void update();
 
 private:
 

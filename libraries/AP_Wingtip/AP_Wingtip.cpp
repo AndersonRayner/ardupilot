@@ -16,9 +16,9 @@
 
 #include "AP_Wingtip.h"
 #include "Wingtip_x4.h"
-//#include "Wingtip_SITL.h"
+#include "Wingtip_SITL.h"
 
-#include <AP_HAL/I2CDevice.h>
+//#include <AP_HAL/I2CDevice.h>
 
 extern const AP_HAL::HAL& hal;
 
