@@ -20,11 +20,12 @@
   backend driver for wingtip SITL
  */
 
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#include <AP_HAL/AP_HAL.h>
+#include <SITL/SITL.h>
+
 #include "AP_Wingtip.h"
 #include "Wingtip_Backend.h"
-
-#include <AP_HAL/AP_HAL.h>
-
 
 class AP_Wingtip_SITL : public AP_Wingtip_Backend
 {
@@ -43,5 +44,7 @@ public:
     void update();
 
 private:
-
+    SITL::SITL *sitl;
 };
+
+#endif // CONFIG_HAL_BOARD

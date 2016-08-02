@@ -18,18 +18,18 @@
 /*
   backend driver for the Wingtip X4 Board
  */
-#include "Wingtip_SITL.h"
 
-#include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
-#include <stdio.h>
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#include "Wingtip_SITL.h"
 
 extern const AP_HAL::HAL &hal;
 
 AP_Wingtip_SITL::AP_Wingtip_SITL(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
-    init();
+    state.enabled = init();
 }
 
 
@@ -40,24 +40,32 @@ AP_Wingtip_SITL::~AP_Wingtip_SITL()
 
 bool AP_Wingtip_SITL::init()
 {
-    // do nothing
+    sitl = (SITL::SITL *)AP_Param::find_object("SIM_");
+    if (sitl == nullptr) {
+        return false;
+    }
+
+    // Everything seems to be ok
     return true;
 }
 
 
 void AP_Wingtip_SITL::update()
 {
-    // do nothing
-   /*
-    _RPM[0]++;
-    _RPM[1]++;
-    _RPM[2]++;
-    _RPM[3]++;
 
-    _de_raw[0]++;
-    _de_raw[1]++;
+    if (!state.enabled) {
+        return;
+    }
 
-    _healthy[0] = 1;  // rpm1, rpm2, de1
-    _healthy[1] = 1; // rpm3, rpm4, de2
-    */
+    // Take RPMs from sitl and put into state struct
+    state.last_reading_ms = AP_HAL::micros64();
+    state.rpm[0] = sitl->state.rpm1;
+    state.rpm[1] = sitl->state.rpm2;
+    state.rpm[2] = 0;
+    state.rpm[3] = 0;
+
+    state.healthy = true;
+
 }
+
+#endif // CONFIG_HAL_BOARD

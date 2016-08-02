@@ -18,8 +18,6 @@
 #include "Wingtip_x4.h"
 #include "Wingtip_SITL.h"
 
-//#include <AP_HAL/I2CDevice.h>
-
 extern const AP_HAL::HAL& hal;
 
 // Define default board type
@@ -58,13 +56,31 @@ void AP_Wingtip::init(void)
         return;
     }
 
-    // Eventually will be a for loop
-    //uint8_t ii;
     uint8_t instance = num_instances;
 
-    // Start with just doing an x4 board
-    drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+// SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+        state[instance].instance = instance;
+        drivers[instance] = new AP_Wingtip_SITL(*this, instance, state[instance]);
+#endif
 
+
+// BBBMini with I2C connection
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+        switch (_type) {
+        case WINGTIP_TYPE_NONE :
+            break;
+
+        case WINGTIP_TYPE_X2 :
+           // drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+           // drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            break;
+
+        case WINGTIP_TYPE_X4 :
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+        }
+
+#endif
 
     if (drivers[instance] != NULL) {
         // we loaded a driver for this instance, so it must be
@@ -88,33 +104,51 @@ void AP_Wingtip::update(void)
 //  Check if an instance is healthy
 bool AP_Wingtip::healthy(uint8_t instance) const
 {
-    return true;
-    //return _healthy[instance];
+    if (instance >= num_instances) {
+        return false;
+    }
+
+    return state[instance].healthy;
 }
 
 // Check if an instance is activated
 bool AP_Wingtip::enabled(uint8_t instance) const
 {
-    return true;
-    //return _enabled[instance];
+    if (instance >= num_instances) {
+        return false;
+    }
+
+    return state[instance].enabled;
 }
 
 // return the rpm reading for a particular board and channel.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t rpm_channel) const
+uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t channel) const
 {
-    return 1;
+    if (board >= num_instances) {
+        return false;
+    }
+
+    return state[board].rpm[channel];
 }
 
 // return the raw de reading for a particular board and channel.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t de_channel) const
+uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t channel) const
 {
-    return 1;
+    if (board >= num_instances) {
+        return false;
+    }
+
+    return state[board].de_raw[channel];
 }
 
 // return the de reading for a particular board and channel.  Return 0 if not healthy
-float AP_Wingtip::get_de(uint8_t board, uint8_t rpm_channel) const
+float AP_Wingtip::get_de(uint8_t board, uint8_t channel) const
 {
-    return 1.0f;
+    if (board >= num_instances) {
+        return false;
+    }
+
+    return state[board].de[channel];
 }
 
 

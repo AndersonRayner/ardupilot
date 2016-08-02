@@ -19,10 +19,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-#include <AP_HAL/GPIO.h>
-#include <AP_HAL_Linux/GPIO_BBB.h>
-#endif
 
 // Number of backends allowed
 #define WINGTIP_MAX_BACKENDS 2
@@ -52,10 +48,14 @@ public:
 
     // The RPM_State structure is filled in by the backend driver
     struct Wingtip_State {
+        bool                   enabled;
+        bool                   healthy;
         uint8_t                instance;        // the instance number of this wingtip board
-        float                  rate_rpm;        // measured rate in revs per minute
-        uint32_t               last_reading_ms; // time of last reading
-        float                  signal_quality;  // synthetic quality metric
+
+        uint64_t               last_reading_ms; // time of last reading
+        uint16_t               rpm[4];          // up to four RPMs per board
+        uint16_t               de_raw[4];       // up to four de (raw) readings per board
+        float                  de[4];           // up to four de readings per board
     };
 
     // parameters for each instance
@@ -75,24 +75,24 @@ public:
     }
 
     //  return RPM for a sensor and channel.
-    uint16_t get_rpm(uint8_t board, uint8_t rpm_channel) const;
-    uint16_t get_rpm(uint8_t rpm_channel) const {
+    uint16_t get_rpm(uint8_t board, uint8_t channel) const;
+    uint16_t get_rpm(uint8_t channel) const {
         // default to board 0 if only channel is given
-        return get_rpm(0, rpm_channel);
+        return get_rpm(0, channel);
     }
 
     // return raw de for a sensor and channel.
-    uint16_t get_de_raw(uint8_t board, uint8_t de_channel) const;
-    uint16_t get_de_raw(uint8_t de_channel) const {
+    uint16_t get_de_raw(uint8_t board, uint8_t channel) const;
+    uint16_t get_de_raw(uint8_t channel) const {
         // default to board 0 if only channel is given
-        return get_de_raw(0, de_channel);
+        return get_de_raw(0, channel);
     }
 
     // return de for a sensor and channel.
-    float    get_de(uint8_t board, uint8_t rpm_channel) const;
-    float    get_de(uint8_t de_channel) const {
+    float    get_de(uint8_t board, uint8_t channel) const;
+    float    get_de(uint8_t channel) const {
         // default to board 0 if only channel is given
-        return get_de(0, de_channel);
+        return get_de(0, channel);
     }
 
     // return if an instance is healthy
@@ -106,6 +106,4 @@ private:
     AP_Wingtip_Backend *drivers[WINGTIP_MAX_BACKENDS];
     uint8_t num_instances:2;
 
-    void detect_instance(uint8_t instance);
-    void update_instance(uint8_t instance);
 };

@@ -22,23 +22,23 @@
 
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
-//#include <AP_HAL/I2CDevice.h>
-//#include <AP_Math/AP_Math.h>
 #include <stdio.h>
-//#include <utility>
+#include <AP_HAL/I2CDevice.h>
+#include <utility>
+#include <AP_HAL/GPIO.h>
+#include <AP_HAL_Linux/GPIO_BBB.h>
+
+
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
 extern const AP_HAL::HAL &hal;
-
-/*
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 AP_HAL::DigitalSource *_cs;
-#endif
-*/
+
 
 AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
-    init();
+    state.enabled = init();
 }
 
 
@@ -50,10 +50,9 @@ AP_Wingtip_x4::~AP_Wingtip_x4()
 bool AP_Wingtip_x4::init()
 {
 
-    hal.console->printf("Initialising wingtip board\n");
-    /*
+    hal.console->printf("Initialising wingtip_x4 board\n");
+
     // Reset the external boards
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
     _cs = hal.gpio->channel(BBB_P9_15);
     if (_cs == NULL) {
         AP_HAL::panic("Unable to reset wingtip boards");
@@ -64,32 +63,46 @@ bool AP_Wingtip_x4::init()
     hal.scheduler->delay(5);
     _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
     hal.scheduler->delay(5);
-#endif
 
+    // create i2c bus object
     _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
-*/
+
+    // take i2c bus semaphore
+    if (!_dev || !_dev->get_semaphore()->take(200)) {
+        return false;
+    }
+
+    // return semaphore so others can use it
+    _dev->get_semaphore()->give();
+
+    // appears to be enabled, return
     return true;
 }
 
 void AP_Wingtip_x4::update()
 {
-    hal.console->printf("Updating data for wingtip_x4 board\n");
-    // do nothing
- /*   union wingtip_data data1;
+    // hal.console->printf("Updating data for wingtip_x4 board\n");
+
+    union wingtip_data data1;
     uint8_t CRC;
 
     // take i2c bus sempahore
-    if (!_dev || !_dev->get_semaphore()->take(15)) {
-        return;
-    }
+    if (!_dev->get_semaphore()->take_nonblocking()) {
+            return;
+        }
 
     // Read data from board
     if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
+        // Return semaphore (transfer unsuccessful)
+        _dev->get_semaphore()->give();
         return;
     }
 
-    // Return semaphore
+    // Return semaphore (transfer successful)
     _dev->get_semaphore()->give();
+
+    // store time of last reading
+    state.last_reading_ms = AP_HAL::micros64();
 
     // Calculate checksum
     CRC = 0;
@@ -98,17 +111,18 @@ void AP_Wingtip_x4::update()
     }
 
     if (data1.rxBuffer[8] == CRC) {
-        _RPM[0] = data1.data[0];
-        _RPM[1] = data1.data[1];
-        _RPM[2] = data1.data[2];
-        _RPM[3] = data1.data[3];
+        // data has passed checksum
+        state.rpm[0] = data1.data[0];
+        state.rpm[1] = data1.data[1];
+        state.rpm[2] = data1.data[2];
+        state.rpm[3] = data1.data[3];
 
-        _healthy[0] = 1; // rpm1, rpm2, de1
-        _healthy[1] = 1; // rpm3, rpm4, de2
+        state.healthy = true;
 
     } else {
         // mark sensor unhealthy
-        _healthy[0] = 0; // rpm1, rpm2, de1
-        _healthy[1] = 0; // rpm3, rpm4, de2
-    }*/
+        state.healthy = false;
+    }
 }
+
+#endif // CONFIG_HAL_BOARD_SUBTYPE

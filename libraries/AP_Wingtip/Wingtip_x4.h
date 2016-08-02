@@ -24,6 +24,13 @@
 #include "Wingtip_Backend.h"
 
 #include <AP_HAL/AP_HAL.h>
+#include <AP_Param/AP_Param.h>
+#include <AP_HAL/utility/OwnPtr.h>
+#include <AP_HAL/I2CDevice.h>
+#include <utility>
+#include <AP_HAL/I2CDevice.h>
+
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
 class AP_Wingtip_x4 : public AP_Wingtip_Backend
 {
@@ -43,17 +50,15 @@ public:
 //protected:
 
 private:
-    //AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
-    uint64_t _last_timestamp = 0;
+    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
 
-    /*
-    uint16_t _RPM[4];
-    uint16_t _de_raw[2];
-    float    _de[2];
 
+    // Struct for receiving data via I2C
     union wingtip_data {
        uint8_t rxBuffer[9];
        uint16_t data[4];
     };
-     */
+
 };
+
+#endif // CONFIG_HAL_BOARD_SUBTYPE
