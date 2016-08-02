@@ -20,25 +20,27 @@
 
 #pragma once
 
+#include <AP_Common/AP_Common.h>
+#include <AP_HAL/AP_HAL.h>
 #include "AP_Wingtip.h"
 
-class AP_Wingtip;
 class AP_Wingtip_Backend
 {
 public:
-    AP_Wingtip_Backend(AP_Wingtip &wingtip);
+    AP_Wingtip_Backend(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state);
 
     virtual ~AP_Wingtip_Backend(void) {}
 
-    virtual bool init_device(void);// = 0;
+    virtual bool init(void) = 0;
 
-    virtual void collect(void);// = 0;
+    virtual void update(void) = 0;
 
 protected:
     // access to frontend
-    AP_Wingtip &_wingtip;
+    AP_Wingtip &wingtip;
+    AP_Wingtip::Wingtip_State &state;
 
-//private:
-
+private:
 
 };
+

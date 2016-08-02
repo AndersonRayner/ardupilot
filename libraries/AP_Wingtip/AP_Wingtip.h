@@ -25,7 +25,7 @@
 #endif
 
 // Number of backends allowed
-#define MAX_WINGTIP_BACKENDS 2
+#define WINGTIP_MAX_BACKENDS 2
 
 // Define I2C bus
 #define WINGTIP_BOARD_RESET_LEVEL 0
@@ -42,10 +42,24 @@ public:
 
     AP_Wingtip(void);
 
+    // RPM driver types
+    enum Wingtip_Type {
+        WINGTIP_TYPE_NONE    = 0,
+        WINGTIP_TYPE_X2      = 1,
+        WINGTIP_TYPE_X4      = 2,
+    };
+
+
+    // The RPM_State structure is filled in by the backend driver
+    struct Wingtip_State {
+        uint8_t                instance;        // the instance number of this wingtip board
+        float                  rate_rpm;        // measured rate in revs per minute
+        uint32_t               last_reading_ms; // time of last reading
+        float                  signal_quality;  // synthetic quality metric
+    };
+
     // parameters for each instance
     AP_Int8  _type;
-    bool _healthy[2];  // RPM1 RPM2 RPM3 RPM4 de1 de2
-    bool _enabled[2];  // RPM1 RPM2 RPM3 RPM4 de1 de2
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -55,12 +69,22 @@ public:
     // update state of all rpm sensors. Should be called from main loop
     void update(void);
 
+    // returns the number of sensors
+    uint8_t num_sensors(void) const {
+        return num_instances;
+    }
+
     //  return RPM for a sensor.
-    uint16_t get_rpm(uint8_t instance) const;
+    // uint16_t get_rpm(uint8_t instance) const;
 
     // return de for a sensor.
-    uint16_t get_de_raw(uint8_t instance) const;
-    float    get_de(uint8_t instance) const;
+    // uint16_t get_de_raw(uint8_t instance) const;
+    // float    get_de(uint8_t instance) const;
+
+    // debugging functions
+    uint16_t get_rpm(uint8_t instance) const { return instance; }
+    uint16_t get_de_raw(uint8_t instance) const { return instance; }
+    float    get_de(uint8_t instance) const { return instance; }
 
     // return if an instance is healthy
     bool healthy(uint8_t instance) const;
@@ -69,16 +93,10 @@ public:
     bool enabled(uint8_t instance) const;
 
 private:
-    uint16_t _RPM[4];
-    uint16_t _de_raw[2];
-    float    _de[2];
-
-    union wingtip_data {
-       uint8_t rxBuffer[9];
-       uint16_t data[4];
-    };
-
-    AP_Wingtip_Backend *_drivers[MAX_WINGTIP_BACKENDS];
-
+    Wingtip_State state[WINGTIP_MAX_BACKENDS];
+    AP_Wingtip_Backend *drivers[WINGTIP_MAX_BACKENDS];
     uint8_t num_instances:2;
+
+    void detect_instance(uint8_t instance);
+    void update_instance(uint8_t instance);
 };

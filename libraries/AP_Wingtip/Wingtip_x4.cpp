@@ -22,10 +22,10 @@
 
 #include <AP_Common/AP_Common.h>
 #include <AP_HAL/AP_HAL.h>
-#include <AP_HAL/I2CDevice.h>
-#include <AP_Math/AP_Math.h>
+//#include <AP_HAL/I2CDevice.h>
+//#include <AP_Math/AP_Math.h>
 #include <stdio.h>
-#include <utility>
+//#include <utility>
 
 extern const AP_HAL::HAL &hal;
 
@@ -34,12 +34,23 @@ extern const AP_HAL::HAL &hal;
 AP_HAL::DigitalSource *_cs;
 #endif
 */
-AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &wingtip)
-    : AP_Wingtip_Backend(wingtip)
-{}
 
-bool AP_Wingtip_x4::init_device()
+AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
+    : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
+    init();
+}
+
+
+AP_Wingtip_x4::~AP_Wingtip_x4()
+{
+  // do nothing
+}
+
+bool AP_Wingtip_x4::init()
+{
+
+    hal.console->printf("Initialising wingtip board\n");
     /*
     // Reset the external boards
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
@@ -60,8 +71,9 @@ bool AP_Wingtip_x4::init_device()
     return true;
 }
 
-void AP_Wingtip_x4::collect()
+void AP_Wingtip_x4::update()
 {
+    hal.console->printf("Updating data for wingtip_x4 board\n");
     // do nothing
  /*   union wingtip_data data1;
     uint8_t CRC;

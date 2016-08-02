@@ -20,29 +20,40 @@
   backend driver for wingtip x4 board from I2C
  */
 
-#include <AP_HAL/AP_HAL.h>
-#include <AP_Param/AP_Param.h>
-#include <AP_HAL/I2CDevice.h>
-#include <AP_HAL/utility/OwnPtr.h>
-#include <utility>
-
+#include "AP_Wingtip.h"
 #include "Wingtip_Backend.h"
-#include <AP_HAL/I2CDevice.h>
+
+#include <AP_HAL/AP_HAL.h>
 
 class AP_Wingtip_x4 : public AP_Wingtip_Backend
 {
 public:
-    AP_Wingtip_x4(AP_Wingtip &wingtip);
-    ~AP_Wingtip_x4(void) {}
+    // constructor
+    AP_Wingtip_x4(AP_Wingtip &wingtip_board,  uint8_t instance, AP_Wingtip::Wingtip_State &_state);
+
+    // destructor
+    ~AP_Wingtip_x4(void);
     
-    bool init_device();
+    // initialise board
+    bool init();
     
-    void collect();
+    // update state
+    void update();
     
-protected:
+//protected:
 
 private:
-    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
+    //AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
+    uint64_t _last_timestamp = 0;
 
+    /*
+    uint16_t _RPM[4];
+    uint16_t _de_raw[2];
+    float    _de[2];
 
+    union wingtip_data {
+       uint8_t rxBuffer[9];
+       uint16_t data[4];
+    };
+     */
 };

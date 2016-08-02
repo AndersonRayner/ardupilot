@@ -45,11 +45,9 @@ AP_Wingtip::AP_Wingtip(void) :
 {
     AP_Param::setup_object_defaults(this, var_info);
 
-    // init state
-    memset(_healthy,0,sizeof(_healthy));  // Haven't received a reading yet -> assume not healthy
-    memset(_enabled,1,sizeof(_enabled));
-    memset(_RPM,0,sizeof(_RPM));
-    memset(_de,0,sizeof(_de));
+    // init state and drivers
+    memset(state,0,sizeof(state));
+    memset(drivers,0,sizeof(drivers));
 }
 
 //  initialise the AP_Wingtip class.
@@ -60,18 +58,28 @@ void AP_Wingtip::init(void)
         return;
     }
 
+    // Eventually will be a for loop
+    //uint8_t ii;
+    uint8_t instance = num_instances;
+
     // Start with just doing an x4 board
-    _drivers[0] = new AP_Wingtip_x4(*this);
-    num_instances++;
+    drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+
+
+    if (drivers[instance] != NULL) {
+        // we loaded a driver for this instance, so it must be
+        // present (although it may not be healthy)
+        num_instances = instance+1;
+    }
 
 }
 
 // Update all the wingtip data
 void AP_Wingtip::update(void)
 {
-    for (uint8_t i=0; i<num_instances; i++) {
-        if (_drivers[i] != NULL) {
-              _drivers[0]->collect();
+    for (uint8_t ii=0; ii<num_instances; ii++) {
+        if (drivers[ii] != NULL) {
+            drivers[ii]->update();
         }
     }
 }
@@ -80,27 +88,34 @@ void AP_Wingtip::update(void)
 //  Check if an instance is healthy
 bool AP_Wingtip::healthy(uint8_t instance) const
 {
-    return _healthy[instance];
+    return true;
+    //return _healthy[instance];
 }
 
 // Check if an instance is activated
 bool AP_Wingtip::enabled(uint8_t instance) const
 {
-    return _enabled[instance];
+    return true;
+    //return _enabled[instance];
 }
 
+/*
 // Return the RPM for an instance.  Return 0 if not healthy
 uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
-    return _RPM[instance];
+    return 1;
+    //return _RPM[instance];
 }
 
 // return raw de for a sensor.  Return 0 if not healthy
 uint16_t AP_Wingtip::get_de_raw(uint8_t instance) const {
-    return _de_raw[instance];
+    return 1;
+    //return _de_raw[instance];
 }
 
 
 // return de for a sensor.  Return 0 if not healthy
 float AP_Wingtip::get_de(uint8_t instance) const {
-    return _de[instance];
+    return 1.0f;
+    //return _de[instance];
 }
+*/
