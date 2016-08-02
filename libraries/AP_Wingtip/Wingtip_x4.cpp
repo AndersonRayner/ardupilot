@@ -39,6 +39,11 @@ AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip:
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
     state.enabled = init();
+    if (state.enabled) {
+        hal.console->printf("    Wingtip_x4 sensor [ x ]\n");
+    } else {
+        hal.console->printf("    Wingtip_x4 sensor [   ]\n");
+    }
 }
 
 

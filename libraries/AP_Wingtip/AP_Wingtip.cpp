@@ -78,6 +78,10 @@ void AP_Wingtip::init(void)
 
         case WINGTIP_TYPE_X4 :
             drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            break;
+
+        default :
+            hal.console->panic("Wingtip board type not recognised!\n");
         }
 
 #endif
