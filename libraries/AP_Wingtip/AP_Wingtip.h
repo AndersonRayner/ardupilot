@@ -74,17 +74,26 @@ public:
         return num_instances;
     }
 
-    //  return RPM for a sensor.
-    // uint16_t get_rpm(uint8_t instance) const;
+    //  return RPM for a sensor and channel.
+    uint16_t get_rpm(uint8_t board, uint8_t rpm_channel) const;
+    uint16_t get_rpm(uint8_t rpm_channel) const {
+        // default to board 0 if only channel is given
+        return get_rpm(0, rpm_channel);
+    }
 
-    // return de for a sensor.
-    // uint16_t get_de_raw(uint8_t instance) const;
-    // float    get_de(uint8_t instance) const;
+    // return raw de for a sensor and channel.
+    uint16_t get_de_raw(uint8_t board, uint8_t de_channel) const;
+    uint16_t get_de_raw(uint8_t de_channel) const {
+        // default to board 0 if only channel is given
+        return get_de_raw(0, de_channel);
+    }
 
-    // debugging functions
-    uint16_t get_rpm(uint8_t instance) const { return instance; }
-    uint16_t get_de_raw(uint8_t instance) const { return instance; }
-    float    get_de(uint8_t instance) const { return instance; }
+    // return de for a sensor and channel.
+    float    get_de(uint8_t board, uint8_t rpm_channel) const;
+    float    get_de(uint8_t de_channel) const {
+        // default to board 0 if only channel is given
+        return get_de(0, de_channel);
+    }
 
     // return if an instance is healthy
     bool healthy(uint8_t instance) const;

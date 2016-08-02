@@ -99,23 +99,22 @@ bool AP_Wingtip::enabled(uint8_t instance) const
     //return _enabled[instance];
 }
 
-/*
-// Return the RPM for an instance.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
+// return the rpm reading for a particular board and channel.  Return 0 if not healthy
+uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t rpm_channel) const
+{
     return 1;
-    //return _RPM[instance];
 }
 
-// return raw de for a sensor.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_de_raw(uint8_t instance) const {
+// return the raw de reading for a particular board and channel.  Return 0 if not healthy
+uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t de_channel) const
+{
     return 1;
-    //return _de_raw[instance];
 }
 
-
-// return de for a sensor.  Return 0 if not healthy
-float AP_Wingtip::get_de(uint8_t instance) const {
+// return the de reading for a particular board and channel.  Return 0 if not healthy
+float AP_Wingtip::get_de(uint8_t board, uint8_t rpm_channel) const
+{
     return 1.0f;
-    //return _de[instance];
 }
-*/
+
+
