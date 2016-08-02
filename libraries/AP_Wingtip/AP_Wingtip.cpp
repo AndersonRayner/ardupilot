@@ -73,8 +73,10 @@ void AP_Wingtip::init(void)
             break;
 
         case WINGTIP_TYPE_X2 :
-           // drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
-           // drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            instance++;
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            // I should add the i2c address to this constructor system in the future...
             break;
 
         case WINGTIP_TYPE_X4 :
