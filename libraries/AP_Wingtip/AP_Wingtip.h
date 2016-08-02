@@ -19,21 +19,47 @@
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Param/AP_Param.h>
 #include <AP_Math/AP_Math.h>
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-#include <AP_HAL/GPIO.h>
-#include <AP_HAL_Linux/GPIO_BBB.h>
-#endif
+
+// Number of backends allowed
+#define WINGTIP_MAX_BACKENDS 2
+
+// Define I2C bus
+#define WINGTIP_BOARD_RESET_LEVEL 0
+#define WINGTIP_I2C_BUS 1
+#define WINGTIP_I2C_ADDR0 32
+#define WINGTIP_I2C_ADDR1 33
+
+class AP_Wingtip_Backend;
 
 class AP_Wingtip
 {
 public:
+    friend class AP_Wingtip_Backend;
 
     AP_Wingtip(void);
 
+    // RPM driver types
+    enum Wingtip_Type {
+        WINGTIP_TYPE_NONE    = 0,
+        WINGTIP_TYPE_X2      = 1,
+        WINGTIP_TYPE_X4      = 2,
+    };
+
+
+    // The RPM_State structure is filled in by the backend driver
+    struct Wingtip_State {
+        bool                   enabled;
+        bool                   healthy;
+        uint8_t                instance;        // the instance number of this wingtip board
+
+        uint64_t               last_reading_ms; // time of last reading
+        uint16_t               rpm[4];          // up to four RPMs per board
+        uint16_t               de_raw[4];       // up to four de (raw) readings per board
+        float                  de[4];           // up to four de readings per board
+    };
+
     // parameters for each instance
     AP_Int8  _type;
-    bool _healthy[2];  // RPM1 RPM2 RPM3 RPM4 de1 de2
-    bool _enabled[2];  // RPM1 RPM2 RPM3 RPM4 de1 de2
 
     static const struct AP_Param::GroupInfo var_info[];
 
@@ -43,12 +69,31 @@ public:
     // update state of all rpm sensors. Should be called from main loop
     void update(void);
 
-    //  return RPM for a sensor.
-    uint16_t get_rpm(uint8_t instance) const;
+    // returns the number of sensors
+    uint8_t num_sensors(void) const {
+        return num_instances;
+    }
 
-    // return de for a sensor.
-    uint16_t get_de_raw(uint8_t instance) const;
-    float    get_de(uint8_t instance) const;
+    //  return RPM for a sensor and channel.
+    uint16_t get_rpm(uint8_t board, uint8_t channel) const;
+    uint16_t get_rpm(uint8_t channel) const {
+        // default to board 0 if only channel is given
+        return get_rpm(0, channel);
+    }
+
+    // return raw de for a sensor and channel.
+    uint16_t get_de_raw(uint8_t board, uint8_t channel) const;
+    uint16_t get_de_raw(uint8_t channel) const {
+        // default to board 0 if only channel is given
+        return get_de_raw(0, channel);
+    }
+
+    // return de for a sensor and channel.
+    float    get_de(uint8_t board, uint8_t channel) const;
+    float    get_de(uint8_t channel) const {
+        // default to board 0 if only channel is given
+        return get_de(0, channel);
+    }
 
     // return if an instance is healthy
     bool healthy(uint8_t instance) const;
@@ -57,15 +102,8 @@ public:
     bool enabled(uint8_t instance) const;
 
 private:
-    uint16_t _RPM[4];
-    uint16_t _de_raw[2];
-    float    _de[2];
-
-    union wingtip_data {
-       uint8_t rxBuffer[9];
-       uint16_t data[4];
-    };
-
-    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
+    Wingtip_State state[WINGTIP_MAX_BACKENDS];
+    AP_Wingtip_Backend *drivers[WINGTIP_MAX_BACKENDS];
+    uint8_t num_instances:2;
 
 };

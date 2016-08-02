@@ -128,6 +128,8 @@ protected:
     float battery_current = 0;
     float rpm1 = 0;
     float rpm2 = 0;
+    float rpm3 = 0;
+    float rpm4 = 0;
     uint8_t rcin_chan_count = 0;
     float rcin[8];
 

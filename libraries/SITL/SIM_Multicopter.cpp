@@ -58,6 +58,13 @@ void MultiCopter::update(const struct sitl_input &input)
 
     Vector3f rot_accel;
 
+    // update rpms
+    rpm1 = input.servos[0]*0.75f + rpm1*0.25f;
+    rpm2 = input.servos[1]*0.75f + rpm2*0.25f;
+    rpm3 = input.servos[2]*0.75f + rpm3*0.25f;
+    rpm4 = input.servos[3]*0.75f + rpm4*0.25f;
+
+    // calculate forces on vehicle
     calculate_forces(input, rot_accel, accel_body);
 
     update_dynamics(rot_accel);

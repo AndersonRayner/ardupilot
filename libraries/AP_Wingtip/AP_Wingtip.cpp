@@ -15,23 +15,18 @@
  */
 
 #include "AP_Wingtip.h"
-#include <AP_HAL/I2CDevice.h>
+#include "Wingtip_x2.h"
+#include "Wingtip_x4.h"
+#include "Wingtip_SITL.h"
 
 extern const AP_HAL::HAL& hal;
 
-// Define reset pins
+// Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-AP_HAL::DigitalSource *_cs;
-#define _TYPE_default 1
+#define _TYPE_default 2
 #else
 #define _TYPE_default 0
 #endif
-
-// Define I2C bus
-#define WINGTIP_BOARD_RESET_LEVEL 0
-#define WINGTIP_I2C_BUS 1
-#define WINGTIP_I2C_ADDR0 32
-#define WINGTIP_I2C_ADDR1 33
 
 // table of user settable parameters
 const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
@@ -44,228 +39,123 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
         AP_GROUPEND
 };
 
-AP_Wingtip::AP_Wingtip(void)
+AP_Wingtip::AP_Wingtip(void) :
+    num_instances(0)
 {
     AP_Param::setup_object_defaults(this, var_info);
 
+    // init state and drivers
+    memset(state,0,sizeof(state));
+    memset(drivers,0,sizeof(drivers));
 }
 
 //  initialise the AP_Wingtip class.
 void AP_Wingtip::init(void)
 {
-    memset(_healthy,0,sizeof(_healthy));  // Haven't received a reading yet -> assume not healthy
-    memset(_enabled,1,sizeof(_enabled));
-    memset(_RPM,0,sizeof(_RPM));
-    memset(_de,0,sizeof(_de));
+    if (num_instances != 0) {
+        // init called a 2nd time?
+        return;
+    }
 
+    uint8_t instance = num_instances;
 
-    // Reset the external boards
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-        _cs = hal.gpio->channel(BBB_P9_15);
-        if (_cs == NULL) {
-            AP_HAL::panic("Unable to reset wingtip boards");
-        }
-
-        _cs->mode(HAL_GPIO_OUTPUT);
-        _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
-        hal.scheduler->delay(5);
-        _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
-        hal.scheduler->delay(5);
+// SITL
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+        state[instance].instance = instance;
+        drivers[instance] = new AP_Wingtip_SITL(*this, instance, state[instance]);
 #endif
 
 
-     _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
+// BBBMini with I2C connection
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+        switch (_type) {
+        case WINGTIP_TYPE_NONE :
+            break;
+
+        case WINGTIP_TYPE_X2 :
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            instance++;
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            // I should add the i2c address to this constructor system in the future...
+            break;
+
+        case WINGTIP_TYPE_X4 :
+            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
+            break;
+
+        default :
+            AP_HAL::panic("Wingtip board type not recognised!\n");
+        }
+
+#endif
+
+    if (drivers[instance] != NULL) {
+        // we loaded a driver for this instance, so it must be
+        // present (although it may not be healthy)
+        num_instances = instance+1;
+    }
 
 }
 
 // Update all the wingtip data
 void AP_Wingtip::update(void)
 {
-    switch (_type) {
-    {
-    case 0 : // Fake the data
-        _RPM[0]++;
-        _RPM[1]++;
-        _RPM[2]++;
-        _RPM[3]++;
-
-        _de_raw[0]++;
-        _de_raw[1]++;
-
-        _healthy[0] = 1;  // rpm1, rpm2, de1
-        _healthy[1] = 1; // rpm3, rpm4, de2
-
-        break;
+    for (uint8_t ii=0; ii<num_instances; ii++) {
+        if (drivers[ii] != NULL) {
+            drivers[ii]->update();
+        }
     }
-    case 1 :  // From the wingtip boards
-    {
-
-       /*
-        *
-        *
-        *     _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
-    _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR1);
-        *
-        * union wingtip_data data1;
-        union wingtip_data data2;
-
-        uint8_t CRC;
-
-        // Take semaphore
-        if (!i2c1_sem->take(5)) {
-            return;
-        }
-
-        // Read the first wingtip board
-        hal.i2c1->read(0x32, 7, data1.rxBuffer);
-
-        // Calculate checksum
-        CRC = 0;
-        for (uint8_t ii = 0; ii<6; ii++) {
-            CRC = CRC ^ data1.rxBuffer[ii];
-        }
-
-        if (data1.rxBuffer[6] == CRC) {
-            _RPM[0]    = data1.data[0];
-            _RPM[1]    = data1.data[1];
-            _de_raw[0] = data1.data[2];
-
-            _healthy[0] = 1; // rpm1, rpm2, de1
-
-        } else {
-            // mark sensor unhealthy
-            _healthy[0] = 0; // rpm1, rpm2, de1
-        }
-
-        // Read the second wingtip board
-        hal.i2c1->read(0x33, 7, data2.rxBuffer);
-
-        // Return semaphore
-        i2c1_sem->give();
-
-        // Calculate checksum
-        CRC = 0;
-        for (uint8_t ii = 0; ii<6; ii++) {
-            CRC = CRC ^ data2.rxBuffer[ii];
-        }
-
-        if (data2.rxBuffer[6] == CRC) {
-            _RPM[2]    = data2.data[0];
-            _RPM[3]    = data2.data[1];
-            _de_raw[1] = data1.data[2];
-
-            _healthy[1] = 1; // rpm3, rpm4, de2
-
-        } else {
-            // mark sensor unhealthy
-            _healthy[1] = 0; // rpm3, rpm4, de2
-        }*/
-
-        break;
-    }
-    case 2 :    // Wingtip board that supplied all four RPMs
-    {
-        union wingtip_data data1;
-        uint8_t CRC;
-
-        // take i2c bus sempahore
-        if (!_dev || !_dev->get_semaphore()->take(15)) {
-            return;
-        }
-
-        // Read data from board
-        if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
-            return;
-        }
-
-        // Return semaphore
-        _dev->get_semaphore()->give();
-
-        // Calculate checksum
-        CRC = 0;
-        for (uint8_t ii = 0; ii<8; ii++) {
-            CRC = CRC ^ data1.rxBuffer[ii];
-        }
-
-        if (data1.rxBuffer[8] == CRC) {
-            _RPM[0] = data1.data[0];
-            _RPM[1] = data1.data[1];
-            _RPM[2] = data1.data[2];
-            _RPM[3] = data1.data[3];
-
-            _healthy[0] = 1; // rpm1, rpm2, de1
-            _healthy[1] = 1; // rpm3, rpm4, de2
-
-        } else {
-            // mark sensor unhealthy
-            _healthy[0] = 0; // rpm1, rpm2, de1
-            _healthy[1] = 0; // rpm3, rpm4, de2
-        }
-
-        break;
-    }
-    default :
-    {
-        // do nothing at the moment
-        // hal.console->printf("No type recognised!!! AP_Wingtip._type");
-        break;
-    }
-    }
-
-    // Convert de_raw values to a calibrated de
-    _de[0]  = (float)_de_raw[0];
-    _de[1]  = (float)_de_raw[1];
 }
 
 
 //  Check if an instance is healthy
 bool AP_Wingtip::healthy(uint8_t instance) const
 {
-    if (instance >= 1) {
+    if (instance >= num_instances) {
         return false;
-    } else {
-        return _healthy[instance];
     }
-}
 
+    return state[instance].healthy;
+}
 
 // Check if an instance is activated
 bool AP_Wingtip::enabled(uint8_t instance) const
 {
-    if (instance >= 1) {
+    if (instance >= num_instances) {
         return false;
-    } else {
-        return _enabled[instance];
     }
+
+    return state[instance].enabled;
 }
 
-// Return the RPM for an instance.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_rpm(uint8_t instance) const {
-    if (instance >= 6) {
+// return the rpm reading for a particular board and channel.  Return 0 if not healthy
+uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t channel) const
+{
+    if (board >= num_instances) {
         return false;
-//    } else if (healthy(instance)) {
- //       return _RPM[instance];
-    } else {
-     //   return 0;
-        return _RPM[instance];
     }
+
+    return state[board].rpm[channel];
 }
 
-// return raw de for a sensor.  Return 0 if not healthy
-uint16_t AP_Wingtip::get_de_raw(uint8_t instance) const {
-   // if (healthy(instance+4)) {
-        return _de_raw[instance];
-  //  } else {
-    //    return 0.0f;
-  //  }
+// return the raw de reading for a particular board and channel.  Return 0 if not healthy
+uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t channel) const
+{
+    if (board >= num_instances) {
+        return false;
+    }
+
+    return state[board].de_raw[channel];
+}
+
+// return the de reading for a particular board and channel.  Return 0 if not healthy
+float AP_Wingtip::get_de(uint8_t board, uint8_t channel) const
+{
+    if (board >= num_instances) {
+        return false;
+    }
+
+    return state[board].de[channel];
 }
 
 
-// return de for a sensor.  Return 0 if not healthy
-float AP_Wingtip::get_de(uint8_t instance) const {
- //   if (healthy(instance+4)) {
-        return _de[instance];
-  //  } else {
- //       return 0.0f;
- //   }
-}

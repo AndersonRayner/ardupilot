@@ -23,6 +23,8 @@ struct sitl_fdm {
     double battery_current; // Amps
     double rpm1;            // main prop RPM
     double rpm2;            // secondary RPM
+    double rpm3;            // rpm3
+    double rpm4;            // rpm4
     uint8_t rcin_chan_count;
     float  rcin[8];         // RC input 0..1
     Vector3f bodyMagField;  // Truth XYZ magnetic field vector in body-frame. Includes motor interference. Units are milli-Gauss.

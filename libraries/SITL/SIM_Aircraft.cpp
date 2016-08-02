@@ -342,6 +342,8 @@ void Aircraft::fill_fdm(struct sitl_fdm &fdm)
     fdm.battery_current = battery_current;
     fdm.rpm1 = rpm1;
     fdm.rpm2 = rpm2;
+    fdm.rpm3 = rpm3;
+    fdm.rpm4 = rpm4;
     fdm.rcin_chan_count = rcin_chan_count;
     memcpy(fdm.rcin, rcin, rcin_chan_count*sizeof(float));
     fdm.bodyMagField = mag_bf;
