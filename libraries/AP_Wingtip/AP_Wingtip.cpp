@@ -15,6 +15,7 @@
  */
 
 #include "AP_Wingtip.h"
+#include "Wingtip_x2.h"
 #include "Wingtip_x4.h"
 #include "Wingtip_SITL.h"
 
