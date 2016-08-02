@@ -1406,8 +1406,8 @@ const AP_Param::ConversionInfo conversion_table[] = {
     { Parameters::k_param_serial1_baud,       0,      AP_PARAM_INT16, "SERIAL1_BAUD" },
     { Parameters::k_param_serial2_baud,       0,      AP_PARAM_INT16, "SERIAL2_BAUD" },
 
-    { Parameters::k_param_airspeed_min,       0,      AP_PARAM_INT16, "ARSPD_MIN" },
-    { Parameters::k_param_airspeed_max,       0,      AP_PARAM_INT16, "ARSPD_MAX" },
+    { Parameters::k_param_airspeed_min,       0,      AP_PARAM_INT16, "ARSPD_FBW_MIN" },
+    { Parameters::k_param_airspeed_max,       0,      AP_PARAM_INT16, "ARSPD_FBW_MAX" },
 
     // these are needed to cope with the change to treat nested index 0 as index 63
     { Parameters::k_param_quadplane,          3,      AP_PARAM_FLOAT, "Q_RT_RLL_P" },
