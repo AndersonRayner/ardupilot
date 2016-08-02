@@ -30,6 +30,7 @@ AP_Wingtip_SITL::AP_Wingtip_SITL(AP_Wingtip &_wingtip, uint8_t instance, AP_Wing
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
     state.enabled = init();
+    state.instance = instance;
 
     if (state.enabled) {
         hal.console->printf("    Wingtip_SITL sensor [ x ]\n");
@@ -65,10 +66,22 @@ void AP_Wingtip_SITL::update()
 
     // Take RPMs from sitl and put into state struct
     state.last_reading_ms = AP_HAL::micros64();
+
     state.rpm[0] = sitl->state.rpm1;
     state.rpm[1] = sitl->state.rpm2;
     state.rpm[2] = sitl->state.rpm3;
     state.rpm[3] = sitl->state.rpm4;
+
+    // Set the rest to zero
+    state.de_raw[0] = 0;
+    state.de_raw[1] = 0;
+    state.de_raw[2] = 0;
+    state.de_raw[3] = 0;
+
+    state.de[0] = 0.0f;
+    state.de[1] = 0.0f;
+    state.de[2] = 0.0f;
+    state.de[3] = 0.0f;
 
     state.healthy = true;
 

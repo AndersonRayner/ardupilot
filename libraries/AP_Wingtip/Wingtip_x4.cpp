@@ -44,6 +44,8 @@ AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip:
     } else {
         hal.console->printf("    Wingtip_x4 sensor [   ]\n");
     }
+
+    state.instance = instance;
 }
 
 
@@ -128,6 +130,20 @@ void AP_Wingtip_x4::update()
         // mark sensor unhealthy
         state.healthy = false;
     }
+
+    // Other data fields - set to zero
+    state.de_raw[0] = 0;
+    state.de_raw[1] = 0;
+    state.de_raw[2] = 0;
+    state.de_raw[3] = 0;
+
+    state.de[0] = 0.0f;
+    state.de[1] = 0.0f;
+    state.de[2] = 0.0f;
+    state.de[3] = 0.0f;
+
+    state.healthy = true;
+
 }
 
 #endif // CONFIG_HAL_BOARD_SUBTYPE

@@ -81,7 +81,7 @@ void AP_Wingtip::init(void)
             break;
 
         default :
-            hal.console->panic("Wingtip board type not recognised!\n");
+            AP_HAL::panic("Wingtip board type not recognised!\n");
         }
 
 #endif
