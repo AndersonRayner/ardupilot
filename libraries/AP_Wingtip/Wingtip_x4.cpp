@@ -72,10 +72,10 @@ bool AP_Wingtip_x4::init()
     hal.scheduler->delay(5);
 
     // create i2c bus object
-    _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
+    _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0));
 
     // take i2c bus semaphore
-    if (!_dev || !_dev->get_semaphore()->take(200)) {
+    if (!_dev || !_dev->get_semaphore()->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
         return false;
     }
 
@@ -88,15 +88,13 @@ bool AP_Wingtip_x4::init()
 
 void AP_Wingtip_x4::update()
 {
-    // hal.console->printf("Updating data for wingtip_x4 board\n");
-
     union wingtip_data data1;
     uint8_t CRC;
 
     // take i2c bus sempahore
     if (!_dev->get_semaphore()->take_nonblocking()) {
-            return;
-        }
+        return;
+    }
 
     // Read data from board
     if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
@@ -128,6 +126,7 @@ void AP_Wingtip_x4::update()
 
     } else {
         // mark sensor unhealthy
+        hal.console->printf("Wingtip %d failed checksum\n",state.instance);
         state.healthy = false;
     }
 

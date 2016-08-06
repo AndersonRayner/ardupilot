@@ -13,6 +13,11 @@ static ToshibaLED_PX4 toshiba_led;
 static ToshibaLED_I2C toshiba_led;
 #endif
 
+#define LED_DIM 0x11
+
+void full_spectrum();
+void blink();
+
 void setup(void)
 {
     // display welcome message
@@ -65,8 +70,6 @@ void full_spectrum()
         }
     }
 }
-
-#define LED_DIM 0x11
 
 // blink - blink the led at 10hz for 10 seconds
 void blink()

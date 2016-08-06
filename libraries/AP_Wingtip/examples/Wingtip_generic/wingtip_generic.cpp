@@ -15,7 +15,7 @@
  */
 
 /*
- *   RPM_generic.cpp - RPM library example sketch
+ *   wingtip_generic.cpp - RPM library example sketch
  *
  */
 
@@ -30,7 +30,7 @@ static AP_Wingtip Wingtip;
 void setup()
 {
     hal.console->println("APM Wingtip Sensor library test\n\n");
-	AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", WINGTIP_TYPE);
+    AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", WINGTIP_TYPE);
     Wingtip.init();
 
 }

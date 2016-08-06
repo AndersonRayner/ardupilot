@@ -24,9 +24,6 @@
 #include "Wingtip_Backend.h"
 
 #include <AP_HAL/AP_HAL.h>
-#include <AP_Param/AP_Param.h>
-#include <AP_HAL/utility/OwnPtr.h>
-#include <AP_HAL/I2CDevice.h>
 #include <utility>
 #include <AP_HAL/I2CDevice.h>
 
@@ -47,11 +44,10 @@ public:
     // update state
     void update();
     
-//protected:
+protected:
 
 private:
     AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
-
 
     // Struct for receiving data via I2C
     union wingtip_data {
