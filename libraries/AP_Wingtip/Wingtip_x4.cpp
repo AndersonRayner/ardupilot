@@ -88,7 +88,6 @@ bool AP_Wingtip_x4::init()
 
 void AP_Wingtip_x4::update()
 {
-    union wingtip_data data1;
     uint8_t CRC;
 
     // take i2c bus sempahore

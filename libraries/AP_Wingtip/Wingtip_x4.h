@@ -53,7 +53,7 @@ private:
     union wingtip_data {
        uint8_t rxBuffer[9];
        uint16_t data[4];
-    };
+    } data1;
 
 };
 
