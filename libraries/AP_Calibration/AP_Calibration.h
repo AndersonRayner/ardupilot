@@ -33,6 +33,7 @@
 #include <AP_InertialSensor/AP_InertialSensor.h>
 #include <AP_Compass/AP_Compass.h>
 #include <AP_Wingtip/AP_Wingtip.h>
+#include <AP_BattMonitor/AP_BattMonitor.h>
 
 class AP_Calibration
 {
