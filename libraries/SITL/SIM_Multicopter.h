@@ -44,6 +44,26 @@ protected:
     // calculate rotational and linear accelerations
     void calculate_forces(const struct sitl_input &input, Vector3f &rot_accel, Vector3f &body_accel);
     Frame *frame;
+
+private:
+    void prop_dynamics(const struct sitl_input &input);
+    void prop_forces(void);
+    void aero_forces(void);
+    float calc_thrust(float rpm);
+    float calc_torque(float rpm);
+
+    Vector3f I_vector;
+    Vector3f F_prop, M_prop;
+    Vector3f F_aero, M_aero;
+
+    // Propeller data
+    const double D = 0.1;
+    const double rho = 1.225;
+    const double CT = 0.01; // Adjust until it's about right
+    const double CQ = 0.001; // Adjust until it's about right
+
+    // debuggin
+    uint16_t counter = 0;
 };
 
 }

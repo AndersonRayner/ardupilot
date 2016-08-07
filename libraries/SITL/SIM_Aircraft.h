@@ -97,6 +97,10 @@ public:
         return velocity_air_ef;
     }
     
+    const Vector3f &get_velocity_air_bf(void) const {
+        return velocity_air_bf;
+    }
+
     const Matrix3f &get_dcm(void) const {
         return dcm;
     }
