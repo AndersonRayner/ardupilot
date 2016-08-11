@@ -152,7 +152,7 @@ int32_t AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool
         }
         float ki_rate = k_I * gains.tau;
 		//only integrate if gain and time step are positive and airspeed above min value.
-		if (dt > 0 && aspeed > 0.5f*float(airspeed.get_airspeed_min())) {
+		if (dt > 0 && aspeed > 0.5f*airspeed.get_airspeed_min()) {
 		    float integrator_delta = rate_error * ki_rate * delta_time * scaler;
 			if (_last_out < -45) {
 				// prevent the integrator from increasing if surface defln demand is above the upper limit

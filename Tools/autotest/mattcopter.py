@@ -47,8 +47,8 @@ def fly_manoeuvres(mavproxy, mav, override_mode=0, timeout=300):
     wait_seconds(mav, 10)
 
     # switch to manoeuvre mode 
-    mavproxy.send('mode 20\n')
-    wait_mode(mav, 'Mode(20)'); # it never gets this because it's not a named mode yet
+    mavproxy.send('mode 21\n')
+    wait_mode(mav, 'Mode(21)'); # it never gets this because it's not a named mode yet
 
     # Make sure everything is centred so that manoeuvres can start
     mavproxy.send('rc 1 1500\n')

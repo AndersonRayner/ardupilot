@@ -54,6 +54,10 @@
 # define MAIN_LOOP_SECONDS 0.0025f
 # define MAIN_LOOP_MICROS  2500
 
+#ifndef ARMING_DELAY_SEC
+    # define ARMING_DELAY_SEC 2.0f
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // FRAME_CONFIG
 //
@@ -361,9 +365,6 @@
 #ifndef LAND_START_ALT
  # define LAND_START_ALT 1000         // altitude in cm where land controller switches to slow rate of descent
 #endif
-#ifndef LAND_REQUIRE_MIN_THROTTLE_TO_DISARM
- # define LAND_REQUIRE_MIN_THROTTLE_TO_DISARM DISABLED  // we do not require pilot to reduce throttle to minimum before vehicle will disarm in AUTO, LAND or RTL
-#endif
 #ifndef LAND_REPOSITION_DEFAULT
  # define LAND_REPOSITION_DEFAULT   1   // by default the pilot can override roll/pitch during landing
 #endif
@@ -597,6 +598,16 @@
 
 #ifndef AUTO_DISARMING_DELAY
 # define AUTO_DISARMING_DELAY  10
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// Throw mode configuration
+//
+#ifndef THROW_HIGH_SPEED
+# define THROW_HIGH_SPEED       500.0f  // vehicle much reach this total 3D speed in cm/s (or be free falling)
+#endif
+#ifndef THROW_VERTICAL_SPEED
+# define THROW_VERTICAL_SPEED   50.0f   // motors start when vehicle reaches this total 3D speed in cm/s
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

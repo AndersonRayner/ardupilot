@@ -62,7 +62,7 @@ COMMON_VEHICLE_DEPENDENT_LIBRARIES = [
     'AP_ICEngine',
 ]
 
-def _get_legacy_defines(sketch_name):
+def get_legacy_defines(sketch_name):
     return [
         'APM_BUILD_DIRECTORY=APM_BUILD_' + sketch_name,
         'SKETCH="' + sketch_name + '"',
@@ -113,7 +113,7 @@ def ap_program(bld,
         program_name = bld.path.name
 
     if use_legacy_defines:
-        kw['defines'].extend(_get_legacy_defines(bld.path.name))
+        kw['defines'].extend(get_legacy_defines(bld.path.name))
 
     kw['cxxflags'] = kw.get('cxxflags', []) + ['-include', 'ap_config.h']
     kw['features'] = kw.get('features', []) + bld.env.AP_PROGRAM_FEATURES
@@ -168,13 +168,13 @@ def unique_list(items):
 def ap_stlib(bld, **kw):
     if 'name' not in kw:
         bld.fatal('Missing name for ap_stlib')
-    if 'vehicle' not in kw:
-        bld.fatal('Missing vehicle for ap_stlib')
-    if 'libraries' not in kw:
-        bld.fatal('Missing libraries for ap_stlib')
+    if 'ap_vehicle' not in kw:
+        bld.fatal('Missing ap_vehicle for ap_stlib')
+    if 'ap_libraries' not in kw:
+        bld.fatal('Missing ap_libraries for ap_stlib')
 
     sources = []
-    libraries = unique_list(kw['libraries'] + bld.env.AP_LIBRARIES)
+    libraries = unique_list(kw['ap_libraries'] + bld.env.AP_LIBRARIES)
 
     for lib_name in libraries:
         lib_node = bld.srcnode.find_dir('libraries/' + lib_name)
@@ -187,7 +187,7 @@ def ap_stlib(bld, **kw):
     kw['features'] = kw.get('features', []) + bld.env.AP_STLIB_FEATURES
     kw['source'] = sources
     kw['target'] = kw['name']
-    kw['defines'] = _get_legacy_defines(kw['vehicle'])
+    kw['defines'] = get_legacy_defines(kw['ap_vehicle'])
     kw['idx'] = _get_next_idx()
 
     bld.stlib(**kw)

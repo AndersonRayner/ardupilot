@@ -230,27 +230,29 @@ private:
     // Documentation of GLobals:
     union {
         struct {
-            uint8_t unused1             : 1; // 0
-            uint8_t simple_mode         : 2; // 1,2     // This is the state of simple mode : 0 = disabled ; 1 = SIMPLE ; 2 = SUPERSIMPLE
-            uint8_t pre_arm_rc_check    : 1; // 3       // true if rc input pre-arm checks have been completed successfully
-            uint8_t pre_arm_check       : 1; // 4       // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
-            uint8_t auto_armed          : 1; // 5       // stops auto missions from beginning until throttle is raised
-            uint8_t logging_started     : 1; // 6       // true if dataflash logging has started
-            uint8_t land_complete       : 1; // 7       // true if we have detected a landing
-            uint8_t new_radio_frame     : 1; // 8       // Set true if we have new PWM data to act on from the Radio
-            uint8_t usb_connected       : 1; // 9       // true if APM is powered from USB connection
-            uint8_t rc_receiver_present : 1; // 10      // true if we have an rc receiver present (i.e. if we've ever received an update
-            uint8_t compass_mot         : 1; // 11      // true if we are currently performing compassmot calibration
-            uint8_t motor_test          : 1; // 12      // true if we are currently performing the motors test
-            uint8_t initialised         : 1; // 13      // true once the init_ardupilot function has completed.  Extended status to GCS is not sent until this completes
-            uint8_t land_complete_maybe : 1; // 14      // true if we may have landed (less strict version of land_complete)
-            uint8_t throttle_zero       : 1; // 15      // true if the throttle stick is at zero, debounced, determines if pilot intends shut-down when not using motor interlock
-            uint8_t system_time_set     : 1; // 16      // true if the system time has been set from the GPS
-            uint8_t gps_base_pos_set    : 1; // 17      // true when the gps base position has been set (used for RTK gps only)
-            enum HomeState home_state   : 2; // 18,19   // home status (unset, set, locked)
-            uint8_t using_interlock     : 1; // 20      // aux switch motor interlock function is in use
-            uint8_t motor_emergency_stop: 1; // 21      // motor estop switch, shuts off motors when enabled
-            uint8_t land_repo_active    : 1; // 22      // true if the pilot is overriding the landing position
+            uint8_t unused1                 : 1; // 0
+            uint8_t simple_mode             : 2; // 1,2     // This is the state of simple mode : 0 = disabled ; 1 = SIMPLE ; 2 = SUPERSIMPLE
+            uint8_t pre_arm_rc_check        : 1; // 3       // true if rc input pre-arm checks have been completed successfully
+            uint8_t pre_arm_check           : 1; // 4       // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
+            uint8_t auto_armed              : 1; // 5       // stops auto missions from beginning until throttle is raised
+            uint8_t logging_started         : 1; // 6       // true if dataflash logging has started
+            uint8_t land_complete           : 1; // 7       // true if we have detected a landing
+            uint8_t new_radio_frame         : 1; // 8       // Set true if we have new PWM data to act on from the Radio
+            uint8_t usb_connected           : 1; // 9       // true if APM is powered from USB connection
+            uint8_t rc_receiver_present     : 1; // 10      // true if we have an rc receiver present (i.e. if we've ever received an update
+            uint8_t compass_mot             : 1; // 11      // true if we are currently performing compassmot calibration
+            uint8_t motor_test              : 1; // 12      // true if we are currently performing the motors test
+            uint8_t initialised             : 1; // 13      // true once the init_ardupilot function has completed.  Extended status to GCS is not sent until this completes
+            uint8_t land_complete_maybe     : 1; // 14      // true if we may have landed (less strict version of land_complete)
+            uint8_t throttle_zero           : 1; // 15      // true if the throttle stick is at zero, debounced, determines if pilot intends shut-down when not using motor interlock
+            uint8_t system_time_set         : 1; // 16      // true if the system time has been set from the GPS
+            uint8_t gps_base_pos_set        : 1; // 17      // true when the gps base position has been set (used for RTK gps only)
+            enum HomeState home_state       : 2; // 18,19   // home status (unset, set, locked)
+            uint8_t using_interlock         : 1; // 20      // aux switch motor interlock function is in use
+            uint8_t motor_emergency_stop    : 1; // 21      // motor estop switch, shuts off motors when enabled
+            uint8_t land_repo_active        : 1; // 22      // true if the pilot is overriding the landing position
+            uint8_t motor_interlock_switch  : 1; // 23      // true if pilot is requesting motor interlock enable
+            uint8_t in_arming_delay         : 1; // 24      // true while we are armed but waiting to spin motors
         };
         uint32_t value;
     } ap;
@@ -405,11 +407,15 @@ private:
     // Flip
     Vector3f flip_orig_attitude;         // original copter attitude before flip
 
-    // Throw
-    bool throw_early_exit_interlock = true; // value of the throttle interlock that must be restored when exiting throw mode early
-    bool throw_flight_commenced = false;    // true when the throw has been detected and the motors and control loops are running
-    uint32_t throw_free_fall_start_ms = 0;  // system time free fall was detected
-    float throw_free_fall_start_velz = 0.0f;// vertical velocity when free fall was detected
+    // throw mode state
+    struct {
+        ThrowModeStage stage;
+        ThrowModeStage prev_stage;
+        uint32_t last_log_ms;
+        bool nextmode_attempted;
+        uint32_t free_fall_start_ms;    // system time free fall was detected
+        float free_fall_start_velz;     // vertical velocity when free fall was detected
+    } throw_state = {Throw_Disarmed, Throw_Disarmed, 0, false, 0, 0.0f};
 
     // Battery Sensors
     AP_BattMonitor battery;
@@ -488,6 +494,8 @@ private:
     uint16_t mainLoop_count;
     // Loiter timer - Records how long we have been in loiter
     uint32_t rtl_loiter_start_time;
+    // arm_time_ms - Records when vehicle was armed. Will be Zero if we are disarmed.
+    uint32_t arm_time_ms;
 
     // Used to exit the roll and pitch auto trim function
     uint8_t auto_trim_counter;
@@ -646,8 +654,6 @@ private:
     float get_pilot_desired_throttle(int16_t throttle_control);
     float get_pilot_desired_climb_rate(float throttle_control);
     float get_non_takeoff_throttle();
-    float get_takeoff_trigger_throttle();
-    float get_throttle_pre_takeoff(float input_thr);
     float get_surface_tracking_climb_rate(int16_t target_rate, float current_alt_target, float dt);
     void auto_takeoff_set_start_alt(void);
     void auto_takeoff_attitude_run(float target_yaw_rate);
@@ -706,6 +712,7 @@ private:
 #endif
     void Log_Write_Precland();
     void Log_Write_GuidedTarget(uint8_t target_type, const Vector3f& pos_target, const Vector3f& vel_target);
+    void Log_Write_Throw(ThrowModeStage stage, float velocity, float velocity_z, float accel, float ef_accel_z, bool throw_detect, bool attitude_ok, bool height_ok, bool position_ok);
     void Log_Write_Vehicle_Startup_Messages();
     void Log_Read(uint16_t log_num, uint16_t start_page, uint16_t end_page);
     void start_logging() ;
@@ -829,6 +836,8 @@ private:
     void guided_limit_set(uint32_t timeout_ms, float alt_min_cm, float alt_max_cm, float horiz_max_cm);
     void guided_limit_init_time_and_pos();
     bool guided_limit_check();
+    bool guided_nogps_init(bool ignore_checks);
+    void guided_nogps_run();
     bool land_init(bool ignore_checks);
     void land_run();
     void land_gps_run();
@@ -852,11 +861,11 @@ private:
 
     // Throw to launch functionality
     bool throw_init(bool ignore_checks);
-    void throw_exit();
     void throw_run();
     bool throw_detected();
     bool throw_attitude_good();
     bool throw_height_good();
+    bool throw_position_good();
 
     bool rtl_init(bool ignore_checks);
     void rtl_restart_without_terrain();
@@ -871,7 +880,7 @@ private:
     void rtl_land_start();
     void rtl_land_run();
     void rtl_build_path(bool terrain_following_allowed);
-    void rtl_compute_return_alt(const Location_Class &rtl_origin_point, Location_Class &rtl_return_target, bool terrain_following_allowed);
+    void rtl_compute_return_target(bool terrain_following_allowed);
     bool sport_init(bool ignore_checks);
     void sport_run();
     bool stabilize_init(bool ignore_checks);

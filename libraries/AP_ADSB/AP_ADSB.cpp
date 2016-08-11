@@ -29,7 +29,6 @@
 #include <AP_Vehicle/AP_Vehicle.h>
 #include <GCS_MAVLink/GCS.h>
 
-#define VEHICLE_THREAT_RADIUS_M         1000
 #define VEHICLE_TIMEOUT_MS              5000   // if no updates in this time, drop it from the list
 #define ADSB_VEHICLE_LIST_SIZE_DEFAULT  25
 #define ADSB_VEHICLE_LIST_SIZE_MAX      100
@@ -50,14 +49,9 @@ const AP_Param::GroupInfo AP_ADSB::var_info[] = {
     // @Description: Enable ADS-B
     // @Values: 0:Disabled,1:Enabled
     // @User: Standard
-    AP_GROUPINFO("ENABLE",     0, AP_ADSB, _enabled,    0),
+    AP_GROUPINFO_FLAGS("ENABLE",     0, AP_ADSB, _enabled,    0, AP_PARAM_FLAG_ENABLE),
 
-    // @Param: BEHAVIOR
-    // @DisplayName: ADSB based Collision Avoidance Behavior
-    // @Description: ADSB based Collision Avoidance Behavior selector
-    // @Values: 0:None,1:Loiter,2:LoiterAndDescend
-    // @User: Advanced
-    AP_GROUPINFO("BEHAVIOR",   1, AP_ADSB, avoid_state.behavior, ADSB_BEHAVIOR_NONE),
+    // index 1 is reserved - was BEHAVIOR
 
     // @Param: LIST_MAX
     // @DisplayName: ADSB vehicle list size
@@ -143,11 +137,8 @@ void AP_ADSB::init(void)
         }
     }
 
-    // avoid_state
-    avoid_state.lowest_threat_distance = 0;
-    avoid_state.highest_threat_distance = 0;
-    avoid_state.another_vehicle_within_radius = false;
-    avoid_state.is_evading_threat = false;
+    furthest_vehicle_distance = 0;
+    furthest_vehicle_index = 0;
 
     // out_state
     set_callsign("PING1234", false);
@@ -204,16 +195,16 @@ void AP_ADSB::update(void)
         }
     }
 
-// -----------------------
     if (_my_loc.is_zero()) {
         // if we don't have a GPS lock then there's nothing else to do
         return;
     }
-// -----------------------
 
+    if (out_state.chan < 0) {
+        // if there's no transceiver detected then do not set ICAO and do not service the transceiver
+        return;
+    }
 
-
-    perform_threat_detection();
 
     // ensure it's positive 24bit but allow -1
     if (out_state.cfg.ICAO_id_param <= -1 || out_state.cfg.ICAO_id_param > 0x00FFFFFF) {
@@ -238,82 +229,45 @@ void AP_ADSB::update(void)
 
 
     // send static configuration data to transceiver, every 10s
-    if (out_state.chan >= 0 && out_state.chan < MAVLINK_COMM_NUM_BUFFERS) {
-        if (now - out_state.chan_last_ms > ADSB_CHAN_TIMEOUT_MS) {
-            // haven't gotten a heartbeat health status packet in a while, assume hardware failure
-            // TODO: reset out_state.chan
-            out_state.chan = -1;
-        } else {
-            mavlink_channel_t chan = (mavlink_channel_t)(MAVLINK_COMM_0 + out_state.chan);
-            if (now - out_state.last_config_ms >= 5000 && HAVE_PAYLOAD_SPACE(chan, UAVIONIX_ADSB_OUT_CFG)) {
-                out_state.last_config_ms = now;
-                send_configure(chan);
-            } // last_config_ms
+    if (out_state.chan_last_ms > 0 && now - out_state.chan_last_ms > ADSB_CHAN_TIMEOUT_MS) {
+        // haven't gotten a heartbeat health status packet in a while, assume hardware failure
+        // TODO: reset out_state.chan
+        out_state.chan = -1;
+        GCS_MAVLINK::send_statustext_all(MAV_SEVERITY_ERROR, "ADSB: Transceiver heartbeat timed out");
+    } else if (out_state.chan < MAVLINK_COMM_NUM_BUFFERS) {
+        mavlink_channel_t chan = (mavlink_channel_t)(MAVLINK_COMM_0 + out_state.chan);
+        if (now - out_state.last_config_ms >= 5000 && HAVE_PAYLOAD_SPACE(chan, UAVIONIX_ADSB_OUT_CFG)) {
+            out_state.last_config_ms = now;
+            send_configure(chan);
+        } // last_config_ms
 
-            // send dynamic data to transceiver at 5Hz
-            if (now - out_state.last_report_ms >= 200 && HAVE_PAYLOAD_SPACE(chan, UAVIONIX_ADSB_OUT_DYNAMIC)) {
-                out_state.last_report_ms = now;
-                send_dynamic_out(chan);
-            } // last_report_ms
-        } // chan_last_ms
-    }
+        // send dynamic data to transceiver at 5Hz
+        if (now - out_state.last_report_ms >= 200 && HAVE_PAYLOAD_SPACE(chan, UAVIONIX_ADSB_OUT_DYNAMIC)) {
+            out_state.last_report_ms = now;
+            send_dynamic_out(chan);
+        } // last_report_ms
+    } // chan_last_ms
 }
 
 /*
- * calculate threat vectors
+ * determine index and distance of furthest vehicle. This is
+ * used to bump it off when a new closer aircraft is detected
  */
-void AP_ADSB::perform_threat_detection(void)
+void AP_ADSB::determine_furthest_aircraft(void)
 {
-    if (in_state.vehicle_count == 0 || _my_loc.is_zero()) {
-        // nothing to do or current location is unknown so we can't calculate any collisions
-        avoid_state.another_vehicle_within_radius = false;
-        avoid_state.lowest_threat_distance = 0; // 0 means invalid
-        avoid_state.highest_threat_distance = 0; // 0 means invalid
-        return;
-    }
-
-    // TODO: compute lowest_threat using the 3D flight vector with respect to
-    // time-to-collision and probability of collision instead of furthest 2D distance
-
-    // TODO: compute highest_threat using the 3D flight vector with respect to
-    // time-to-collision and probability of collision instead of closest 2D distance
-
-    float min_distance = 0;
     float max_distance = 0;
-    uint16_t min_distance_index = 0;
     uint16_t max_distance_index = 0;
 
     for (uint16_t index = 0; index < in_state.vehicle_count; index++) {
         float distance = _my_loc.get_distance(get_location(in_state.vehicle_list[index]));
-        if (min_distance > distance || index == 0) {
-            min_distance = distance;
-            min_distance_index = index;
-        }
         if (max_distance < distance || index == 0) {
             max_distance = distance;
             max_distance_index = index;
         }
-
-        if (distance <= VEHICLE_THREAT_RADIUS_M) {
-            in_state.vehicle_list[index].threat_level = ADSB_THREAT_HIGH;
-        } else {
-            in_state.vehicle_list[index].threat_level = ADSB_THREAT_LOW;
-        }
     } // for index
 
-    avoid_state.highest_threat_index = min_distance_index;
-    avoid_state.highest_threat_distance = min_distance;
-
-    avoid_state.lowest_threat_index = max_distance_index;
-    avoid_state.lowest_threat_distance = max_distance;
-
-    // if within radius, set flag and enforce a double radius to clear flag
-    if (is_zero(avoid_state.highest_threat_distance) ||  // 0 means invalid
-            avoid_state.highest_threat_distance > 2*VEHICLE_THREAT_RADIUS_M) {
-        avoid_state.another_vehicle_within_radius = false;
-    } else if (avoid_state.highest_threat_distance <= VEHICLE_THREAT_RADIUS_M) {
-        avoid_state.another_vehicle_within_radius = true;
-    }
+    furthest_vehicle_index = max_distance_index;
+    furthest_vehicle_distance = max_distance;
 }
 
 /*
@@ -337,14 +291,11 @@ Location_Class AP_ADSB::get_location(const adsb_vehicle_t &vehicle) const
 void AP_ADSB::delete_vehicle(const uint16_t index)
 {
     if (index < in_state.vehicle_count) {
-        // if the vehicle is the lowest/highest threat, invalidate it
-        if (index == avoid_state.lowest_threat_index) {
-            avoid_state.lowest_threat_distance = 0;
+        // if the vehicle is the furthest, invalidate it. It has been bumped
+        if (index == furthest_vehicle_index && furthest_vehicle_distance > 0) {
+            furthest_vehicle_distance = 0;
+            furthest_vehicle_index = 0;
         }
-        if (index == avoid_state.highest_threat_index) {
-            avoid_state.highest_threat_distance = 0;
-        }
-
         if (index != (in_state.vehicle_count-1)) {
             in_state.vehicle_list[index] = in_state.vehicle_list[in_state.vehicle_count-1];
         }
@@ -389,8 +340,17 @@ void AP_ADSB::update_vehicle(const mavlink_message_t* packet)
     float my_loc_distance_to_vehicle = _my_loc.get_distance(vehicle_loc);
     bool out_of_range = in_state.list_radius > 0 && !my_loc_is_zero && my_loc_distance_to_vehicle > in_state.list_radius;
     bool is_tracked_in_list = find_index(vehicle, &index);
+    uint32_t now = AP_HAL::millis();
 
-    if (vehicle_loc.is_zero() || out_of_range) {
+    // note the last time the receiver got a packet from the aircraft
+    vehicle.last_update_ms = now - (vehicle.info.tslc * 1000);
+
+    const uint16_t required_flags_position = ADSB_FLAGS_VALID_COORDS | ADSB_FLAGS_VALID_ALTITUDE;
+
+    if (vehicle_loc.is_zero() ||
+            out_of_range ||
+            !(vehicle.info.flags & required_flags_position) ||
+            now - vehicle.last_update_ms > VEHICLE_TIMEOUT_MS) {
 
         // vehicle is out of range or invalid lat/lng. If we're tracking it, delete from list. Otherwise ignore it.
         if (is_tracked_in_list) {
@@ -409,30 +369,41 @@ void AP_ADSB::update_vehicle(const mavlink_message_t* packet)
         set_vehicle(in_state.vehicle_count, vehicle);
         in_state.vehicle_count++;
 
-    } else if (!my_loc_is_zero &&
-            !is_zero(avoid_state.lowest_threat_distance) &&
-            my_loc_distance_to_vehicle < avoid_state.lowest_threat_distance) { // is closer than the furthest
+    } else {
+        // buffer is full. if new vehicle is closer than furthest, replace furthest with new
 
-        // buffer is full, replace the vehicle with lowest threat as long as it's not further away
-         // overwrite the lowest_threat/furthest
-        index = avoid_state.lowest_threat_index;
-        set_vehicle(index, vehicle);
+        if (my_loc_is_zero) {
+            // nothing else to do
+            furthest_vehicle_distance = 0;
+            furthest_vehicle_index = 0;
 
-        // this is now invalid because the vehicle was overwritten, need
-        // to run perform_threat_detection() to determine new one because
-        // we aren't keeping track of the second-furthest vehicle.
-        avoid_state.lowest_threat_distance = 0;
+        } else {
+            if (furthest_vehicle_distance <= 0) {
+                // ensure this is populated
+                determine_furthest_aircraft();
+            }
 
-        // is it the nearest? Then it's the highest threat. That's an easy check
-        // that we don't need to run perform_threat_detection() to determine
-        if (avoid_state.highest_threat_distance > my_loc_distance_to_vehicle) {
-            avoid_state.highest_threat_distance = my_loc_distance_to_vehicle;
-            avoid_state.highest_threat_index = index;
+            if (my_loc_distance_to_vehicle < furthest_vehicle_distance) { // is closer than the furthest
+                // replace with the furthest vehicle
+                set_vehicle(furthest_vehicle_index, vehicle);
+
+                // furthest_vehicle_index is now invalid because the vehicle was overwritten, need
+                // to run determine_furthest_aircraft() to determine a new one next time
+                furthest_vehicle_distance = 0;
+                furthest_vehicle_index = 0;
+            }
         }
     } // if buffer full
 
-    vehicle.last_update_ms = AP_HAL::millis() - (vehicle.info.tslc * 1000);
-    push_sample(vehicle); // note that set_vehicle modifies vehicle
+    const uint16_t required_flags_avoidance =
+            ADSB_FLAGS_VALID_COORDS |
+            ADSB_FLAGS_VALID_ALTITUDE |
+            ADSB_FLAGS_VALID_HEADING |
+            ADSB_FLAGS_VALID_VELOCITY;
+
+    if (vehicle.info.flags & required_flags_avoidance) {
+        push_sample(vehicle); // note that set_vehicle modifies vehicle
+    }
 }
 
 /*
@@ -524,7 +495,7 @@ void AP_ADSB::send_dynamic_out(const mavlink_channel_t chan)
     }
 
     uint16_t state = 0;
-    if (_is_in_auto_mode) {
+    if (out_state._is_in_auto_mode) {
         state |= UAVIONIX_ADSB_OUT_DYNAMIC_STATE_AUTOPILOT_ENABLED;
     }
     if (!out_state.is_flying) {
