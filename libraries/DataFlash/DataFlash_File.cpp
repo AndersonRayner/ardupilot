@@ -439,7 +439,7 @@ char *DataFlash_File::_lastlog_file_name(void) const
     // I need to put something in here that means I can use a different
     // LASTLOG.TXT directory to my log directory because of the RAMdisk
     char *buf = NULL;
-    if (asprintf(&buf, "%s/LASTLOG.TXT", _log_directory) == 0) {
+    if (asprintf(&buf, "%s/LASTLOG.TXT", HAL_BOARD_LOG_STORE_DIRECTORY) == 0) {
         return NULL;
     }
     return buf;
@@ -803,8 +803,12 @@ void DataFlash_File::stop_logging(void)
     // Copy the DataFlash file from the RAMdisk to the eMMC
     // This should only happen for the BBBMini and should be
     // moved to when the log is closed.
+    hal.scheduler->delay(1000);
+    hal.console->printf("Copying files from RAMdisk to /root/APM/logs\n");
+    // It appears that the last file is not closed until APM stops so can't transfer file.  How to fix???
+    // Turns out it only calls this on start_new_log() which only happens at turning on quad logging for first time
     char command[50];
-    strcpy( command, "cp /mnt/RAMdisk/* /root/APM/logs/" );
+    sprintf(command, "cp %s/* %s/\n",HAL_BOARD_LOG_DIRECTORY,HAL_BOARD_LOG_STORE_DIRECTORY);
     system(command);
 #endif
 }
