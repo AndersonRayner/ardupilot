@@ -352,7 +352,7 @@ private:
     int32_t home_distance;
     // distance between plane and next waypoint in cm.
     uint32_t wp_distance;
-    uint8_t land_state;              // records state of land (flying to location, descending)
+    LandStateType land_state = LandStateType_FlyToLocation; // records state of land (flying to location, descending)
 
     // Auto
     AutoMode auto_mode;   // controls which auto controller is run
@@ -595,7 +595,6 @@ private:
     int16_t hover_roll_trim_scalar_slew;
 #endif
 
-#if GNDEFFECT_COMPENSATION == ENABLED
     // ground effect detector
     struct {
         bool takeoff_expected;
@@ -603,7 +602,6 @@ private:
         uint32_t takeoff_time_ms;
         float takeoff_alt_cm;
     } gndeffect_state;
-#endif // GNDEFFECT_COMPENSATION == ENABLED
 
     static const AP_Scheduler::Task scheduler_tasks[];
     static const AP_Param::Info var_info[];
@@ -824,7 +822,7 @@ private:
     bool guided_set_destination(const Location_Class& dest_loc);
     void guided_set_velocity(const Vector3f& velocity);
     void guided_set_destination_posvel(const Vector3f& destination, const Vector3f& velocity);
-    void guided_set_angle(const Quaternion &q, float climb_rate_cms);
+    void guided_set_angle(const Quaternion &q, float climb_rate_cms, bool use_yaw_rate, float yaw_rate_rads);
     void guided_run();
     void guided_takeoff_run();
     void guided_pos_control_run();
@@ -939,9 +937,7 @@ private:
     void update_land_and_crash_detectors();
     void update_land_detector();
     void update_throttle_thr_mix();
-#if GNDEFFECT_COMPENSATION == ENABLED
     void update_ground_effect_detector(void);
-#endif // GNDEFFECT_COMPENSATION == ENABLED
     void landinggear_update();
     void update_notify();
     void motor_test_output();
