@@ -195,16 +195,16 @@ def fly_ArduCopter(binary, viewerip=None, map=False, valgrind=False, gdb=False):
             print("Flew copter maneuvours OK")
             
         # Check override of maneuvours
-        print("#")
-        print("########## Fly maneuvours file with overrides ##########")
-        print("#")
-        override_test = 1;
-        if not fly_manoeuvres(mavproxy, mav, override_test):
-            failed_test_msg = "fly_manoeuvres override failed"
-            print(failed_test_msg)
-            failed = True
-        else:
-            print("Overrode copter maneuvours OK")
+        #print("#")
+        #print("########## Fly maneuvours file with overrides ##########")
+        #print("#")
+        #override_test = 1;
+        #if not fly_manoeuvres(mavproxy, mav, override_test):
+        #    failed_test_msg = "fly_manoeuvres override failed"
+        #    print(failed_test_msg)
+        #    failed = True
+        #else:
+        #    print("Overrode copter maneuvours OK")
 
         # land aircraft to finish flight
         land(mavproxy, mav)

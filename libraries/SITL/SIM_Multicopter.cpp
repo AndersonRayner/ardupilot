@@ -124,16 +124,51 @@ void MultiCopter::aero_forces(void)
     float u = V.x;
     float v = V.y;
     float w = V.z;
+    float pi = 3.1412f;
 
     float alfa = atan2f(u,-w);
 
+    // Calculate lift (wind axis...)
+    float CL;
+
+    float alfa_min = -15.0f*DTR;
+    float alfa_max =  30.0f*DTR;
+    float alfa0 = 0.0f;
+    float CLa_stall = -2.1f;
+    float CL_max = 2.1f;
+    float CL_min = -1.0f;
+    float CL_alfa = 2.0f*pi*0.7;
+
+    if (alfa>alfa_min && alfa<alfa_max) {
+        CL = CL_alfa*(alfa-alfa0);
+    } else if (alfa>=alfa_min+pi && alfa<=pi) {
+        CL = CL_alfa*(alfa-pi-alfa0);
+    } else if (alfa>=-pi && alfa<=-pi+alfa_max) {
+        CL = CL_alfa*(alfa+pi-alfa0);
+    } else if (alfa>alfa_max && alfa<pi-alfa_min) {
+        CL = CLa_stall*(alfa-alfa_max) + CL_max;
+    } else if (alfa>-pi+alfa_max && alfa<alfa_min) {
+        CL = CLa_stall*(alfa-alfa_min) + CL_min;
+    } else {
+        CL = 0;
+    }
+
     // debugging loop
     if (counter % 20 == 0) {
-        printf("alfa = %f deg\n",alfa/DTR);
+        printf("alfa = %6.2f deg, CL = %5.2f\n",alfa/DTR,CL);
         counter = 0;
     } else {
         counter++;
     }
+
+
+
+
+
+    // velocity relative to airmass in body frame
+    //velocity_air_bf = dcm.transposed() * velocity_air_ef;
+
+
     return;
 }
 
