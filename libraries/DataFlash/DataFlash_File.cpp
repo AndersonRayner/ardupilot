@@ -795,22 +795,6 @@ void DataFlash_File::stop_logging(void)
         log_write_started = false;
         ::close(fd);
     }
-
-
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-    // Transfer the file from the RAMDisk to eMMC for the BBBMini
-    //
-    // Copy the DataFlash file from the RAMdisk to the eMMC
-    // This should only happen for the BBBMini and should be
-    // moved to when the log is closed.
-    hal.scheduler->delay(1000);
-    hal.console->printf("Copying files from RAMdisk to /root/APM/logs\n");
-    // It appears that the last file is not closed until APM stops so can't transfer file.  How to fix???
-    // Turns out it only calls this on start_new_log() which only happens at turning on quad logging for first time
-    char command[50];
-    sprintf(command, "cp %s/* %s/\n",HAL_BOARD_LOG_DIRECTORY,HAL_BOARD_LOG_STORE_DIRECTORY);
-    system(command);
-#endif
 }
 
 

@@ -262,6 +262,23 @@ void Copter::init_disarm_motors()
     hal.util->set_soft_armed(false);
 
     ap.in_arming_delay = false;
+
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+    // Transfer the file from the RAMDisk to eMMC for the BBBMini
+    //
+    // Copy the DataFlash file from the RAMdisk to the eMMC
+    // Should be moved to when the log is closed (in this case I'll do it on disarm).
+    hal.console->printf("Moving files from RAMdisk to /root/APM/logs\n");
+    // Need to find a way to just move the last file created...
+    char command[50];
+    sprintf(command, "mv %s/* %s/\n",HAL_BOARD_LOG_DIRECTORY,HAL_BOARD_LOG_STORE_DIRECTORY);
+    system(command);
+    // This might be better as a copy (may not even work as a move...)
+
+    // Start a new log
+    DataFlash.StartNewLog();
+#endif
+
 }
 
 // motors_output - send output to motors library which will adjust and send to ESCs and servos
