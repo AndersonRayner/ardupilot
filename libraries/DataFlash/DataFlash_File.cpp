@@ -818,11 +818,8 @@ uint16_t DataFlash_File::start_new_log(void)
         _read_fd = -1;
     }
 
-    uint16_t log_num = find_last_log();
-    // re-use empty logs if possible
-    if (_get_log_size(log_num) > 0 || log_num == 0) {
-        log_num++;
-    }
+    uint16_t log_num = find_last_log() + 1;
+
     if (log_num > MAX_LOG_FILES) {
         log_num = 1;
     }
