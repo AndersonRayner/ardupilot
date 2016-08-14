@@ -658,6 +658,9 @@ struct PACKED log_Wingtip {
     uint16_t rpm4;
     float    de1;
     float    de2;
+    float    de3;
+    float    de4;
+    uint8_t  i2c_lockups;
 };
 
 struct PACKED log_Rate {
@@ -918,8 +921,10 @@ Format characters in the format string for binary log messages
       "ORGN","QBLLe","TimeUS,Type,Lat,Lng,Alt" }, \
     { LOG_RPM_MSG, sizeof(log_RPM), \
       "RPM",  "Qff", "TimeUS,rpm1,rpm2" }, \
-    { LOG_WINGTIP_MSG, sizeof(log_Wingtip), \
-      "WING", "QHHHHff", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2" },\
+    { LOG_WINGTIP1_MSG, sizeof(log_Wingtip), \
+      "WNG1", "QHHHHffffB", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2,de3,de4,i2c" },\
+    { LOG_WINGTIP2_MSG, sizeof(log_Wingtip), \
+      "WNG2", "QHHHHffffB", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2,de3,de4,i2c" },\
     { LOG_GIMBAL1_MSG, sizeof(log_Gimbal1), \
       "GMB1", "Iffffffffff", "TimeMS,dt,dax,day,daz,dvx,dvy,dvz,jx,jy,jz" }, \
     { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
@@ -1044,7 +1049,8 @@ enum LogMessages {
     LOG_GIMBAL2_MSG,
     LOG_GIMBAL3_MSG,
     LOG_RATE_MSG,
-    LOG_WINGTIP_MSG,
+    LOG_WINGTIP1_MSG,
+    LOG_WINGTIP2_MSG,
     LOG_RALLY_MSG,
 };
 

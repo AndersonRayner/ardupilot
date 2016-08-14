@@ -51,6 +51,7 @@ public:
         bool                   enabled;
         bool                   healthy;
         uint8_t                instance;        // the instance number of this wingtip board
+        uint8_t                i2c_lockups;     // number of i2c lockups
 
         uint64_t               last_reading_ms; // time of last reading
         uint16_t               rpm[4];          // up to four RPMs per board
@@ -96,10 +97,14 @@ public:
     }
 
     // return if an instance is healthy
-    bool healthy(uint8_t instance) const;
+    bool healthy(uint8_t board) const;
 
     // return if an instance is enabled
-    bool enabled(uint8_t instance) const;
+    bool enabled(uint8_t board) const;
+
+    uint8_t get_i2c_lockups(uint8_t board) const {
+        return state[board].i2c_lockups;
+    }
 
 private:
     Wingtip_State state[WINGTIP_MAX_BACKENDS];

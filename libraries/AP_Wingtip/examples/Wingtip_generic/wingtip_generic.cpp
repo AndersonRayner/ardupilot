@@ -48,15 +48,17 @@ void loop(void)
 
     hal.console->printf("RPM : ");
     for (uint8_t ii = 0; ii<4; ii++) {
-        hal.console->printf("%6u ",Wingtip.get_rpm(ii));
+        hal.console->printf("%6u ",Wingtip.get_rpm(0,ii));
     }
 
     hal.console->printf("   de : ");
-    for (uint8_t ii = 0; ii<2; ii++) {
-        hal.console->printf("%6u ",Wingtip.get_de_raw(ii));
+    for (uint8_t ii = 0; ii<4; ii++) {
+        hal.console->printf("%6u ",Wingtip.get_de_raw(0,ii));
     }
 
-    hal.scheduler->delay(100);
+    hal.console->printf("   i2c_err : %3u",Wingtip.get_i2c_lockups(0));
+
+    hal.scheduler->delay(20);
 
     hal.console->printf("\n");
 }

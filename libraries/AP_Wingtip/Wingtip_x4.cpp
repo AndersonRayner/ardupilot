@@ -99,6 +99,7 @@ void AP_Wingtip_x4::update()
     if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
         // Return semaphore (transfer unsuccessful)
         _dev->get_semaphore()->give();
+        state.i2c_lockups++;
         return;
     }
 

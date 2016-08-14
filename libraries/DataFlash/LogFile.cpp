@@ -1888,17 +1888,40 @@ void DataFlash_Class::Log_Write_Rate(const AP_AHRS &ahrs,
 
 void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor)
 {
-    struct log_Wingtip pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_WINGTIP_MSG),
-        time_us     : AP_HAL::micros64(),
-        rpm1        : wingtip_sensor.get_rpm(0),
-        rpm2        : wingtip_sensor.get_rpm(1),
-        rpm3        : wingtip_sensor.get_rpm(2),
-        rpm4        : wingtip_sensor.get_rpm(3),
-        de1         : wingtip_sensor.get_de(0),
-        de2         : wingtip_sensor.get_de(1)
-    };
-    WriteBlock(&pkt, sizeof(pkt));
+    if (wingtip_sensor.enabled(0)) {
+        struct log_Wingtip pkt = {
+                LOG_PACKET_HEADER_INIT(LOG_WINGTIP1_MSG),
+                time_us     : AP_HAL::micros64(),
+                rpm1        : wingtip_sensor.get_rpm(0,0),
+                rpm2        : wingtip_sensor.get_rpm(0,1),
+                rpm3        : wingtip_sensor.get_rpm(0,2),
+                rpm4        : wingtip_sensor.get_rpm(0,3),
+                de1         : wingtip_sensor.get_de(0,0),
+                de2         : wingtip_sensor.get_de(0,1),
+                de3         : wingtip_sensor.get_de(0,2),
+                de4         : wingtip_sensor.get_de(0,3),
+                i2c_lockups : wingtip_sensor.get_i2c_lockups(0)
+        };
+        WriteBlock(&pkt, sizeof(pkt));
+    }
+
+    if (wingtip_sensor.enabled(1)) {
+        struct log_Wingtip pkt2 = {
+                LOG_PACKET_HEADER_INIT(LOG_WINGTIP2_MSG),
+                time_us     : AP_HAL::micros64(),
+                rpm1        : wingtip_sensor.get_rpm(1,0),
+                rpm2        : wingtip_sensor.get_rpm(1,1),
+                rpm3        : wingtip_sensor.get_rpm(1,2),
+                rpm4        : wingtip_sensor.get_rpm(1,3),
+                de1         : wingtip_sensor.get_de(1,0),
+                de2         : wingtip_sensor.get_de(1,1),
+                de3         : wingtip_sensor.get_de(1,2),
+                de4         : wingtip_sensor.get_de(1,3),
+                i2c_lockups : wingtip_sensor.get_i2c_lockups(1)
+        };
+        WriteBlock(&pkt2, sizeof(pkt2));
+    }
+
 }
 
 // Write rally points
