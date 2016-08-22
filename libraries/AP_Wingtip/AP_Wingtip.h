@@ -27,7 +27,6 @@
 #define WINGTIP_BOARD_RESET_LEVEL 1
 #define WINGTIP_I2C_BUS 1
 #define WINGTIP_I2C_ADDR0 0x32
-#define WINGTIP_I2C_ADDR1 0x33
 
 class AP_Wingtip_Backend;
 

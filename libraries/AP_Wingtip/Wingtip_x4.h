@@ -39,7 +39,7 @@ public:
     ~AP_Wingtip_x4(void);
     
     // initialise board
-    bool init();
+    bool init(uint8_t i2c_address);
     
     // update state
     void update();

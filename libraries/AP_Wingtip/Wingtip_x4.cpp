@@ -25,24 +25,22 @@
 #include <stdio.h>
 #include <AP_HAL/I2CDevice.h>
 #include <utility>
-#include <AP_HAL/GPIO.h>
-#include <AP_HAL_Linux/GPIO_BBB.h>
 
 
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
 extern const AP_HAL::HAL &hal;
-AP_HAL::DigitalSource *_cs;
 
 
 AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
-    state.enabled = init();
+    state.enabled = init(WINGTIP_I2C_ADDR0+instance);
+
     if (state.enabled) {
-        hal.console->printf("    Wingtip_x4 sensor [ x ]\n");
+        hal.console->printf("    Wingtip_x4 sensor %u [ x ]\n",instance);
     } else {
-        hal.console->printf("    Wingtip_x4 sensor [   ]\n");
+        hal.console->printf("    Wingtip_x4 sensor %u [   ]\n",instance);
     }
 
     state.instance = instance;
@@ -54,25 +52,13 @@ AP_Wingtip_x4::~AP_Wingtip_x4()
   // do nothing
 }
 
-bool AP_Wingtip_x4::init()
+bool AP_Wingtip_x4::init(uint8_t i2c_address)
 {
 
     hal.console->printf("Initialising wingtip_x4 board\n");
 
-    // Reset the external boards
-    _cs = hal.gpio->channel(BBB_P9_15);
-    if (_cs == NULL) {
-        AP_HAL::panic("Unable to reset wingtip boards");
-    }
-
-    _cs->mode(HAL_GPIO_OUTPUT);
-    _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
-    hal.scheduler->delay(5);
-    _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
-    hal.scheduler->delay(5);
-
     // create i2c bus object
-    _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0));
+    _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, i2c_address));
 
     // take i2c bus semaphore
     if (!_dev || !_dev->get_semaphore()->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
@@ -82,8 +68,20 @@ bool AP_Wingtip_x4::init()
     // return semaphore so others can use it
     _dev->get_semaphore()->give();
 
-    // appears to be enabled, return
-    return true;
+    // give the board 20 tries (1 s) to become alive
+    uint8_t counter = 0;
+    while (counter<20) {
+        update();
+        if (state.rpm[0] > 0) {
+            // board is ok, return
+            return true;
+        }
+        counter ++;
+        hal.scheduler->delay(50);
+    };
+
+    // no valid response from the board, disable it
+    return false;
 }
 
 void AP_Wingtip_x4::update()
@@ -140,8 +138,6 @@ void AP_Wingtip_x4::update()
     state.de[1] = 0.0f;
     state.de[2] = 0.0f;
     state.de[3] = 0.0f;
-
-    state.healthy = true;
 
 }
 

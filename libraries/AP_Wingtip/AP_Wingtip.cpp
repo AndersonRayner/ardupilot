@@ -19,7 +19,11 @@
 #include "Wingtip_x4.h"
 #include "Wingtip_SITL.h"
 
+#include <AP_HAL/GPIO.h>
+#include <AP_HAL_Linux/GPIO_BBB.h>
+
 extern const AP_HAL::HAL& hal;
+AP_HAL::DigitalSource *_cs;
 
 // Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
@@ -52,66 +56,78 @@ AP_Wingtip::AP_Wingtip(void) :
 //  initialise the AP_Wingtip class.
 void AP_Wingtip::init(void)
 {
-    if (num_instances != 0) {
-        // init called a 2nd time?
-        return;
+    // Check if init has been called a second time
+    for (uint8_t ii=0; ii<WINGTIP_MAX_BACKENDS; ii++) {
+        if (drivers[ii] != NULL) {
+            hal.console->printf("AP_Wingtip::init called a second time!\n");
+            return;
+        }
     }
-
-    uint8_t instance = num_instances;
 
 // SITL
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-        state[instance].instance = instance;
-        drivers[instance] = new AP_Wingtip_SITL(*this, instance, state[instance]);
+        state[0].instance = 0;
+        drivers[0] = new AP_Wingtip_SITL(*this, 0, state[0]);
 #endif
+
+
 
 
 // BBBMini with I2C connection
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-        switch (_type) {
-        case WINGTIP_TYPE_NONE :
-            break;
-
-        case WINGTIP_TYPE_X2 :
-            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
-            instance++;
-            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
-            // I should add the i2c address to this constructor system in the future...
-            break;
-
-        case WINGTIP_TYPE_X4 :
-            drivers[instance] = new AP_Wingtip_x4(*this, instance, state[instance]);
-            break;
-
-        default :
-            AP_HAL::panic("Wingtip board type not recognised!\n");
+        // Reset the external boards
+        _cs = hal.gpio->channel(BBB_P9_15);
+        if (_cs == NULL) {
+            AP_HAL::panic("Unable to reset wingtip boards");
         }
 
-#endif
+        _cs->mode(HAL_GPIO_OUTPUT);
+        _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
+        hal.scheduler->delay(5);
+        _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
+        hal.scheduler->delay(250);
 
-    if (drivers[instance] != NULL) {
-        // we loaded a driver for this instance, so it must be
-        // present (although it may not be healthy)
-        num_instances = instance+1;
-    }
+        // Loop through each of the available backends and see what we can start
+        for (uint8_t ii=0; ii<WINGTIP_MAX_BACKENDS; ii++) {
+            switch (_type) {
+            case WINGTIP_TYPE_NONE :
+                break;
+
+            case WINGTIP_TYPE_X2 :
+                drivers[ii] = new AP_Wingtip_x2(*this, ii, state[ii]);
+                break;
+
+            case WINGTIP_TYPE_X4 :
+                drivers[ii] = new AP_Wingtip_x4(*this, ii, state[ii]);
+                break;
+
+            default :
+                AP_HAL::panic("Wingtip board type not recognised!\n");
+            }
+        }
+#endif
 
 }
 
 // Update all the wingtip data
 void AP_Wingtip::update(void)
 {
-    for (uint8_t ii=0; ii<num_instances; ii++) {
+    for (uint8_t ii=0; ii<WINGTIP_MAX_BACKENDS; ii++) {
         if (drivers[ii] != NULL) {
-            drivers[ii]->update();
+            if (state[ii].enabled) {
+                drivers[ii]->update();
+            }
         }
     }
+
+    // Toggle the sync line
 }
 
 
 //  Check if an instance is healthy
 bool AP_Wingtip::healthy(uint8_t instance) const
 {
-    if (instance >= num_instances) {
+    if (instance >= WINGTIP_MAX_BACKENDS) {
         return false;
     }
 
@@ -121,7 +137,7 @@ bool AP_Wingtip::healthy(uint8_t instance) const
 // Check if an instance is activated
 bool AP_Wingtip::enabled(uint8_t instance) const
 {
-    if (instance >= num_instances) {
+    if (instance >= WINGTIP_MAX_BACKENDS) {
         return false;
     }
 
@@ -131,7 +147,7 @@ bool AP_Wingtip::enabled(uint8_t instance) const
 // return the rpm reading for a particular board and channel.  Return 0 if not healthy
 uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t channel) const
 {
-    if (board >= num_instances) {
+    if (board >= WINGTIP_MAX_BACKENDS) {
         return false;
     }
 
@@ -141,7 +157,7 @@ uint16_t AP_Wingtip::get_rpm(uint8_t board, uint8_t channel) const
 // return the raw de reading for a particular board and channel.  Return 0 if not healthy
 uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t channel) const
 {
-    if (board >= num_instances) {
+    if (board >= WINGTIP_MAX_BACKENDS) {
         return false;
     }
 
@@ -151,7 +167,7 @@ uint16_t AP_Wingtip::get_de_raw(uint8_t board, uint8_t channel) const
 // return the de reading for a particular board and channel.  Return 0 if not healthy
 float AP_Wingtip::get_de(uint8_t board, uint8_t channel) const
 {
-    if (board >= num_instances) {
+    if (board >= WINGTIP_MAX_BACKENDS) {
         return false;
     }
 

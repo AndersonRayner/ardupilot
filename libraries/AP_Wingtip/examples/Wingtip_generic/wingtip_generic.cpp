@@ -32,6 +32,7 @@ void setup()
     hal.console->println("APM Wingtip Sensor library test\n\n");
     AP_Param::set_object_value(&Wingtip, Wingtip.var_info, "_TYPE", WINGTIP_TYPE);
     Wingtip.init();
+    hal.scheduler->delay(500);
 
 }
 
@@ -44,21 +45,35 @@ void loop(void)
 
     time2_us = AP_HAL::micros64();
 
-    hal.console->printf("t1 = %6llu us  | ", (time2_us-time1_us));
+    hal.console->printf("t = %4llu us  | ", (time2_us-time1_us));
 
+    // Print off RPM values
     hal.console->printf("RPM : ");
-    for (uint8_t ii = 0; ii<4; ii++) {
-        hal.console->printf("%6u ",Wingtip.get_rpm(0,ii));
+    for (uint8_t board = 0; board<2; board++) {
+        for (uint8_t ii = 0; ii<4; ii++) {
+            if (Wingtip.healthy(board)) {
+                hal.console->printf("%6u ",Wingtip.get_rpm(board,ii));
+            } else if (Wingtip.enabled(board)) {
+                hal.console->printf("   (u)  ");
+            }
+        }
     }
 
+    // Print off de values
     hal.console->printf("   de : ");
-    for (uint8_t ii = 0; ii<4; ii++) {
-        hal.console->printf("%6u ",Wingtip.get_de_raw(0,ii));
+    for (uint8_t board = 0; board<2; board++) {
+        for (uint8_t ii = 0; ii<4; ii++) {
+            if (Wingtip.healthy(board)) {
+                hal.console->printf("%6u ",Wingtip.get_de_raw(board,ii));
+            } else if (Wingtip.enabled(board)) {
+                hal.console->printf("   (u)  ");
+            }
+        }
     }
 
     hal.console->printf("   i2c_err : %3u",Wingtip.get_i2c_lockups(0));
 
-    hal.scheduler->delay(20);
+    hal.scheduler->delay(100);
 
     hal.console->printf("\n");
 }

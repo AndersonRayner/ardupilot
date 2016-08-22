@@ -31,8 +31,6 @@ public:
 
     virtual ~AP_Wingtip_Backend(void) {}
 
-    virtual bool init(void) = 0;
-
     virtual void update(void) = 0;
 
 protected:

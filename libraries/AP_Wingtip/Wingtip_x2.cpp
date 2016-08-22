@@ -25,14 +25,10 @@
 #include <stdio.h>
 #include <AP_HAL/I2CDevice.h>
 #include <utility>
-#include <AP_HAL/GPIO.h>
-#include <AP_HAL_Linux/GPIO_BBB.h>
-
 
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
 
 extern const AP_HAL::HAL &hal;
-AP_HAL::DigitalSource *_cs;
 
 
 AP_Wingtip_x2::AP_Wingtip_x2(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
@@ -60,18 +56,6 @@ bool AP_Wingtip_x2::init()
 
     hal.console->printf("Initialising wingtip_x2 board %d\n",state.instance);
 
-    // Reset the external boards
-    _cs = hal.gpio->channel(BBB_P9_15);
-    if (_cs == NULL) {
-        AP_HAL::panic("Unable to reset wingtip boards");
-    }
-
-    _cs->mode(HAL_GPIO_OUTPUT);
-    _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
-    hal.scheduler->delay(5);
-    _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
-    hal.scheduler->delay(5);
-
     // create i2c bus object
     switch (state.instance) {
     case 0 :
@@ -79,7 +63,7 @@ bool AP_Wingtip_x2::init()
         break;
 
     case 1 :
-        _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR1);
+        _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
         break;
 
     default :
