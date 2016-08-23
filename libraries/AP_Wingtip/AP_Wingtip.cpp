@@ -24,6 +24,7 @@
 
 extern const AP_HAL::HAL& hal;
 AP_HAL::DigitalSource *_reset_pin;
+AP_HAL::DigitalSource *_sync_pin;
 
 // Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
@@ -75,6 +76,12 @@ void AP_Wingtip::init(void)
 
 // BBBMini with I2C connection
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
+        // Set up sync pin
+        _sync_pin = hal.gpio->channel(BBB_P8_11);
+        _sync_pin->mode(HAL_GPIO_OUTPUT);
+        _sync_level = 0;
+        _sync_pin->write(_sync_level);
+
         // Reset the external boards
         _reset_pin = hal.gpio->channel(BBB_P9_15);
         if (_reset_pin == NULL) {
@@ -120,7 +127,12 @@ void AP_Wingtip::update(void)
         }
     }
 
+#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
     // Toggle the sync line
+    _sync_level = !_sync_level;
+    _sync_pin->write(_sync_level);
+#endif // CONFIG_HAL_BOARD_SUBTYPE
+
 }
 
 

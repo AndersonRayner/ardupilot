@@ -110,4 +110,6 @@ private:
     AP_Wingtip_Backend *drivers[WINGTIP_MAX_BACKENDS];
     uint8_t num_instances:2;
 
+    bool _sync_level;
+
 };
