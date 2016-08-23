@@ -51,41 +51,40 @@ AP_Wingtip_x2::~AP_Wingtip_x2()
   // do nothing
 }
 
-bool AP_Wingtip_x2::init()
+bool AP_Wingtip_x2::init(uint8_t i2c_address)
 {
 
     hal.console->printf("Initialising wingtip_x2 board %d\n",state.instance);
 
     // create i2c bus object
-    switch (state.instance) {
-    case 0 :
-        _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
-        break;
-
-    case 1 :
-        _dev = hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, WINGTIP_I2C_ADDR0);
-        break;
-
-    default :
-        AP_HAL::panic("Too many boards, I don't know what address to use!\n");
-        break;
-    }
+    _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, i2c_address));
 
     // take i2c bus semaphore
-    if (!_dev || !_dev->get_semaphore()->take(200)) {
+    if (!_dev || !_dev->get_semaphore()->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
         return false;
     }
 
     // return semaphore so others can use it
     _dev->get_semaphore()->give();
 
-    // appears to be enabled, return
-    return true;
+    // give the board 20 tries (1 s) to become alive
+    uint8_t counter = 0;
+    while (counter<20) {
+        update();
+        if (state.rpm[0] > 0) {
+            // board is ok, return
+            return true;
+        }
+        counter ++;
+        hal.scheduler->delay(50);
+    };
+
+    // no valid response from the board, disable it
+    return false;
 }
 
 void AP_Wingtip_x2::update()
 {
-    union wingtip_data data1;
     uint8_t CRC;
 
     // take i2c bus sempahore
@@ -97,6 +96,7 @@ void AP_Wingtip_x2::update()
     if (!_dev->transfer(nullptr, 0, data1.rxBuffer, sizeof(data1.rxBuffer))) {
         // Return semaphore (transfer unsuccessful)
         _dev->get_semaphore()->give();
+        state.i2c_lockups++;
         return;
     }
 
@@ -138,8 +138,6 @@ void AP_Wingtip_x2::update()
     state.de[1] = 0.0f;
     state.de[2] = 0.0f;
     state.de[3] = 0.0f;
-
-    state.healthy = true;
 
 }
 

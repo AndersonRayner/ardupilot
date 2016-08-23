@@ -55,7 +55,7 @@ AP_Wingtip_x4::~AP_Wingtip_x4()
 bool AP_Wingtip_x4::init(uint8_t i2c_address)
 {
 
-    hal.console->printf("Initialising wingtip_x4 board\n");
+    hal.console->printf("Initialising wingtip_x4 board %d\n",state.instance);
 
     // create i2c bus object
     _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, i2c_address));
@@ -124,7 +124,6 @@ void AP_Wingtip_x4::update()
 
     } else {
         // mark sensor unhealthy
-        hal.console->printf("Wingtip %d failed checksum\n",state.instance);
         state.healthy = false;
     }
 

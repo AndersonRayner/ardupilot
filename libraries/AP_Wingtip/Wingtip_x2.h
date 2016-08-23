@@ -41,7 +41,7 @@ public:
     ~AP_Wingtip_x2(void);
 
     // initialise board
-    bool init();
+    bool init(uint8_t i2c_address);
 
     // update state
     void update();
@@ -53,7 +53,7 @@ private:
     union wingtip_data {
        uint8_t rxBuffer[7];
        uint16_t data[3];
-    };
+    } data1;
 
 };
 
