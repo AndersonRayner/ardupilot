@@ -52,7 +52,7 @@ public:
         uint8_t                instance;        // the instance number of this wingtip board
         uint8_t                i2c_lockups;     // number of i2c lockups
 
-        uint64_t               last_reading_ms; // time of last reading
+        uint64_t               last_reading_us; // time of last reading
         uint16_t               rpm[4];          // up to four RPMs per board
         uint16_t               de_raw[4];       // up to four de (raw) readings per board
         float                  de[4];           // up to four de readings per board
@@ -100,6 +100,10 @@ public:
 
     // return if an instance is enabled
     bool enabled(uint8_t board) const;
+
+    // return the time the last reading was taken
+    // need to do this with a sync pin I think
+    uint64_t get_last_reading_us(uint8_t board) const;
 
     uint8_t get_i2c_lockups(uint8_t board) const {
         return state[board].i2c_lockups;

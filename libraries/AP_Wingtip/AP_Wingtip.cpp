@@ -186,4 +186,13 @@ float AP_Wingtip::get_de(uint8_t board, uint8_t channel) const
     return state[board].de[channel];
 }
 
+uint64_t AP_Wingtip::get_last_reading_us(uint8_t board) const
+{
+    if (board >= WINGTIP_MAX_BACKENDS) {
+        return false;
+    }
+
+    return state[board].last_reading_us;
+}
+
 

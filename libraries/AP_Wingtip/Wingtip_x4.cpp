@@ -105,7 +105,7 @@ void AP_Wingtip_x4::update()
     _dev->get_semaphore()->give();
 
     // store time of last reading
-    state.last_reading_ms = AP_HAL::micros64();
+    state.last_reading_us = AP_HAL::micros64();
 
     // Calculate checksum
     CRC = 0;

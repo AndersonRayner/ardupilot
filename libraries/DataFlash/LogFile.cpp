@@ -1888,10 +1888,10 @@ void DataFlash_Class::Log_Write_Rate(const AP_AHRS &ahrs,
 
 void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor)
 {
-    if (wingtip_sensor.enabled(0)) {
+    if (wingtip_sensor.enabled(0) && wingtip_sensor.healthy(0)) {
         struct log_Wingtip pkt = {
                 LOG_PACKET_HEADER_INIT(LOG_WINGTIP1_MSG),
-                time_us     : AP_HAL::micros64(),
+                time_us     : wingtip_sensor.get_last_reading_us(0),
                 rpm1        : wingtip_sensor.get_rpm(0,0),
                 rpm2        : wingtip_sensor.get_rpm(0,1),
                 rpm3        : wingtip_sensor.get_rpm(0,2),
@@ -1905,10 +1905,10 @@ void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor)
         WriteBlock(&pkt, sizeof(pkt));
     }
 
-    if (wingtip_sensor.enabled(1)) {
+    if (wingtip_sensor.enabled(1) && wingtip_sensor.healthy(1)) {
         struct log_Wingtip pkt2 = {
                 LOG_PACKET_HEADER_INIT(LOG_WINGTIP2_MSG),
-                time_us     : AP_HAL::micros64(),
+                time_us     : wingtip_sensor.get_last_reading_us(1),
                 rpm1        : wingtip_sensor.get_rpm(1,0),
                 rpm2        : wingtip_sensor.get_rpm(1,1),
                 rpm3        : wingtip_sensor.get_rpm(1,2),
