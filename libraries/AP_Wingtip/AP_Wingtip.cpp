@@ -23,7 +23,7 @@
 #include <AP_HAL_Linux/GPIO_BBB.h>
 
 extern const AP_HAL::HAL& hal;
-AP_HAL::DigitalSource *_cs;
+AP_HAL::DigitalSource *_reset_pin;
 
 // Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
@@ -76,15 +76,15 @@ void AP_Wingtip::init(void)
 // BBBMini with I2C connection
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
         // Reset the external boards
-        _cs = hal.gpio->channel(BBB_P9_15);
-        if (_cs == NULL) {
+        _reset_pin = hal.gpio->channel(BBB_P9_15);
+        if (_reset_pin == NULL) {
             AP_HAL::panic("Unable to reset wingtip boards");
         }
 
-        _cs->mode(HAL_GPIO_OUTPUT);
-        _cs->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
+        _reset_pin->mode(HAL_GPIO_OUTPUT);
+        _reset_pin->write(WINGTIP_BOARD_RESET_LEVEL);       // high resets the board
         hal.scheduler->delay(5);
-        _cs->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
+        _reset_pin->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
         hal.scheduler->delay(250);
 
         // Loop through each of the available backends and see what we can start
