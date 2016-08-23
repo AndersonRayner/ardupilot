@@ -443,11 +443,14 @@ void Copter::twentyfive_hz_logging()
 // Use the log mask 1048844
 void Copter::sys_id_logging()
 {
+    sys_id_logging_loop_count++;
+
+    if (sys_id_logging_loop_count == 2000) {
+        // Stops the value over-flowing (after 10 mins) and causing timing problem
+        sys_id_logging_loop_count = 0;
+    }
 
     if (should_log(MASK_LOG_SYS_ID)) {
-        // Log RPM
-        // Handled by Wingtip, only 50 Hz at the moment
-
         // Log PWM in/out
         DataFlash.Log_Write_RCIN();
         DataFlash.Log_Write_RCOUT();
@@ -464,22 +467,25 @@ void Copter::sys_id_logging()
 #endif
 
         // Data at 50 Hz
-        if (mainLoop_count % 8 == 0) {
+        if (sys_id_logging_loop_count % 2 == 0) {
+            // Cycle 0
             DataFlash.Log_Write_Wingtip(wingtip_sensor);
+        } else if (sys_id_logging_loop_count % 2 == 1) {
+            // Cycle 1
         }
 
         // Data at 25 Hz
-        if (mainLoop_count % 16 == 0) {
+        if (sys_id_logging_loop_count % 4 == 0) {
             // Cycle 0
             DataFlash.Log_Write_Vibration(ins);
             DataFlash.Log_Write_Airspeed(airspeed);
-        } else if (mainLoop_count % 16 == 4) {
+        } else if (sys_id_logging_loop_count % 4 == 1) {
             // Cycle 1
             Log_Write_Control_Tuning();   // CTUN
-        } else if (mainLoop_count % 16 == 8) {
+        } else if (sys_id_logging_loop_count % 4 == 2) {
             // Cycle 2
             Log_Write_Nav_Tuning();       // NTUN
-        } else if (mainLoop_count % 16 == 12) {
+        } else if (sys_id_logging_loop_count % 4 == 3) {
             // Cycle 3
             DataFlash.Log_Write_Current(battery);
         }

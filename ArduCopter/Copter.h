@@ -492,6 +492,8 @@ private:
     uint32_t fast_loopTimer;
     // Counter of main loop executions.  Used for performance monitoring and failsafe processing
     uint16_t mainLoop_count;
+    // Counter of sys_ID_logging loop executions
+    uint16_t sys_id_logging_loop_count;
     // Loiter timer - Records how long we have been in loiter
     uint32_t rtl_loiter_start_time;
     // arm_time_ms - Records when vehicle was armed. Will be Zero if we are disarmed.
