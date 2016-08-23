@@ -36,13 +36,13 @@ AP_Wingtip_x2::AP_Wingtip_x2(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip:
 {
     state.instance = instance;
 
-    state.enabled = init();
-    if (state.enabled) {
-        hal.console->printf("    Wingtip_x2 sensor %d [ x ]\n",state.instance);
-    } else {
-        hal.console->printf("    Wingtip_x2 sensor %d [   ]\n",state.instance);
-    }
+    state.enabled = init(WINGTIP_I2C_ADDR0+instance);
 
+    if (state.enabled) {
+        hal.console->printf("    Wingtip_x2 sensor %u [ x ]\n",state.instance);
+    } else {
+        hal.console->printf("    Wingtip_x2 sensor %u [   ]\n",state.instance);
+    }
 }
 
 

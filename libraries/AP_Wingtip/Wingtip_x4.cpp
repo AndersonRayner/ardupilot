@@ -35,15 +35,15 @@ extern const AP_HAL::HAL &hal;
 AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
     : AP_Wingtip_Backend(_wingtip, instance, _state)
 {
+    state.instance = instance;
+
     state.enabled = init(WINGTIP_I2C_ADDR0+instance);
 
     if (state.enabled) {
-        hal.console->printf("    Wingtip_x4 sensor %u [ x ]\n",instance);
+        hal.console->printf("    Wingtip_x4 sensor %u [ x ]\n",state.instance);
     } else {
-        hal.console->printf("    Wingtip_x4 sensor %u [   ]\n",instance);
+        hal.console->printf("    Wingtip_x4 sensor %u [   ]\n",state.instance);
     }
-
-    state.instance = instance;
 }
 
 
