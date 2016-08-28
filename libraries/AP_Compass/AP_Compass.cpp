@@ -800,6 +800,7 @@ bool Compass::configured(uint8_t i)
 
     // if different then the device has not been configured
     if (_state[i].dev_id != dev_id_orig) {
+        hal.console->printf("Compass %u failed device ID, detected %d, stored %d\n",i,_state[i].dev_id,dev_id_orig);
         // restore device id
         _state[i].dev_id = dev_id_orig;
         // return failure
@@ -961,35 +962,49 @@ void Compass::reset_compass_calibration(void)
     for (uint8_t ii = 0; ii<COMPASS_MAX_INSTANCES; ii++) {
         // Turn to advanced calibrations
         _advanced_calibration = 1;
-        _advanced_calibration.save();
 
         // Reset Offsets
         Vector3f offsets;
-        offsets.x = 0;
-        offsets.y = 0;
-        offsets.z = 0;
+        offsets.x = 0.0f;
+        offsets.y = 0.0f;
+        offsets.z = 0.0f;
         _state[ii].offset = offsets;
         _state[ii].offset.save();
 
         // Reset Calibration Values
         Vector3f calib;
-        calib.x = 1;
-        calib.y = 0;
-        calib.z = 0;
+        calib.x = 1.0f;
+        calib.y = 0.0f;
+        calib.z = 0.0f;
         _state[ii]._compass_cal_x = calib;
         _state[ii]._compass_cal_x.save();
 
-        calib.x = 0;
-        calib.y = 1;
-        calib.z = 0;
+        calib.x = 0.0f;
+        calib.y = 1.0f;
+        calib.z = 0.0f;
         _state[ii]._compass_cal_y = calib;
         _state[ii]._compass_cal_y.save();
 
-        calib.x = 0;
-        calib.y = 0;
-        calib.z = 1;
+        calib.x = 0.0f;
+        calib.y = 0.0f;
+        calib.z = 1.0f;
         _state[ii]._compass_cal_z = calib;
         _state[ii]._compass_cal_z.save();
+
+        calib.x = 1.0f;
+        calib.y = 1.0f;
+        calib.z = 1.0f;
+        _state[ii].diagonals = calib;
+        _state[ii].diagonals.save();
+
+        calib.x = 0.0f;
+        calib.y = 0.0f;
+        calib.z = 0.0f;
+        _state[ii].offdiagonals = calib;
+        _state[ii].diagonals.save();
+
+        // Turn off motor/compass calibration
+        _motor_comp_type = AP_COMPASS_MOT_COMP_DISABLED;
     }
 }
 

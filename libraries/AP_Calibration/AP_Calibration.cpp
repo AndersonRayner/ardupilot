@@ -226,8 +226,8 @@ void AP_Calibration::calibrate_compass(void) {
 
 		f[kk] = fopen(str,"w");
 
-		fprintf(f[kk],"Magnetometer Calibration File\n");
-		fprintf(f[kk],"=============================\n");
+		fprintf(f[kk],"Magnetometer Calibration File - devID %d\n",compass.get_compass_id(kk));
+		fprintf(f[kk],"========================================\n");
 	}
 
 	// Wait for user to confirm to take reading

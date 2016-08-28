@@ -93,7 +93,7 @@ const AP_Param::GroupInfo AP_InertialSensor::var_info[] = {
     // @Description: Gyro sensor offsets of Z axis. This is setup on each boot during gyro calibrations
     // @Units: rad/s
     // @User: Advanced
-    AP_GROUPINFO("GYR1OFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
+    AP_GROUPINFO("GYROFFS",     3, AP_InertialSensor, _gyro_offset[0],  0),
 
     // @Param: GYR2OFFS_X
     // @DisplayName: Gyro2 offsets of X axis
@@ -794,9 +794,6 @@ bool AP_InertialSensor::accel_calibrated_ok_all() const
 
     // check each accelerometer has offsets saved
     for (uint8_t i=0; i<get_accel_count(); i++) {
-
-        // Ignore if we're using advanced calibration
-        if (!_advanced_calibration) {
             // exactly 0.0 offset is extremely unlikely
             if (_accel_offset[i].get().is_zero()) {
                 return false;
@@ -810,7 +807,6 @@ bool AP_InertialSensor::accel_calibrated_ok_all() const
             if (_accel_scale[i].get().is_zero()) {
                 return false;
             }
-        }
     }
 
     // check calibrated accels matches number of accels (no unused accels should have offsets or scaling)
