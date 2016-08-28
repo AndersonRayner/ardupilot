@@ -17,40 +17,33 @@
 #pragma once
 
 /*
-  backend driver for wingtip x2 board from I2C
+  backend driver for simulating the wingtip boards
  */
 
 #include "AP_Wingtip.h"
 #include "Wingtip_Backend.h"
 
 #include <AP_HAL/AP_HAL.h>
-#include <AP_Param/AP_Param.h>
-#include <AP_HAL/utility/OwnPtr.h>
-#include <AP_HAL/I2CDevice.h>
 #include <utility>
+#include <AP_HAL/I2CDevice.h>
 
-class AP_Wingtip_x2 : public AP_Wingtip_Backend
+class AP_Wingtip_Sim : public AP_Wingtip_Backend
 {
 public:
     // constructor
-    AP_Wingtip_x2(AP_Wingtip &wingtip_board,  uint8_t instance, AP_Wingtip::Wingtip_State &_state);
+    AP_Wingtip_Sim(AP_Wingtip &wingtip_board,  uint8_t instance, AP_Wingtip::Wingtip_State &_state);
 
     // destructor
-    ~AP_Wingtip_x2(void);
-
+    ~AP_Wingtip_Sim(void);
+    
     // initialise board
-    bool init(uint8_t i2c_address);
-
+    bool init();
+    
     // update state
     void update();
+    
+protected:
 
 private:
-    AP_HAL::OwnPtr<AP_HAL::I2CDevice> _dev;
-
-    // Struct for receiving data via I2C
-    union wingtip_data {
-       uint8_t rxBuffer[7];
-       uint16_t data[3];
-    } data1;
 
 };

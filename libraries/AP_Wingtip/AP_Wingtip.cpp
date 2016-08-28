@@ -17,6 +17,7 @@
 #include "AP_Wingtip.h"
 #include "Wingtip_x2.h"
 #include "Wingtip_x4.h"
+#include "Wingtip_Sim.h"
 #include "Wingtip_SITL.h"
 
 #include <AP_HAL/GPIO.h>
@@ -28,9 +29,9 @@ AP_HAL::DigitalSource *_sync_pin;
 
 // Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-#define _TYPE_default 2
+#define _TYPE_default WINGTIP_TYPE_X4
 #else
-#define _TYPE_default 0
+#define _TYPE_default WINGTIP_TYPE_DISABLED
 #endif
 
 // table of user settable parameters
@@ -38,8 +39,9 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
         // @Param: _TYPE
         // @DisplayName: Wingtip sensor type
         // @Description: What type of wingtip sensor is connected
-        // @Values: 0:Faked,1:I2C_Wingtip,2:I2C_Wingtip x4
-        AP_GROUPINFO("_TYPE",    0, AP_Wingtip, _type, _TYPE_default),
+        // @Values: 0:Disabled,1:Sim,2:I2C_Wingtip,3:I2C_Wingtip x4
+        AP_GROUPINFO("_TYPE0",    0, AP_Wingtip, _type[0], _TYPE_default),
+        AP_GROUPINFO("_TYPE1",    0, AP_Wingtip, _type[1], _TYPE_default),
 
         AP_GROUPEND
 };
@@ -69,9 +71,8 @@ void AP_Wingtip::init(void)
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
         state[0].instance = 0;
         drivers[0] = new AP_Wingtip_SITL(*this, 0, state[0]);
+        return;
 #endif
-
-
 
 
 // BBBMini with I2C connection
@@ -93,11 +94,16 @@ void AP_Wingtip::init(void)
         hal.scheduler->delay(5);
         _reset_pin->write(!WINGTIP_BOARD_RESET_LEVEL);       // go low to let it do it's thing
         hal.scheduler->delay(250);
+#endif
 
         // Loop through each of the available backends and see what we can start
         for (uint8_t ii=0; ii<WINGTIP_MAX_BACKENDS; ii++) {
-            switch (_type) {
-            case WINGTIP_TYPE_NONE :
+            switch (_type[ii]) {
+            case WINGTIP_TYPE_DISABLED :
+                break;
+
+            case WINGTIP_TYPE_SIM :
+                drivers[ii] = new AP_Wingtip_Sim(*this, ii, state[ii]);
                 break;
 
             case WINGTIP_TYPE_X2 :
@@ -112,8 +118,6 @@ void AP_Wingtip::init(void)
                 AP_HAL::panic("Wingtip board type not recognised!\n");
             }
         }
-#endif
-
 }
 
 // Update all the wingtip data

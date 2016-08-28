@@ -39,9 +39,10 @@ public:
 
     // RPM driver types
     enum Wingtip_Type {
-        WINGTIP_TYPE_NONE    = 0,
-        WINGTIP_TYPE_X2      = 1,
-        WINGTIP_TYPE_X4      = 2,
+        WINGTIP_TYPE_DISABLED = 0,
+        WINGTIP_TYPE_SIM      = 1,
+        WINGTIP_TYPE_X2       = 2,
+        WINGTIP_TYPE_X4       = 3,
     };
 
 
@@ -59,7 +60,7 @@ public:
     };
 
     // parameters for each instance
-    AP_Int8  _type;
+    AP_Int8  _type[WINGTIP_MAX_BACKENDS];
 
     static const struct AP_Param::GroupInfo var_info[];
 

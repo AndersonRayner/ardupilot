@@ -26,11 +26,7 @@
 #include <AP_HAL/I2CDevice.h>
 #include <utility>
 
-
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-
 extern const AP_HAL::HAL &hal;
-
 
 AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip::Wingtip_State &_state)
     : AP_Wingtip_Backend(_wingtip, instance, _state)
@@ -139,5 +135,3 @@ void AP_Wingtip_x4::update()
     state.de[3] = 0.0f;
 
 }
-
-#endif // CONFIG_HAL_BOARD_SUBTYPE

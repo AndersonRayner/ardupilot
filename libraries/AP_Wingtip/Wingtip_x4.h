@@ -27,8 +27,6 @@
 #include <utility>
 #include <AP_HAL/I2CDevice.h>
 
-#if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-
 class AP_Wingtip_x4 : public AP_Wingtip_Backend
 {
 public:
@@ -56,5 +54,3 @@ private:
     } data1;
 
 };
-
-#endif // CONFIG_HAL_BOARD_SUBTYPE
