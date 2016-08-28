@@ -36,9 +36,9 @@ AP_Wingtip_x4::AP_Wingtip_x4(AP_Wingtip &_wingtip, uint8_t instance, AP_Wingtip:
     state.enabled = init(WINGTIP_I2C_ADDR0+instance);
 
     if (state.enabled) {
-        hal.console->printf("    Wingtip_x4 sensor %u [ x ]\n",state.instance);
+        hal.console->printf("  Wingtip %u: [ x ]\n",state.instance);
     } else {
-        hal.console->printf("    Wingtip_x4 sensor %u [   ]\n",state.instance);
+        hal.console->printf("  Wingtip %u: [   ]\n",state.instance);
     }
 }
 
@@ -50,9 +50,6 @@ AP_Wingtip_x4::~AP_Wingtip_x4()
 
 bool AP_Wingtip_x4::init(uint8_t i2c_address)
 {
-
-    hal.console->printf("Initialising wingtip_x4 board %d\n",state.instance);
-
     // create i2c bus object
     _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, i2c_address));
 

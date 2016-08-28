@@ -50,9 +50,6 @@ AP_Wingtip_x2::~AP_Wingtip_x2()
 
 bool AP_Wingtip_x2::init(uint8_t i2c_address)
 {
-
-    hal.console->printf("Initialising wingtip_x2 board %d\n",state.instance);
-
     // create i2c bus object
     _dev = std::move(hal.i2c_mgr->get_device(WINGTIP_I2C_BUS, i2c_address));
 

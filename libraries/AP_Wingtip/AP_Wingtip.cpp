@@ -41,7 +41,7 @@ const AP_Param::GroupInfo AP_Wingtip::var_info[] = {
         // @Description: What type of wingtip sensor is connected
         // @Values: 0:Disabled,1:Sim,2:I2C_Wingtip,3:I2C_Wingtip x4
         AP_GROUPINFO("_TYPE0",    0, AP_Wingtip, _type[0], _TYPE_default),
-        AP_GROUPINFO("_TYPE1",    0, AP_Wingtip, _type[1], _TYPE_default),
+        AP_GROUPINFO("_TYPE1",    1, AP_Wingtip, _type[1], _TYPE_default),
 
         AP_GROUPEND
 };
