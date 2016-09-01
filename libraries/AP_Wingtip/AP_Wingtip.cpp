@@ -29,7 +29,7 @@ AP_HAL::DigitalSource *_sync_pin;
 
 // Define default board type
 #if CONFIG_HAL_BOARD_SUBTYPE == HAL_BOARD_SUBTYPE_LINUX_BBBMINI
-#define _TYPE_default WINGTIP_TYPE_X4
+#define _TYPE_default WINGTIP_TYPE_X2
 #else
 #define _TYPE_default WINGTIP_TYPE_DISABLED
 #endif
