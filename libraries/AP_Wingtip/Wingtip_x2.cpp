@@ -102,17 +102,14 @@ void AP_Wingtip_x2::update()
 
     // Calculate checksum
     CRC = 0;
-    for (uint8_t ii = 0; ii<6; ii++) {
+    for (uint8_t ii = 0; ii<4; ii++) {
         CRC = CRC ^ data1.rxBuffer[ii];
     }
 
-    if (data1.rxBuffer[6] == CRC) {
+    if (data1.rxBuffer[4] == CRC) {
         // data has passed checksum
         state.rpm[0]    = data1.data[0];
         state.rpm[1]    = data1.data[1];
-        state.de_raw[0] = data1.data[2];
-
-        state.de[0]     = 3.0f*state.de_raw[0];
 
         state.healthy = true;
 
@@ -125,10 +122,12 @@ void AP_Wingtip_x2::update()
     state.rpm[2] = 0;
     state.rpm[3] = 0;
 
+    state.de_raw[0] = 0;
     state.de_raw[1] = 0;
     state.de_raw[2] = 0;
     state.de_raw[3] = 0;
 
+    state.de[0] = 0.0f;
     state.de[1] = 0.0f;
     state.de[2] = 0.0f;
     state.de[3] = 0.0f;

@@ -49,8 +49,8 @@ private:
 
     // Struct for receiving data via I2C
     union wingtip_data {
-       uint8_t rxBuffer[7];
-       uint16_t data[3];
+       uint8_t rxBuffer[5];
+       uint16_t data[2];
     } data1;
 
 };
