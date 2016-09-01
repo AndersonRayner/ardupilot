@@ -440,15 +440,17 @@ void Copter::twentyfive_hz_logging()
 }
 
 // Logging for Systems ID, run at 100 Hz
-// Use the log mask 1048844
+// Use the log mask 1048576
 void Copter::sys_id_logging()
 {
     sys_id_logging_loop_count++;
 
-    if (sys_id_logging_loop_count == 2000) {
-        // Stops the value over-flowing (after 10 mins) and causing timing problem
+    if (sys_id_logging_loop_count == 100) {
+        // Resets the loop count every second
         sys_id_logging_loop_count = 0;
     }
+
+    // Need to do something about logging processor performance in here
 
     if (should_log(MASK_LOG_SYS_ID)) {
         // Log PWM in/out
@@ -488,6 +490,17 @@ void Copter::sys_id_logging()
         } else if (sys_id_logging_loop_count % 4 == 3) {
             // Cycle 3
             DataFlash.Log_Write_Current(battery);
+        }
+
+        // Data at 10 Hz
+        if (sys_id_logging_loop_count % 10 == 0) {
+            // Cycle 1
+            DataFlash.Log_Write_GPS(gps, 0);
+        }
+
+        // Data at 1 Hz
+        if (sys_id_logging_loop_count == 0) {
+            Log_Write_Performance();
         }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
