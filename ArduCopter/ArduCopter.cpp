@@ -122,7 +122,7 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(twentyfive_hz_logging, 25,    110),
     SCHED_TASK(sys_id_logging,       100,    400),
     SCHED_TASK(dataflash_periodic,   400,    300),
-    SCHED_TASK(perf_update,          0.1,    75),
+    SCHED_TASK(perf_update,            1,     75),
     SCHED_TASK(read_receiver_rssi,    10,     75),
     SCHED_TASK(rpm_update,            10,    200),
     SCHED_TASK(wingtip_update,        50,    400),
@@ -204,15 +204,31 @@ void Copter::barometer_accumulate(void)
 
 void Copter::perf_update(void)
 {
-    if (should_log(MASK_LOG_PM))
+    if (should_log(MASK_LOG_PM) || should_log(MASK_LOG_SYS_ID)) {
         Log_Write_Performance();
+
+        // Update CPU load (in % for 1 sec interval)
+        cpu_t = clock();
+        int CPU_load = (int) (cpu_t - cpu_t_old) / 10000;
+        cpu_t_old = cpu_t;
+
+        // Get current time (according to OS)
+        // apparently should be using clock_gettime() here...
+        gettimeofday(&time_current, NULL);
+        uint64_t current_time = (uint64_t) ((time_current.tv_sec - time_startup.tv_sec)*1000000L + time_current.tv_usec - time_startup.tv_usec);
+
+        // Log the data
+        DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
+    }
+
     if (scheduler.debug()) {
         gcs_send_text_fmt(MAV_SEVERITY_WARNING, "PERF: %u/%u %lu %lu\n",
-                          (unsigned)perf_info_get_num_long_running(),
-                          (unsigned)perf_info_get_num_loops(),
-                          (unsigned long)perf_info_get_max_time(),
-                          (unsigned long)perf_info_get_min_time());
+                (unsigned)perf_info_get_num_long_running(),
+                (unsigned)perf_info_get_num_loops(),
+                (unsigned long)perf_info_get_max_time(),
+                (unsigned long)perf_info_get_min_time());
     }
+
     perf_info_reset();
     pmTest1 = 0;
 }
@@ -506,20 +522,8 @@ void Copter::sys_id_logging()
 
         // Data at 1 Hz
         if (sys_id_logging_loop_count == 0) {
-            Log_Write_Performance();
 
-            // Update CPU load (in % for 1 sec interval)
-            cpu_t = clock();
-            int CPU_load = (int) (cpu_t - cpu_t_old) / 10000;
-            cpu_t_old = cpu_t;
 
-            // Get current time (according to OS)
-            // apparently should be using clock_gettime() here...
-            gettimeofday(&time_current, NULL);
-            uint64_t current_time = (uint64_t) ((time_current.tv_sec - time_startup.tv_sec)*1000000L + time_current.tv_usec - time_startup.tv_usec);
-
-            // Log the data
-            DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
         }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
