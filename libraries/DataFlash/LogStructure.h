@@ -717,6 +717,13 @@ struct PACKED log_SbpRAW2 {
     uint8_t data2[192];
 };
 
+struct PACKED log_Linux {
+    LOG_PACKET_HEADER;
+    uint64_t time_us_APM;
+    uint64_t time_us_system;
+    uint8_t  CPU_load;
+};
+
 struct PACKED log_Rally {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -925,6 +932,8 @@ Format characters in the format string for binary log messages
       "WNG1", "QHHHHffffB", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2,de3,de4,i2c" },\
     { LOG_WINGTIP2_MSG, sizeof(log_Wingtip), \
       "WNG2", "QHHHHffffB", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2,de3,de4,i2c" },\
+    { LOG_LINUX_MSG, sizeof(log_Linux), \
+      "LNUX", "QQB", "TimeUS,TimeSYS,CPU" },\
     { LOG_GIMBAL1_MSG, sizeof(log_Gimbal1), \
       "GMB1", "Iffffffffff", "TimeMS,dt,dax,day,daz,dvx,dvy,dvz,jx,jy,jz" }, \
     { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
@@ -1051,6 +1060,7 @@ enum LogMessages {
     LOG_RATE_MSG,
     LOG_WINGTIP1_MSG,
     LOG_WINGTIP2_MSG,
+    LOG_LINUX_MSG,
     LOG_RALLY_MSG,
 };
 

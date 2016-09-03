@@ -1924,6 +1924,19 @@ void DataFlash_Class::Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor)
 
 }
 
+void DataFlash_Class::Log_Write_Linux(uint64_t system_time, uint8_t CPU_load)
+{
+    // Write data packet
+        struct log_Linux pkt = {
+                LOG_PACKET_HEADER_INIT(LOG_LINUX_MSG),
+                time_us_APM     : AP_HAL::micros64(),
+                time_us_system  : system_time,
+                CPU_load        : CPU_load
+        };
+        WriteBlock(&pkt, sizeof(pkt));
+
+}
+
 // Write rally points
 void DataFlash_Class::Log_Write_Rally(const AP_Rally &rally)
 {

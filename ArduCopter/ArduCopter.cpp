@@ -168,6 +168,10 @@ void Copter::setup()
     // setup storage layout for copter
     StorageManager::set_layout_copter();
 
+    // Get initialisation time
+    getttimeofday(&t_startup, NULL);
+
+    // Initialise ardupilot
     init_ardupilot();
 
     // initialise the main loop scheduler
@@ -578,6 +582,18 @@ void Copter::one_hz_loop()
     terrain_logging();
 
     adsb.set_is_flying(!ap.land_complete);
+
+    // Update CPU load (in % for 1 sec interval)
+    cpu_t = clock();
+    int CPU_load = (int) (cpu_t - cpu_t_old) / 10000;
+    cpu_t_old = cpu_t;
+
+    // Get current time (according to OS)
+    getttimeofday(&time_current, NULL);
+    uint64_t current_time = ((t_current.tv_sec - t_startup.tv_sec)*1000000L+ t_current.tv_usec) - t_startup.tv_usec);
+
+    // Log the data
+    DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
 }
 
 // called at 50hz
