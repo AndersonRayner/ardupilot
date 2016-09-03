@@ -217,8 +217,11 @@ void Copter::perf_update(void)
         gettimeofday(&time_current, NULL);
         uint64_t current_time = (uint64_t) ((time_current.tv_sec - time_startup.tv_sec)*1000000L + time_current.tv_usec - time_startup.tv_usec);
 
+        // Get memory usage
+        getrusage(RUSAGE_SELF,&r_usage);
+
         // Log the data
-        DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
+        DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load, (uint32_t)r_usage.ru_maxrss);
     }
 
     if (scheduler.debug()) {

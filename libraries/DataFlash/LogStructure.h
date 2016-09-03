@@ -722,6 +722,7 @@ struct PACKED log_Linux {
     uint64_t time_us_APM;
     uint64_t time_us_system;
     uint8_t  CPU_load;
+    uint32_t RAM_usage;
 };
 
 struct PACKED log_Rally {
@@ -933,7 +934,7 @@ Format characters in the format string for binary log messages
     { LOG_WINGTIP2_MSG, sizeof(log_Wingtip), \
       "WNG2", "QHHHHffffB", "TimeUS,rpm1,rpm2,rpm3,rpm4,de1,de2,de3,de4,i2c" },\
     { LOG_LINUX_MSG, sizeof(log_Linux), \
-      "LNUX", "QQB", "TimeUS,TimeSYS,CPU" },\
+      "LNUX", "QQBI", "TimeUS,TimeSYS,CPU,RAM" },\
     { LOG_GIMBAL1_MSG, sizeof(log_Gimbal1), \
       "GMB1", "Iffffffffff", "TimeMS,dt,dax,day,daz,dvx,dvy,dvz,jx,jy,jz" }, \
     { LOG_GIMBAL2_MSG, sizeof(log_Gimbal2), \
