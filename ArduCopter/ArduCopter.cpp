@@ -170,6 +170,8 @@ void Copter::setup()
 
     // Get initialisation time
     gettimeofday(&time_startup, NULL);
+    cpu_t = clock();
+    cpu_t_old = cpu_t;
 
     // Initialise ardupilot
     init_ardupilot();
