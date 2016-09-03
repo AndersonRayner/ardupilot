@@ -169,7 +169,7 @@ void Copter::setup()
     StorageManager::set_layout_copter();
 
     // Get initialisation time
-    getttimeofday(&t_startup, NULL);
+    gettimeofday(&time_startup, NULL);
 
     // Initialise ardupilot
     init_ardupilot();
@@ -505,6 +505,19 @@ void Copter::sys_id_logging()
         // Data at 1 Hz
         if (sys_id_logging_loop_count == 0) {
             Log_Write_Performance();
+
+            // Update CPU load (in % for 1 sec interval)
+            cpu_t = clock();
+            int CPU_load = (int) (cpu_t - cpu_t_old) / 10000;
+            cpu_t_old = cpu_t;
+
+            // Get current time (according to OS)
+            // apparently should be using clock_gettime() here...
+            gettimeofday(&time_current, NULL);
+            uint64_t current_time = (uint64_t) ((time_current.tv_sec - time_startup.tv_sec)*1000000L + time_current.tv_usec - time_startup.tv_usec);
+
+            // Log the data
+            DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
         }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
@@ -583,17 +596,6 @@ void Copter::one_hz_loop()
 
     adsb.set_is_flying(!ap.land_complete);
 
-    // Update CPU load (in % for 1 sec interval)
-    cpu_t = clock();
-    int CPU_load = (int) (cpu_t - cpu_t_old) / 10000;
-    cpu_t_old = cpu_t;
-
-    // Get current time (according to OS)
-    getttimeofday(&time_current, NULL);
-    uint64_t current_time = ((t_current.tv_sec - t_startup.tv_sec)*1000000L+ t_current.tv_usec) - t_startup.tv_usec);
-
-    // Log the data
-    DataFlash.Log_Write_Linux(current_time, (uint8_t)CPU_load);
 }
 
 // called at 50hz

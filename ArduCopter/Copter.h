@@ -90,7 +90,6 @@
 #include <AC_InputManager/AC_InputManager.h>        // Pilot input handling library
 #include <AC_InputManager/AC_InputManager_Heli.h>   // Heli specific pilot input handling library
 #include <AP_Button/AP_Button.h>
-#include <time.h>
 #include <sys/time.h>
 
 // Configuration
@@ -607,11 +606,8 @@ private:
         float takeoff_alt_cm;
     } gndeffect_state;
 
-    clock_t clock(void);
-    int cpu_t;
-    int cpu_t_old;
-    struct timeval t_startup;
-    struct timeval t_current;
+    clock_t cpu_t, cpu_t_old;
+    timeval time_startup, time_current;
 
     static const AP_Scheduler::Task scheduler_tasks[];
     static const AP_Param::Info var_info[];
