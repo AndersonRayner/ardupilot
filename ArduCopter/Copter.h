@@ -90,6 +90,8 @@
 #include <AC_InputManager/AC_InputManager.h>        // Pilot input handling library
 #include <AC_InputManager/AC_InputManager_Heli.h>   // Heli specific pilot input handling library
 #include <AP_Button/AP_Button.h>
+#include <sys/time.h>                               // Library for doing CPU usage / system timing
+#include <sys/resource.h>                           // Library for RAM usage
 
 // Configuration
 #include "defines.h"
@@ -604,6 +606,13 @@ private:
         uint32_t takeoff_time_ms;
         float takeoff_alt_cm;
     } gndeffect_state;
+
+    // CPU usage
+    clock_t cpu_t, cpu_t_old;
+    timeval time_startup, time_current;
+
+    // RAM usage
+    rusage r_usage;
 
     static const AP_Scheduler::Task scheduler_tasks[];
     static const AP_Param::Info var_info[];

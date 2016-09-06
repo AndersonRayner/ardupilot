@@ -148,6 +148,7 @@ public:
     void Log_Write_Origin(uint8_t origin_type, const Location &loc);
     void Log_Write_RPM(const AP_RPM &rpm_sensor);
     void Log_Write_Wingtip(const AP_Wingtip &wingtip_sensor);
+    void Log_Write_Linux(uint64_t system_time, uint8_t CPU_load, uint32_t RAM_usage);
     void Log_Write_Rate(const AP_AHRS &ahrs,
                         const AP_Motors &motors,
                         const AC_AttitudeControl &attitude_control,

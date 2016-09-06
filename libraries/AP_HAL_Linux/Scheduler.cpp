@@ -30,11 +30,11 @@ using namespace Linux;
 extern const AP_HAL::HAL& hal;
 
 #define APM_LINUX_TIMER_PRIORITY        15
-#define APM_LINUX_UART_PRIORITY         14
+#define APM_LINUX_UART_PRIORITY         10
 #define APM_LINUX_RCIN_PRIORITY         13
 #define APM_LINUX_MAIN_PRIORITY         12
 #define APM_LINUX_TONEALARM_PRIORITY    11
-#define APM_LINUX_IO_PRIORITY           10
+#define APM_LINUX_IO_PRIORITY           14
 
 #define APM_LINUX_TIMER_RATE            1000
 #define APM_LINUX_UART_RATE             100
@@ -48,7 +48,7 @@ extern const AP_HAL::HAL& hal;
 #else
 #define APM_LINUX_RCIN_RATE             100
 #define APM_LINUX_TONEALARM_RATE        100
-#define APM_LINUX_IO_RATE               50
+#define APM_LINUX_IO_RATE               100
 #endif
 
 #define SCHED_THREAD(name_, UPPER_NAME_)                        \
