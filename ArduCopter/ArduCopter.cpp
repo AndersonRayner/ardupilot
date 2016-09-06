@@ -468,16 +468,15 @@ void Copter::twentyfive_hz_logging()
 // Use the log mask 1048576
 void Copter::sys_id_logging()
 {
-    sys_id_logging_loop_count++;
-
-    if (sys_id_logging_loop_count == 100) {
-        // Resets the loop count every second
-        sys_id_logging_loop_count = 0;
-    }
-
-    // Need to do something about logging processor performance in here
-
     if (should_log(MASK_LOG_SYS_ID)) {
+
+        sys_id_logging_loop_count++;
+
+        if (sys_id_logging_loop_count == 100) {
+            // Resets the loop count every second
+            sys_id_logging_loop_count = 0;
+        }
+
         // Log PWM in/out
         DataFlash.Log_Write_RCIN();
         DataFlash.Log_Write_RCOUT();
@@ -487,11 +486,7 @@ void Copter::sys_id_logging()
         targets.z = wrap_360_cd(targets.z);
         DataFlash.Log_Write_Attitude(ahrs, targets);
         DataFlash.Log_Write_Rate(ahrs, motors, attitude_control, pos_control);
-#if OPTFLOW == ENABLED
-        DataFlash.Log_Write_EKF(ahrs,optflow.enabled());
-#else
         DataFlash.Log_Write_EKF(ahrs,false);
-#endif
 
         // Data at 50 Hz
         if (sys_id_logging_loop_count % 2 == 0) {
@@ -533,7 +528,7 @@ void Copter::sys_id_logging()
         sitl.Log_Write_SIMSTATE(&DataFlash);
 #endif
 
-      }
+    }
 }
 
 void Copter::dataflash_periodic(void)
