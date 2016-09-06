@@ -493,15 +493,6 @@ void Compass::_detect_backends(void)
 #elif HAL_COMPASS_DEFAULT == HAL_COMPASS_BBBMINI
     bool ret;
 
-    // External compass (HMC5883L)
-       ret = _add_backend(AP_Compass_HMC5843::probe(*this, hal.i2c_mgr->get_device(HAL_COMPASS_HMC5843_I2C_BUS, HAL_COMPASS_HMC5843_I2C_ADDR), true),
-                 AP_Compass_HMC5843::name, true);
-    if (ret) {
-        hal.console->printf("    HMC5843: [ X ]\n");
-    } else {
-        hal.console->printf("    HMC5843: [   ]\n");
-    }
-
     // Internal compass (MPU9250)
     ret = _add_backend(AP_Compass_AK8963::probe_mpu9250(*this, 0),
             AP_Compass_AK8963::name, false);
@@ -518,6 +509,15 @@ void Compass::_detect_backends(void)
         hal.console->printf("    LSM303D: [ X ]\n");
     } else {
         hal.console->printf("    LSM303D: [   ]\n");
+    }
+
+    // External compass (HMC5883L)
+       ret = _add_backend(AP_Compass_HMC5843::probe(*this, hal.i2c_mgr->get_device(HAL_COMPASS_HMC5843_I2C_BUS, HAL_COMPASS_HMC5843_I2C_ADDR), true),
+                 AP_Compass_HMC5843::name, true);
+    if (ret) {
+        hal.console->printf("    HMC5843: [ X ]\n");
+    } else {
+        hal.console->printf("    HMC5843: [   ]\n");
     }
 
     // External compass (extMPU9250)
