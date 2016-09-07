@@ -120,12 +120,12 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
     SCHED_TASK(update_trigger,        50,     75),
     SCHED_TASK(ten_hz_logging_loop,   10,    350),
     SCHED_TASK(twentyfive_hz_logging, 25,    110),
-    SCHED_TASK(sys_id_logging,       100,    400),
-    SCHED_TASK(dataflash_periodic,   400,    300),
+    SCHED_TASK(sys_id_logging,       400,    100),
+    SCHED_TASK(dataflash_periodic,   400,    100),
     SCHED_TASK(perf_update,            1,     75),
     SCHED_TASK(read_receiver_rssi,    10,     75),
-    SCHED_TASK(rpm_update,            10,    200),
-    SCHED_TASK(wingtip_update,        50,    400),
+    SCHED_TASK(rpm_update,            10,    75),
+    SCHED_TASK(wingtip_update,        50,    100),
     SCHED_TASK(read_airspeed,         10,    100),
     SCHED_TASK(compass_cal_update,   100,    100),
     SCHED_TASK(accel_cal_update,      10,    100),
@@ -168,11 +168,6 @@ void Copter::setup()
     // setup storage layout for copter
     StorageManager::set_layout_copter();
 
-    // Get initialisation time
-    gettimeofday(&time_startup, NULL);
-    cpu_t = clock();
-    cpu_t_old = cpu_t;
-
     // Initialise ardupilot
     init_ardupilot();
 
@@ -181,6 +176,12 @@ void Copter::setup()
 
     // setup initial performance counters
     perf_info_reset();
+
+    // Get initialisation time
+    gettimeofday(&time_startup, NULL);
+    cpu_t = clock();
+    cpu_t_old = cpu_t;
+
     fast_loopTimer = AP_HAL::micros();
 }
 
@@ -464,7 +465,7 @@ void Copter::twentyfive_hz_logging()
 #endif
 }
 
-// Logging for Systems ID, run at 100 Hz
+// Logging for Systems ID, run at 400 Hz to get cycling right
 // Use the log mask 1048576
 void Copter::sys_id_logging()
 {
@@ -472,62 +473,77 @@ void Copter::sys_id_logging()
 
         sys_id_logging_loop_count++;
 
-        if (sys_id_logging_loop_count == 100) {
+        if (sys_id_logging_loop_count == 400) {
             // Resets the loop count every second
             sys_id_logging_loop_count = 0;
         }
 
-        // Log PWM in/out
-        DataFlash.Log_Write_RCIN();
-        DataFlash.Log_Write_RCOUT();
+        // 100 Hz Logging
+        if (sys_id_logging_loop_count % 4 == 0) {
+            // Cycle 0
 
-        // Log desired + actual attitudes and rates
-        Vector3f targets = attitude_control.get_att_target_euler_cd();
-        targets.z = wrap_360_cd(targets.z);
-        DataFlash.Log_Write_Attitude(ahrs, targets);
-        DataFlash.Log_Write_Rate(ahrs, motors, attitude_control, pos_control);
-        DataFlash.Log_Write_EKF(ahrs,false);
+            // Log PWM in/out
+            DataFlash.Log_Write_RCIN();
+            DataFlash.Log_Write_RCOUT();
+
+        } else if (sys_id_logging_loop_count % 4 == 1) {
+            // Cycle 1
+
+            // Log desired + actual attitudes
+            Vector3f targets = attitude_control.get_att_target_euler_cd();
+            targets.z = wrap_360_cd(targets.z);
+            DataFlash.Log_Write_Attitude(ahrs, targets);
+
+        } else if (sys_id_logging_loop_count % 4 == 2) {
+            // Cycle 2
+
+            // Rates
+            DataFlash.Log_Write_Rate(ahrs, motors, attitude_control, pos_control);
+
+        } else if (sys_id_logging_loop_count % 4 == 3) {
+            // Cycle 3
+
+            // EKF data
+            DataFlash.Log_Write_EKF(ahrs,false);
+
+            // Sim data if applicable
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+        sitl.Log_Write_SIMSTATE(&DataFlash);
+#endif
+
+
+        }
 
         // Data at 50 Hz
-        if (sys_id_logging_loop_count % 2 == 0) {
+        if (sys_id_logging_loop_count % 8 == 3) {
             // Cycle 0
             DataFlash.Log_Write_Wingtip(wingtip_sensor);
-        } else if (sys_id_logging_loop_count % 2 == 1) {
+
+        } else if (sys_id_logging_loop_count % 8 == 1) {
             // Cycle 1
         }
 
         // Data at 25 Hz
-        if (sys_id_logging_loop_count % 4 == 0) {
+        if (sys_id_logging_loop_count % 16 == 3) {
             // Cycle 0
             DataFlash.Log_Write_Vibration(ins);
             DataFlash.Log_Write_Airspeed(airspeed);
-        } else if (sys_id_logging_loop_count % 4 == 1) {
+        } else if (sys_id_logging_loop_count % 16 == 7) {
             // Cycle 1
             Log_Write_Control_Tuning();   // CTUN
-        } else if (sys_id_logging_loop_count % 4 == 2) {
+        } else if (sys_id_logging_loop_count % 16 == 9) {
             // Cycle 2
             Log_Write_Nav_Tuning();       // NTUN
-        } else if (sys_id_logging_loop_count % 4 == 3) {
+        } else if (sys_id_logging_loop_count % 16 == 13) {
             // Cycle 3
             DataFlash.Log_Write_Current(battery);
         }
 
         // Data at 10 Hz
-        if (sys_id_logging_loop_count % 10 == 0) {
+        if (sys_id_logging_loop_count % 40 == 1) {
             // Cycle 1
             DataFlash.Log_Write_GPS(gps, 0);
         }
-
-        // Data at 1 Hz
-        if (sys_id_logging_loop_count == 0) {
-
-
-        }
-
-#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
-        sitl.Log_Write_SIMSTATE(&DataFlash);
-#endif
-
     }
 }
 
